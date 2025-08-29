@@ -1,0 +1,130 @@
+@import url("https://fonts.googleapis.com/css2?family=Asta+Sans:wght@300..800&family=Audiowide&family=Inter+Tight:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Asta+Sans:wght@300..800&family=Audiowide&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter+Tight:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
+body {
+  font-family: "DM Sans", sans-serif;
+  font-weight: 200;
+  font-style: normal;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Audiowide", sans-serif;
+  font-weight: 400;
+  font-style: bold;
+  color: #11e7ff3b;
+}
+
+@media (min-width: 1539px) {
+  .custom-container {
+    max-width: 1600px;
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+@media (min-width: 1281px) and (max-width: 1538px) {
+  .custom-container {
+    max-width: 1500px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+}
+@media (min-width: 1025px) and (max-width: 1280px) {
+  .custom-container {
+    max-width: 1350px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+}
+
+.cmc-wrap {
+  position: relative;
+  padding: 24px 0;
+  width: 100%;
+} /* layout: allow peeking beyond container */
+.track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  width: 100%;
+} /* Overlap neighbours to remove visible gaps */
+.slide {
+  margin: 0 -70px; /* tighten/loosen by tweaking -70/-90 */
+  width: 1025px; /* card width (desktop); can use % if you want */
+  max-width: 28vw;
+  height: 470px;
+  border-radius: 25px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.35s ease, opacity 0.35s ease, filter 0.35s ease;
+  transform: translateX(0) scale(0.7); /* far default */
+  opacity: 1;
+}
+.slide > img {
+  display: block;
+  font: 700 28px/1 system-ui, sans-serif;
+} /* second neighbours (behind) = 0.7 + inward nudge */
+.slide.lt2 {
+  transform: translateX(32%) scale(0.7);
+  /* transform: translateX(-32%) scale(0.7); */
+  opacity: 1;
+}
+.slide.gt2 {
+  transform: translateX(-32%) scale(0.7);
+  /* transform: translateX(32%) scale(0.7); */
+  z-index: -1;
+  opacity: 1;
+} /* immediate neighbours = 0.8 + slight nudge */
+.slide.lt1 {
+  transform: translateX(10%) scale(0.8);
+  /* transform: translateX(-10%) scale(0.8); */
+  opacity: 1;
+}
+.slide.gt1 {
+  transform: translateX(-10%) scale(0.8);
+  /* transform: translateX(10%) scale(0.8); */
+  opacity: 1;
+} /* center = 1.0 */
+.slide.slick-center {
+  transform: translateX(0) scale(1);
+  min-width: 1025px;
+  z-index: 1;
+  opacity: 1;
+} /* teal circular arrows */
+.nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  border: 0;
+  background: #0fb4bb;
+  box-shadow: 0 8px 24px rgba(15, 180, 187, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.nav.prev {
+  left: 8px;
+}
+.nav.next {
+  right: 8px;
+}
+.nav svg {
+  display: block;
+}
+
+@media (min-width: 1024px) and (max-width: 1280px) {
+  .slide.slick-center {
+    min-width: 725px;
+  }
+}
