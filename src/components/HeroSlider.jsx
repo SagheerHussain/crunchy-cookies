@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 export default function CenterModeCarousel({
   autoplay = true,
-  interval = 150000,   // fixed per-slide delay
+  interval = 4000,   // fixed per-slide delay
   pauseOnHover = false,
 }) {
   const items = [
