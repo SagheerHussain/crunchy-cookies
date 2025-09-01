@@ -1,17 +1,12 @@
 import React, { Fragment, useState } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { TbTruckDelivery, TbMapPin } from "react-icons/tb";
-import { PiGlobeHemisphereWestLight, PiShoppingBagThin } from "react-icons/pi";
+import { PiGlobeHemisphereWestLight, PiShoppingBagBold } from "react-icons/pi";
 import { FiChevronDown } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
 
 const countries = [
   "Qatar",
-  "Saudi Arabia",
-  "United Arab Emirates",
-  "Kuwait",
-  "Bahrain",
-  "Oman",
 ];
 
 export default function Topbar() {
@@ -35,10 +30,10 @@ export default function Topbar() {
             </li>
             <li className="flex items-center gap-2">
               <TbMapPin className="text-[18px] text-primary" />
-              <span className="text-[16px]">No adds Hassle</span>
+              <span className="text-[16px]">No address Hassle</span>
             </li>
             <li className="flex items-center gap-2">
-              <PiShoppingBagThin className="text-[18px] text-primary" />
+              <PiShoppingBagBold className="text-[18px] text-primary" />
               <span className="text-[16px]">Premium Flowers & Gifts</span>
             </li>
           </ul>
@@ -87,7 +82,7 @@ active ? "bg-gray-100" : ""
               onClick={() => changeLanguage(i18n.language === "ar" ? "en" : "ar")}
               className="flex items-center bg-primary_light_mode gap-2 rounded-full px-4 py-2 text-[15px] text-neutral-700 shadow-sm"
             >
-              <span>{i18n.language === "ar" ? "العربية" : "English"}</span>
+              <span>{i18n.language === "ar" ? "English" : "العربية" }</span>
               <PiGlobeHemisphereWestLight
                 className="text-[18px]"
                 style={{ color: "#0FB4BB" }}

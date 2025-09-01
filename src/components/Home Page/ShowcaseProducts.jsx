@@ -1,0 +1,56 @@
+// BestSellersSection.js
+import React from 'react';
+import { FiHeart } from "react-icons/fi";
+import { IoIosArrowForward } from "react-icons/io";
+import { Link } from 'react-router-dom';
+import Button from "../Button";
+import { useTranslation } from "react-i18next";
+
+const ShowcaseProducts = ({ products, en_title, ar_title }) => {
+
+    const { i18n } = useTranslation();
+    const langClass = i18n.language === "ar" ? "ar" : "en";
+
+    return (
+        <section className="py-20 px-4">
+            <div className="custom-container relative">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-center lg:text-[1.8rem] xl:text-[2.5rem] text-primary">{langClass === "ar" ? ar_title : en_title}</h2>
+                    <Button label="See more" />
+                </div>
+                <div className="absolute bottom-[-7%] left-0 w-full bg-[#0fb5bb25] rounded-[25px] lg:h-[200px] xl:h-[250px] border-[1px] border-primary"></div>
+                <div className="grid grid-cols-4 gap-x-6 lg:px-0 xl:px-2 2xl:px-6 py-6">
+                    {products.map((product) => (
+                        <div key={product.id} className="relative">
+                            <img
+                                src={product.image}
+                                alt={langClass === "en" ? product.en_title : product.ar_title}
+                                className="w-full object-cover lg:h-[325px] 2xl:h-[400px] rounded-[35px]"
+                            />
+                            <div className="absolute w-full h-full top-0 left-0 bg-black/30 rounded-[35px]"></div>
+                            <div className="absolute top-[5%] right-[5%]">
+                                <button className="bg-white p-2 rounded-full">
+                                    <FiHeart size={20} className='text-black' />
+                                </button>
+                            </div>
+                            <div className="absolute bottom-0 w-full p-4 flex items-center justify-between">
+                                <div>
+                                    <h5 className="text-lg text-white font-medium">{langClass === "en" ? product.en_title : product.ar_title}</h5>
+                                    <h6 className="text-lg text-white font-medium">{langClass === "en" ? product.en_count : product.ar_count}</h6>
+                                </div>
+                                <div className="flex justify-between items-center mt-4">
+                                    <Link to={``} className="bg-primary hover:bg-primary/70 rounded-full p-2">
+                                        <IoIosArrowForward size={28} className='text-white' />
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+            </div>
+        </section>
+    );
+};
+
+export default ShowcaseProducts;

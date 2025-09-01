@@ -1,24 +1,24 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import Button from "../Button";
 
-/**
- * Reusable strip component
- * props:
- *  - title: { en: string, ar: string }
- *  - items: [{ id, name_en, name_ar, image }]
- *  - className?: extra wrapper classes
- */
-export default function GiftIdeasSection({ title, items = [], className = "" }) {
+export default function GiftIdeasSection({ en_title, ar_title, items = [], className = "" }) {
   const { i18n } = useTranslation();
   const isAr = i18n.language === "ar";
+
+  console.log("items", items)
 
   return (
     <section className={`py-20 ${className}`}>
       <div className="custom-container">
         {/* Title */}
-        <h2 className="text-center text-3xl xl:text-[2.5rem] tracking-wide text-primary mb-10">
-          {title}
-        </h2>
+        <div className="flex items-center justify-between mb-10">
+          <h2 className="text-center lg:text-[1.8rem] xl:text-[2.5rem] tracking-wide text-primary">
+            {isAr ? ar_title : en_title}
+          </h2>
+          <Button label="See more" />
+        </div>
 
         {/* Gradient container */}
         <div
@@ -31,26 +31,26 @@ export default function GiftIdeasSection({ title, items = [], className = "" }) 
           {/* white-ish overlay for the soft look */}
           <div className="rounded-[35px]">
             {/* Items row */}
-            <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-8 place-items-center">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-8 place-items-center">
               {items.map((it) => (
-                <li key={it.id} className="flex flex-col items-center">
+                <Link key={it.id} to={``} className="flex flex-col items-center group">
                   {/* circular badge behind image */}
                   <div className="rounded-full flex items-center justify-center">
                     <img
                       src={it.image}
-                      alt={isAr ? it.name_ar : it.name_en}
-                      className="transition-transform duration-200 scale-75"
+                      alt={isAr ? it.ar_title : it.en_title}
+                      className="transition-transform duration-200 scale-75 group-hover:scale-90"
                       loading="lazy"
                     />
                   </div>
 
                   {/* caption */}
-                  <p className="text-[20px] font-medium text-primary text-center">
-                    {isAr ? it.name_ar : it.name_en}
+                  <p className={`font-medium text-primary text-center ${isAr ? "text-[24px]" : "text-[20px] "}`}>
+                    {isAr ? it.ar_title : it.en_title}
                   </p>
-                </li>
+                </Link>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
       </div>

@@ -1,69 +1,150 @@
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useCallback,
-  useState,
-} from "react";
-import bannerOne from "/images/Hero Slider/banner-one.jpg";
-import bannerTwo from "/images/Hero Slider/banner-two.jpg";
-import bannerThree from "/images/Hero Slider/banner-three.avif";
-import bannerFour from "/images/Hero Slider/banner-four.avif";
-import bannerFive from "/images/Hero Slider/banner-five.avif";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import Button from "./Button";
+import { useTranslation } from "react-i18next";
 
 export default function CenterModeCarousel({
   autoplay = true,
-  interval = 3500,
+  interval = 150000,   // fixed per-slide delay
+  pauseOnHover = false,
 }) {
   const items = [
-    bannerOne,
-    bannerTwo,
-    bannerThree,
-    bannerFour,
-    bannerFive,
-  ];
+    {
+      id: "bannerOne",
+      src: "/images/Hero Slider/banner-one.jpg",
+      en_title: "Gift That Speaks From The Heart",
+      ar_title: "هدية تتحدث من القلب",
+      en_description:
+        "Express your emotions with the perfect gift that conveys your deepest thoughts. Thoughtful, elegant, and full of love.",
+      ar_description:
+        "عبّر عن مشاعرك بالهدية المثالية التي تنقل أعمق أفكارك. مدروسة، أنيقة ومليئة بالحب.",
+      en_buttonLabel: "Explore Collection",
+      ar_buttonLabel: "اكتشف المجموعة",
+    },
+    {
+      id: "bannerTwo",
+      src: "/images/Hero Slider/banner-two.jpg",
+      en_title: "Say It With Flowers",
+      ar_title: "عبّر بالزهور",
+      en_description:
+        "Flowers have a language of their own. Send a beautiful bouquet that says more than words can express.",
+      ar_description:
+        "للزهور لغة خاصة بها. أرسل باقة جميلة تعبّر أكثر مما تستطيع الكلمات قوله.",
+      en_buttonLabel: "Explore Collection",
+      ar_buttonLabel: "اكتشف المجموعة",
+    },
+    {
+      id: "bannerThree",
+      src: "/images/Hero Slider/banner-three.avif",
+      en_title: "Celebrate Love",
+      ar_title: "احتفل بالحب",
+      en_description:
+        "Whether it’s love, admiration, or gratitude, flowers are the best way to express how much someone means to you.",
+      ar_description:
+        "سواء كان حبًا، إعجابًا أو امتنانًا، الزهور هي أفضل وسيلة للتعبير عن مدى أهمية شخص ما بالنسبة لك.",
+      en_buttonLabel: "Explore Collection",
+      ar_buttonLabel: "اكتشف المجموعة",
+    },
+    {
+      id: "bannerFour",
+      src: "/images/Hero Slider/banner-four.avif",
+      en_title: "Make A Statement",
+      ar_title: "كن مميزًا",
+      en_description:
+        "Make every occasion unforgettable with bold, stunning floral arrangements that leave a lasting impression.",
+      ar_description:
+        "اجعل كل مناسبة لا تُنسى مع تنسيقات زهور جريئة ومذهلة تترك انطباعًا دائمًا.",
+      en_buttonLabel: "Explore Collection",
+      ar_buttonLabel: "اكتشف المجموعة",
+    },
+    {
+      id: "bannerFive",
+      src: "/images/Hero Slider/banner-five.avif",
+      en_title: "The Perfect Gift",
+      ar_title: "الهدية المثالية",
+      en_description:
+        "The perfect gift for any occasion – beautiful flowers that brighten any room and warm any heart.",
+      ar_description:
+        "الهدية المثالية لأي مناسبة – زهور جميلة تُضيء أي غرفة وتُبهج أي قلب.",
+      en_buttonLabel: "Explore Collection",
+      ar_buttonLabel: "اكتشف المجموعة",
+    },
+  ];  
+
+  const { i18n } = useTranslation();
+  const langClass = i18n.language === "ar" ? "ar" : "en";
 
   const n = items.length;
   const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [dir, setDir] = useState(1); // 1=next, -1=prev
 
-  const timerRef = useRef(null);
+  // one-shot timer (resets after each change)
+  const timeoutRef = useRef(null);
+  const clearTimer = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = null;
+  };
 
-  const next = () => setCurrent((c) => (c + 1) % n);
-  const prev = () => setCurrent((c) => (c - 1 + n) % n);
+  const goNext = () => {
+    setDir(1);
+    clearTimer();
+    setCurrent((c) => (c + 1) % n);
+  };
+  const goPrev = () => {
+    setDir(-1);
+    clearTimer();
+    setCurrent((c) => (c - 1 + n) % n);
+  };
 
-  const start = useCallback(() => {
-    if (!autoplay) return;
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      setCurrent((c) => (c + 1) % 5000);
+  // Auto-advance exactly every `interval` ms after the *last* change
+  useEffect(() => {
+    clearTimer();
+    if (!autoplay || paused) return;
+    timeoutRef.current = setTimeout(() => {
+      setDir(1);
+      setCurrent((c) => (c + 1) % n);
     }, interval);
-  }, [autoplay, interval, n]);
+    return clearTimer;
+  }, [autoplay, paused, interval, current, n]);
 
-  const stop = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = null;
+  // Pause when tab is hidden; resume when visible
+  useEffect(() => {
+    const onVis = () => setPaused(document.hidden);
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
   }, []);
 
-  // next/prev helpers (reset timer to keep UX snappy)
-  const goNext = useCallback(() => {
-    stop();
-    setCurrent((c) => (c + 1) % n);
-    start();
-  }, [n, start, stop]);
+  // Swipe / drag
+  const startX = useRef(0);
+  const dx = useRef(0);
+  const dragging = useRef(false);
 
-  const goPrev = useCallback(() => {
-    stop();
-    setCurrent((c) => (c - 1 + n) % n);
-    start();
-  }, [n, start, stop]);
+  const onPointerDown = (e) => {
+    dragging.current = true;
+    setPaused(true);
+    startX.current = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
+    dx.current = 0;
+  };
+  const onPointerMove = (e) => {
+    if (!dragging.current) return;
+    const x = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
+    if (x) dx.current = x - startX.current;
+  };
+  const onPointerUp = () => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    if (Math.abs(dx.current) > 50) {
+      dx.current < 0 ? goNext() : goPrev();
+    }
+    dx.current = 0;
+    setPaused(false);
+  };
 
-  useEffect(() => {
-    if (!autoplay) return;
-    const id = setInterval(next, interval);
-    return () => clearInterval(id);
-  }, [autoplay, interval, n]);
+  const hoverHandlers = pauseOnHover
+    ? { onMouseEnter: () => setPaused(true), onMouseLeave: () => setPaused(false) }
+    : {};
 
-  // Render exactly 5 slides: center ±1 ±2 (virtualized)
+  // Virtualized visible window: center ±1 ±2
   const visible = useMemo(() => {
     const order = [-2, -1, 0, 1, 2].map((k) => (current + k + n) % n);
     return order.map((realIdx, j) => {
@@ -74,77 +155,68 @@ export default function CenterModeCarousel({
       else if (rel === 0) cls = "slick-center";
       else if (rel === 1) cls = "gt1";
       else if (rel === 2) cls = "gt2";
-      return { id: realIdx, src: items[realIdx], cls };
+      return { id: realIdx, src: items[realIdx], cls, ...items[realIdx] };
     });
-  }, [current, items, n]);
-
-  // swipe / drag
-  const startX = useRef(0);
-  const dx = useRef(0);
-  const onPointerDown = (e) => {
-    startX.current = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
-    dx.current = 0;
-  };
-  const onPointerMove = (e) => {
-    const x = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
-    if (x) dx.current = x - startX.current;
-  };
-  const onPointerUp = () => {
-    if (Math.abs(dx.current) > 50) dx.current < 0 ? goNext() : goPrev();
-    dx.current = 0;
-  };
+  }, [current, n, items]);
 
   return (
-    <>
-      <section className="hero_slider py-10">
-        <div
-          className="cmc-wrap custom-container mx-auto px-4"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onTouchStart={onPointerDown}
-          onTouchMove={onPointerMove}
-          onTouchEnd={onPointerUp}
-        >
-          <button className="nav prev" onClick={goPrev} aria-label="Previous">
-            <svg viewBox="0 0 24 24" width="28" height="28">
-              <path
-                d="M15 6l-6 6 6 6"
-                fill="none"
-                stroke="#fff"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
+    <section className="hero_slider py-10">
+      <div
+        className="cmc-wrap custom-container mx-auto px-4"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onTouchStart={onPointerDown}
+        onTouchMove={onPointerMove}
+        onTouchEnd={onPointerUp}
+        data-paused={paused ? "1" : "0"}
+        {...hoverHandlers}
+      >
+        <button className="nav prev" onClick={goPrev} aria-label="Previous">
+          <svg viewBox="0 0 24 24" width="28" height="28">
+            <path
+              d="M15 6l-6 6 6 6"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
 
-          <div className="track">
-            {visible.map(({ id, src, cls }) => (
-              <div className={`slide ${cls}`} key={id}>
-                <img
-                  src={src}
-                  alt=""
-                  draggable={false}
-                  className="w-full min-h-[470px] object-cover rounded-[50px]"
-                />
+        {/* direction drives tiny entrance animation for far slide */}
+        <div className="track" data-dir={dir}>
+          {visible.map(({ id, src, cls, en_title, ar_title, en_description, ar_description, en_buttonLabel, ar_buttonLabel }) => (
+            <div className={`z-2 relative slide ${cls} ${langClass}`} key={id}>
+              <img
+                src={src}
+                className="absolute top-0 left-0 rounded-[35px] w-full h-full object-cover"
+                alt=""
+              />
+              <div className="overlay rounded-[35px] absolute top-0 left-0 w-full h-full bg-black/30 z-[0]" />
+              <div className="slider-content flex flex-col ms-auto justify-center max-w-sm p-4 z-[2]">
+                <h5 className="text-white font-medium text-[1.7rem]">{langClass === "en" ? en_title : ar_title}</h5>
+                <p className={`${langClass === "ar" ? "text-[18px]" : "text-[14px]"}  py-1`}>{langClass === "en" ? en_description : ar_description}</p>
+                <div className="slider-content-btn">
+                  <Button label={langClass === "en" ? en_buttonLabel : ar_buttonLabel} />
+                </div>
               </div>
-            ))}
-          </div>
-
-          <button className="nav next" onClick={goNext} aria-label="Next">
-            <svg viewBox="0 0 24 24" width="28" height="28">
-              <path
-                d="M9 6l6 6-6 6"
-                fill="none"
-                stroke="#fff"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
+            </div>
+          ))}
         </div>
-      </section>
-    </>
+
+        <button className="nav next" onClick={goNext} aria-label="Next">
+          <svg viewBox="0 0 24 24" width="28" height="28">
+            <path
+              d="M9 6l6 6-6 6"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+    </section>
   );
 }
-

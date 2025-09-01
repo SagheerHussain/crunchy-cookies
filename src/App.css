@@ -40,22 +40,35 @@ h4 {
     padding: 0 20px;
   }
 }
+@media (min-width: 769px) and (max-width: 1024px) {
+  .custom-container {
+    max-width: 1350px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+}
 
+/* cmc-wrap container styles */
 .cmc-wrap {
   position: relative;
   padding: 24px 0;
   width: 100%;
-} /* layout: allow peeking beyond container */
+}
+
+/* layout for the track */
 .track {
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: visible;
   width: 100%;
-} /* Overlap neighbours to remove visible gaps */
+}
+
+/* Slide styles */
 .slide {
-  margin: 0 -70px; /* tighten/loosen by tweaking -70/-90 */
-  width: 1025px; /* card width (desktop); can use % if you want */
+  margin: 0 -70px; /* Tighten/loosen by tweaking */
+  width: 1025px; /* Card width (desktop); can use % if you want */
   max-width: 28vw;
   height: 470px;
   border-radius: 25px;
@@ -64,40 +77,77 @@ h4 {
   align-items: center;
   justify-content: center;
   transition: transform 0.35s ease, opacity 0.35s ease, filter 0.35s ease;
-  transform: translateX(0) scale(0.7); /* far default */
+  transform: translateX(0) scale(0.7); /* Far default */
   opacity: 1;
+  will-change: transform, opacity, filter;
 }
+
 .slide > img {
   display: block;
   font: 700 28px/1 system-ui, sans-serif;
-} /* second neighbours (behind) = 0.7 + inward nudge */
-.slide.lt2 {
-  transform: translateX(32%) scale(0.7);
-  /* transform: translateX(-32%) scale(0.7); */
+}
+
+/* Symmetric positions (same feel both directions) */
+.slide.lt2.en {
+  transform: translateX(32%) scale(0.70);
   opacity: 1;
 }
-.slide.gt2 {
-  transform: translateX(-32%) scale(0.7);
-  /* transform: translateX(32%) scale(0.7); */
-  z-index: -1;
+
+.slide.gt2.en {
+  transform: translateX(-32%) scale(0.70);
   opacity: 1;
-} /* immediate neighbours = 0.8 + slight nudge */
-.slide.lt1 {
-  transform: translateX(10%) scale(0.8);
-  /* transform: translateX(-10%) scale(0.8); */
+  z-index: -1 !important;
+}
+
+.slide.lt1.en {
+  transform: translateX(10%) scale(0.80);
   opacity: 1;
 }
-.slide.gt1 {
-  transform: translateX(-10%) scale(0.8);
-  /* transform: translateX(10%) scale(0.8); */
+
+.slide.gt1.en {
+  transform: translateX(-10%) scale(0.80);
   opacity: 1;
-} /* center = 1.0 */
+}
+
+.slide.lt2.ar {
+  transform: translateX(-32%) scale(0.70);
+  opacity: 1;
+}
+
+.slide.gt2.ar {
+  transform: translateX(32%) scale(0.70) !important;
+  opacity: 1;
+  z-index: -1 !important;
+}
+
+.slide.lt1.ar {
+  transform: translateX(-10%) scale(0.80);
+  opacity: 1;
+}
+
+.slide.gt1.ar {
+  transform: translateX(10%) scale(0.80);
+  opacity: 1;
+}
+
 .slide.slick-center {
   transform: translateX(0) scale(1);
   min-width: 1025px;
   z-index: 1;
   opacity: 1;
-} /* teal circular arrows */
+}
+
+/* Show content only on the center slide */
+.hero_slider .slick-center .slider-content {
+  display: block;
+}
+
+/* Hide content on non-center slides */
+.hero_slider .slider-content {
+  display: none;
+}
+
+/* Teal circular arrows */
 .nav {
   position: absolute;
   top: 50%;
@@ -113,18 +163,69 @@ h4 {
   justify-content: center;
   cursor: pointer;
 }
+
+.nav:hover {
+  background: #0fb5bbd4;
+}
+
 .nav.prev {
   left: 8px;
 }
+
 .nav.next {
   right: 8px;
 }
+
 .nav svg {
   display: block;
 }
 
+/* Far-slide entrance animation (prevents “instant pop”) */
+@keyframes enterFarLeft {
+  from {
+    transform: translateX(48%) scale(0.68);
+    opacity: 0.9;
+  }
+  to {
+    transform: translateX(32%) scale(0.70);
+    opacity: 1;
+  }
+}
+
+@keyframes enterFarRight {
+  from {
+    transform: translateX(-48%) scale(0.68);
+    opacity: 0.9;
+  }
+  to {
+    transform: translateX(-32%) scale(0.70);
+    opacity: 1;
+  }
+}
+
+/* When going PREV, the new far-left (.lt2) animates in */
+.track[data-dir="-1"] .slide.lt2 {
+  animation: enterFarLeft 0.35s ease both;
+}
+
+/* When going NEXT, the new far-right (.gt2) animates in */
+.track[data-dir="1"] .slide.gt2 {
+  animation: enterFarRight 0.35s ease both;
+}
+
+/* Responsive tweak */
 @media (min-width: 1024px) and (max-width: 1280px) {
   .slide.slick-center {
     min-width: 725px;
   }
 }
+@media (min-width: 769px) and (max-width: 1024px) {
+  .slide.slick-center {
+    min-width: 625px;
+  }
+}
+
+
+
+
+
