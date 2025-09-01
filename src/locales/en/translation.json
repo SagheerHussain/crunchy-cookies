@@ -1,6 +1,53 @@
 {
+  "dir": "ltr",
   "logo": "Crunchy Cookies",
   "seeMore": "See more",
   "loadMore": "Load more",
-  "addToCart": "Add to cart"
+  "addToCart": "Add to cart",
+
+  "topBar": {
+    "expressDelivery": "Express Delivery",
+    "address": "No Address Hassle",
+    "premium": "Premium Flowers & Gifts"
+  },
+
+  "navbar": {
+    "menu": "Menu",
+    "search": "Search",
+    "cart": "Cart",
+    "favorite": "Favorite",
+    "member": "Member"
+  },
+
+  "footer": {
+    "explore": {
+      "title": "Explore Crunchy Cookies",
+      "links": [
+        { "label": "Flowers", "href": "/flowers" },
+        { "label": "Cakes", "href": "/cakes" },
+        { "label": "Birthday", "href": "/birthday" },
+        { "label": "Anniversary", "href": "/anniversary" },
+        { "label": "Occasions", "href": "/occasions" },
+        { "label": "Bestsellers", "href": "/bestsellers" },
+        { "label": "Premium", "href": "/premium" },
+        { "label": "Brands", "href": "/brands" }
+      ]
+    },
+    "knowUs": {
+      "title": "Get to know us",
+      "links": [
+        { "label": "About Us", "href": "/about" },
+        { "label": "Partner with us", "href": "/partner" },
+        { "label": "Privacy Policy", "href": "/privacy-policy" }
+      ]
+    },
+    "customerService": {
+      "title": "Customer Service",
+      "links": [
+        { "label": "Contact Us", "href": "/contact" },
+        { "label": "FAQ's", "href": "/faqs" }
+      ]
+    },
+    "copyright": "All Rights Reserved © 2025 Crunchy Cookies"
+  }
 }

@@ -1,7 +1,53 @@
 {
-  "logo": "كوكيز مقرمشة",
+  "dir": "rtl",
+  "logo": "كرنشي كوكيز",
   "seeMore": "شاهد المزيد",
   "loadMore": "تحميل المزيد",
   "addToCart": "أضف إلى السلة",
-  "price": "ريال {{price}}"
+
+  "topBar": {
+    "expressDelivery": "توصيل سريع",
+    "address": "لا حاجة لعنوان",
+    "premium": "زهور وهدايا فاخرة"
+  },
+
+  "navbar": {
+    "menu": "القائمة",
+    "search": "بحث",
+    "cart": "السلة",
+    "favorite": "المفضلة",
+    "member": "العضوية"
+  },
+
+  "footer": {
+    "explore": {
+      "title": "استكشف كرنشي كوكيز",
+      "links": [
+        { "label": "زهور", "href": "/flowers" },
+        { "label": "كيك", "href": "/cakes" },
+        { "label": "أعياد الميلاد", "href": "/birthday" },
+        { "label": "ذكرى سنوية", "href": "/anniversary" },
+        { "label": "مناسبات", "href": "/occasions" },
+        { "label": "الأكثر مبيعًا", "href": "/bestsellers" },
+        { "label": "بريميوم", "href": "/premium" },
+        { "label": "العلامات التجارية", "href": "/brands" }
+      ]
+    },
+    "knowUs": {
+      "title": "تعرّف علينا",
+      "links": [
+        { "label": "من نحن", "href": "/about" },
+        { "label": "كن شريكًا معنا", "href": "/partner" },
+        { "label": "سياسة الخصوصية", "href": "/privacy-policy" }
+      ]
+    },
+    "customerService": {
+      "title": "خدمة العملاء",
+      "links": [
+        { "label": "اتصل بنا", "href": "/contact" },
+        { "label": "الأسئلة الشائعة", "href": "/faqs" }
+      ]
+    },
+    "copyright": "جميع الحقوق محفوظة © 2025 كرنشي كوكيز"
+  }
 }

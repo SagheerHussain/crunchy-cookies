@@ -2,11 +2,19 @@ import React, { useEffect, useRef, useState } from "react";
 import { FiMenu, FiSearch, FiHeart, FiUser } from "react-icons/fi";
 import { PiShoppingCartSimpleLight } from "react-icons/pi";
 import MenuListBox from "./MenuListBox";
+import { useTranslation } from "react-i18next";
 
 export default function Navbar() {
+  const { t, i18n } = useTranslation("translation");
   const [menuOpen, setMenuOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const btnRef = useRef(null);
+
+  // keep document direction in sync with language (dir comes from translations)
+  useEffect(() => {
+    const dir = t("dir");
+    document.documentElement.dir = dir;
+  }, [i18n.language, t]);
 
   // lock scroll when open
   useEffect(() => {
@@ -18,15 +26,12 @@ export default function Navbar() {
   const placeMenu = () => {
     if (!btnRef.current) return;
     const r = btnRef.current.getBoundingClientRect();
-
     const PANEL_WIDTH = 352; // ~22rem
-    const GAP = 8;           // 8px gap under button
+    const GAP = 8;
 
-    // clamp left so panel stays inside viewport
     const maxLeft = window.innerWidth - PANEL_WIDTH - 16; // 16px margin
     const left = Math.min(r.left + window.scrollX, Math.max(16, maxLeft));
-    const top  = r.bottom + window.scrollY + GAP;
-
+    const top = r.bottom + window.scrollY + GAP;
     setPos({ top, left });
   };
 
@@ -60,9 +65,12 @@ export default function Navbar() {
               type="button"
               onClick={openMenu}
               className="relative border-b border-primary_light_mode flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-neutral-700 shadow-sm ring-1 ring-[#0FB4BB1A]"
+              aria-label={t("navbar.menu")}
             >
               <FiMenu className="text-[18px] text-primary" />
-              <span className="hidden sm:inline text-black font-medium">Menu</span>
+              <span className="hidden sm:inline text-black font-medium">
+                {t("navbar.menu")}
+              </span>
             </button>
 
             {/* Search pill */}
@@ -70,15 +78,16 @@ export default function Navbar() {
               <FiSearch className="text-[18px] text-primary" />
               <input
                 type="text"
-                placeholder="Search"
+                placeholder={t("navbar.search")}
                 className="w-full bg-transparent outline-none placeholder:text-black placeholder:font-medium"
+                aria-label={t("navbar.search")}
               />
             </div>
           </div>
 
           {/* Center logo */}
-          <h1 className="lg:text-[1.5rem] xl:text-4xl 2xl:text-5xl text-primary">
-            CRUNCHY COOKIES
+          <h1 className="lg:text-[1.5rem] xl:text-4xl 2xl:text-5xl text-primary uppercase">
+            {t("logo")}
           </h1>
 
           {/* Right cluster */}
@@ -86,25 +95,28 @@ export default function Navbar() {
             <button
               type="button"
               className="border-b border-primary_light_mode hidden sm:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]"
+              aria-label={t("navbar.cart")}
             >
               <PiShoppingCartSimpleLight className="text-[20px] text-primary" />
-              <span className="text-black font-medium">Cart</span>
+              <span className="text-black font-medium">{t("navbar.cart")}</span>
             </button>
 
             <button
               type="button"
               className="border-b border-primary_light_mode hidden sm:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]"
+              aria-label={t("navbar.favorite")}
             >
               <FiHeart className="text-[18px] text-primary" />
-              <span className="text-black font-medium">Favorites</span>
+              <span className="text-black font-medium">{t("navbar.favorite")}</span>
             </button>
 
             <button
               type="button"
               className="border-b border-primary_light_mode flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]"
+              aria-label={t("navbar.member")}
             >
               <FiUser className="text-[18px] text-primary" />
-              <span className="text-black font-medium">Member</span>
+              <span className="text-black font-medium">{t("navbar.member")}</span>
             </button>
           </div>
         </div>
@@ -117,14 +129,15 @@ export default function Navbar() {
             className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px]"
             onClick={() => setMenuOpen(false)}
           />
-          {/* anchored panel (fixed) */}
           <div
             className="fixed z-50"
             style={{ top: pos.top, left: pos.left }}
             role="dialog"
-            aria-label="Menu"
+            aria-label={t("navbar.menu")}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* If MenuListBox also needs translations,
+                call useTranslation inside it or pass t/i18n as props */}
             <MenuListBox onClose={() => setMenuOpen(false)} />
           </div>
         </>
