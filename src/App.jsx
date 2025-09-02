@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage";
 import FilterGiftPage from "./pages/FilterGiftPage";
 import WishlistPage from "./pages/WishlistPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
+import CartPage from "./pages/CartPage";
 import "./App.css";
 
 export default function App() {
@@ -13,6 +14,7 @@ export default function App() {
       <Route path="/filters/:category" element={<FilterGiftPage />} />
       <Route path="/wishlist/:id" element={<WishlistPage />} />
       <Route path="/order-history/:id" element={<OrderHistoryPage />} />
+      <Route path="/cart/:id" element={<CartPage />} />
     </Routes>
   );
 }

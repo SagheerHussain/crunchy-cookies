@@ -100,11 +100,11 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             <Link to={`/cart/29421784161`}
               type="button"
-              className="border-b border-primary_light_mode hidden sm:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]"
+              className={`${location.pathname.includes("cart") ? "bg-primary" : "bg-transparent"} border-b border-primary_light_mode hidden sm:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.cart")}
             >
-              <PiShoppingCartSimpleLight className="text-[20px] text-primary" />
-              <span className="text-black font-medium">{t("navbar.cart")}</span>
+              <PiShoppingCartSimpleLight className={`text-[20px] ${location.pathname.includes("cart") ? "text-white" : "text-primary"}`} />
+              <span className={`font-medium ${location.pathname.includes("cart") ? "text-white" : "text-black"}`}>{t("navbar.cart")}</span>
             </Link>
 
             <Link to={`/wishlist/29421784161`}

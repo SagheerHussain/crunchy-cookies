@@ -33,7 +33,7 @@ const LatestCollection = ({ collections, en_title, ar_title }) => {
                                 <p className='lg:text-[1.2rem] xl:text-[1.5rem] text-primary'>{langClass ? item.ar_title : item.en_title}</p>
                                 <div class="curve_three"></div>
                             </div>
-                            <div className="curve_effect_two flex items-center justify-center absolute bottom-0 right-0 bg-white px-4 pt-[12px] pb-[10px]" style={{ borderTopLeftRadius: "30px" }}>
+                            <div className="curve_effect_two flex items-center justify-center absolute bottom-0 right-0 bg-white pl-4 pt-[12px] pb-[10px]" style={{ borderTopLeftRadius: "30px" }}>
                                 <div className="bg-[#0fb5bb25] p-2 rounded-full cursor-pointer">
                                     <AiOutlineArrowRight size={24} color="#00B5B8" />
                                     <div class="curve_four"></div>

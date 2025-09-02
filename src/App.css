@@ -302,3 +302,7 @@ h4 {
   box-shadow: -0.375rem -0.375rem #fff;
   transform: rotate(180deg);
 }
+
+#cart ::-webkit-scrollbar {
+  width: 0px;
+}
