@@ -1,10 +1,15 @@
 import React from "react";
 import { flowerBouquets } from "../../lib/homepageData";
 import ProductCard from "../ProductCard";
-import { MdOutlineArrowBackIos } from "react-icons/md";
+import { MdOutlineArrowBackIos, MdArrowForwardIos } from "react-icons/md";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const WishlistGifts = () => {
+
+    const { i18n } = useTranslation();
+    const langClass = i18n.language === "ar";
+
   return (
     <>
       <section id="wishlist" className="py-10">
@@ -12,16 +17,25 @@ const WishlistGifts = () => {
 
           <Link to={"/"}>
             <div className="bg-[#0fb5bb25] p-2 inline-block rounded-full">
-              <MdOutlineArrowBackIos
-                size={24}
-                className="cursor-pointer text-primary"
-              />
+                {
+                    langClass ? (
+                        <MdArrowForwardIos
+                            size={24}
+                            className="cursor-pointer text-primary"
+                        />
+                    ) : (
+                        <MdOutlineArrowBackIos
+                            size={24}
+                            className="cursor-pointer text-primary"
+                        />
+                    )
+                }
             </div>
           </Link>
 
           <div className="flex items-center justify-between mt-4 mb-8">
             <h2 className="text-center lg:text-[1.8rem] xl:text-[2.5rem] text-primary">
-              Favourites
+              {langClass ? "المفضلة" : "Favourites"}
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
