@@ -23,24 +23,19 @@ import { Link } from "react-router-dom";
 import { MdOutlineArrowBackIos, MdArrowForwardIos } from "react-icons/md";
 import { useTranslation } from "react-i18next";
 
-/* ---------- Colors to match your design ---------- */
 const PRIMARY = "#0FB4BB";
-const BORDER = "#BFE8E7";
-const ROW_BG = "rgba(15, 180, 187, 0.03)"; // subtle teal tint
+const BORDER = "#0FB4BB";
+const ROW_BG = "rgba(15, 180, 187, 0.03)";
 
-/* ---------- Helpers ---------- */
 const pad2 = (n) => String(n).padStart(2, "0");
-const currency = (n) => `${n}`; // customize if you need QAR, etc.
+const currency = (n) => `${n}`;
 
-/* ---------- Main component ---------- */
-export default function OrdersTable({
-  rows = orders, // pass your own rows if you like
-}) {
+export default function OrdersTable({ rows = orders }) {
   const [itemsOpen, setItemsOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
 
   const { i18n } = useTranslation();
-  const langClass = i18n.language === "ar";
+  const isAr = i18n.language === "ar";
 
   const openItems = (order) => {
     setActiveOrder(order);
@@ -55,27 +50,21 @@ export default function OrdersTable({
 
   return (
     <>
-      <section id="order-history" className="py-10">
+      <section id="order-history" className="py-10" dir={isAr ? "rtl" : "ltr"}>
         <div className="custom-container">
           <Link to={"/"}>
             <div className="bg-[#0fb5bb25] p-2 inline-block rounded-full">
-              {langClass ? (
-                <MdArrowForwardIos
-                  size={24}
-                  className="cursor-pointer text-primary"
-                />
+              {isAr ? (
+                <MdArrowForwardIos size={24} className="cursor-pointer text-primary" />
               ) : (
-                <MdOutlineArrowBackIos
-                  size={24}
-                  className="cursor-pointer text-primary"
-                />
+                <MdOutlineArrowBackIos size={24} className="cursor-pointer text-primary" />
               )}
             </div>
           </Link>
 
           <div className="flex items-center justify-between mt-4 mb-8">
             <h2 className="text-center lg:text-[1.8rem] xl:text-[2.5rem] text-primary">
-              {langClass ? "تاريخ الطلب" : "Order History"}
+              {isAr ? "تاريخ الطلب" : "Order History"}
             </h2>
           </div>
 
@@ -87,51 +76,33 @@ export default function OrdersTable({
               borderRadius: "18px",
               overflow: "hidden",
               bgcolor: "#FFFFFF",
-              // Make it usable on phones
               width: "100%",
               overflowX: "auto",
             }}
           >
-            {/* Top border accent and padding wrapper */}
             <Box sx={{ px: { xs: 1, sm: 2 }, pt: 2 }}>
               <Table
                 sx={{
-                  minWidth: 700,
+                  minWidth: 1200,
                   "& th": {
                     color: PRIMARY,
                     fontWeight: 600,
                     borderBottom: `1px solid ${BORDER}`,
                     whiteSpace: "nowrap",
                   },
-                  "& td": {
-                    borderBottom: `1px solid ${BORDER}`,
-                  },
+                  "& td": { borderBottom: `1px solid ${BORDER}` },
                 }}
                 aria-label="orders table"
               >
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontSize: "1.2rem", width: 80 }}>
-                      S.No
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>
-                      Sender Number
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>
-                      Receiver Number
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>
-                      Price
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>
-                      Total Items
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>
-                      Date
-                    </TableCell>
-                    <TableCell align="right" sx={{ width: 220 }}>
-                      {/* actions */}
-                    </TableCell>
+                    <TableCell sx={{ fontSize: "1.2rem", width: 80 }}>S.No</TableCell>
+                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>Sender Number</TableCell>
+                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>Receiver Number</TableCell>
+                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>Price</TableCell>
+                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>Total Items</TableCell>
+                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>Date</TableCell>
+                    <TableCell align="right" sx={{ width: 220 }} />
                   </TableRow>
                 </TableHead>
 
@@ -140,78 +111,36 @@ export default function OrdersTable({
                     <TableRow
                       key={row.id}
                       sx={{
-                        bgcolor: ROW_BG, // subtle fill like screenshot
+                        bgcolor: ROW_BG,
                         "&:last-child td": { borderBottom: 0 },
                       }}
                     >
-                      <TableCell
-                        sx={{
-                          color: PRIMARY,
-                          fontSize: "1.2rem",
-                          fontWeight: 600,
-                        }}
-                      >
+                      <TableCell sx={{ color: PRIMARY, fontSize: "1.2rem", fontWeight: 600 }}>
                         {pad2(idx + 1)}
                       </TableCell>
-                      <TableCell
-                        sx={{
-                          color: "#4B5563",
-                          fontSize: "1.2rem",
-                          fontWeight: 400,
-                        }}
-                      >
+                      <TableCell sx={{ color: "#4B5563", fontSize: "1.2rem", fontWeight: 400 }}>
                         {row.sender}
                       </TableCell>
-                      <TableCell
-                        sx={{
-                          color: "#4B5563",
-                          fontSize: "1.2rem",
-                          fontWeight: 400,
-                        }}
-                      >
+                      <TableCell sx={{ color: "#4B5563", fontSize: "1.2rem", fontWeight: 400 }}>
                         {row.receiver}
                       </TableCell>
-                      <TableCell
-                        sx={{
-                          color: "#4B5563",
-                          fontSize: "1.2rem",
-                          fontWeight: 400,
-                        }}
-                      >
+                      <TableCell sx={{ color: "#4B5563", fontSize: "1.2rem", fontWeight: 400 }}>
                         {currency(row.price)}
                       </TableCell>
-                      <TableCell
-                        sx={{
-                          color: "#4B5563",
-                          fontSize: "1.2rem",
-                          fontWeight: 400,
-                        }}
-                      >
+                      <TableCell sx={{ color: "#4B5563", fontSize: "1.2rem", fontWeight: 400 }}>
                         {pad2(row.totalItems)}
                       </TableCell>
-                      <TableCell
-                        sx={{
-                          color: "#4B5563",
-                          fontSize: "1.2rem",
-                          fontWeight: 400,
-                        }}
-                      >
+                      <TableCell sx={{ color: "#4B5563", fontSize: "1.2rem", fontWeight: 400 }}>
                         {row.date}
                       </TableCell>
                       <TableCell align="right">
-                        <Box
-                          sx={{
-                            display: "flex",
-                            gap: 1,
-                            justifyContent: "flex-end",
-                            flexWrap: "wrap",
-                          }}
-                        >
+                        <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end", flexWrap: "wrap" }}>
+                          {/* View receipt -> open in new tab */}
                           <Button
-                            href={
-                              "https://b.stripecdn.com/docs-statics-srv/assets/terminal-pre-built-receipt.64db66739eaf8f8db1f9dd61c463a322.png"
-                            }
+                            component="a"
+                            href="https://b.stripecdn.com/docs-statics-srv/assets/terminal-pre-built-receipt.64db66739eaf8f8db1f9dd61c463a322.png"
                             target="_blank"
+                            rel="noopener noreferrer"
                             size="small"
                             variant="contained"
                             sx={{
@@ -225,6 +154,8 @@ export default function OrdersTable({
                           >
                             View receipt
                           </Button>
+
+                          {/* View items -> CRUNCHY style modal */}
                           <Button
                             onClick={() => openItems(row)}
                             size="small"
@@ -233,10 +164,7 @@ export default function OrdersTable({
                               textTransform: "none",
                               color: PRIMARY,
                               borderColor: PRIMARY,
-                              "&:hover": {
-                                borderColor: PRIMARY,
-                                bgcolor: "rgba(15,180,187,0.08)",
-                              },
+                              "&:hover": { borderColor: PRIMARY, bgcolor: "rgba(15,180,187,0.08)" },
                               borderRadius: "10px",
                               px: 2,
                               minWidth: 120,
@@ -256,72 +184,147 @@ export default function OrdersTable({
         </div>
       </section>
 
-      {/* ---------- Items Modal ---------- */}
+      {/* ---------- Items Modal (CRUNCHY COOKIES style) ---------- */}
       <Dialog
         open={itemsOpen}
         onClose={closeItems}
         fullWidth
         maxWidth="sm"
+        dir={isAr ? "rtl" : "ltr"}
         PaperProps={{
           sx: {
-            borderRadius: 5,
-            border: `3px solid ${BORDER}`,
+            borderRadius: 8,
+            padding: 3,
+            border: `1px solid ${BORDER}`,
+            overflow: "visible",
+            background: "Transparent"
           },
         }}
       >
-        <DialogTitle
-          sx={{ pr: 6, color: PRIMARY, fontWeight: 700, fontSize: "1.1rem" }}
+        <div style={{ background: "#fff", borderRadius: 32 }}>
+        {/* Title as centered brand */}
+        <h1
+          style={{
+            textAlign: "center",
+            paddingTop: "1rem",
+            paddingBottom: "0.5rem",
+            color: PRIMARY,
+            fontWeight: 800,
+            letterSpacing: ".06em",
+            textTransform: "uppercase",
+            fontSize: "1.2rem",
+          }}
         >
-          {activeOrder ? `Order #${activeOrder.id} — Items` : "Items"}
-          <IconButton
-            aria-label="close"
-            onClick={closeItems}
-            sx={{ position: "absolute", right: 8, top: 8 }}
-          >
-            <GrClose />
-          </IconButton>
-        </DialogTitle>
+          CRUNCHY COOKIES
+        </h1>
 
-        <DialogContent dividers sx={{ borderColor: BORDER }}>
-          {activeOrder ? (
+        <DialogContent sx={{ px: 0, pb: 0 }}>
+          {/* Outer body padding like a card */}
+          <Box sx={{ px: { xs: 2, sm: 4 }, pt: 2, pb: 3 }}>
+            {/* Sender / Receiver block */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 3,
+                mt: 1,
+                mb: 2,
+              }}
+            >
+              <Box>
+                <Typography sx={{ color: PRIMARY, fontWeight: 700, mb: 0.5 }}>
+                  Sender Number
+                </Typography>
+                <Typography sx={{ color: "#6B7280" }}>{activeOrder?.sender}</Typography>
+              </Box>
+              <Box sx={{ textAlign: isAr ? "right" : "left" }}>
+                <Typography sx={{ color: PRIMARY, fontWeight: 700, mb: 0.5 }}>
+                  Receiver Number
+                </Typography>
+                <Typography sx={{ color: "#6B7280" }}>{activeOrder?.receiver}</Typography>
+              </Box>
+            </Box>
+
+            <Divider sx={{ borderColor: BORDER, mb: 1 }} />
+
+            {/* Mini table header */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "52px 1fr 110px",
+                gap: 1,
+                px: 1,
+                pb: 1,
+                color: PRIMARY,
+                fontWeight: 700,
+              }}
+            >
+              <Typography>S.no</Typography>
+              <Typography>Item</Typography>
+              <Typography textAlign="right">Item Price</Typography>
+            </Box>
+
+            <Divider sx={{ borderColor: BORDER }} />
+
+            {/* Items rows (with small thumbnails) */}
             <Box>
-              {activeOrder.items.map((it, i) => (
+              {activeOrder?.items.map((it, i) => (
                 <Box
                   key={`${activeOrder.id}-${i}`}
                   sx={{
                     display: "grid",
-                    gridTemplateColumns: "1fr auto auto",
-                    gap: 1.5,
+                    gridTemplateColumns: "52px 1fr 110px",
+                    gap: 1,
                     alignItems: "center",
-                    py: 1,
+                    px: 1,
+                    py: 1.2,
                     borderBottom:
-                      i === activeOrder.items.length - 1
-                        ? "none"
-                        : `1px solid ${BORDER}`,
+                      i === activeOrder.items.length - 1 ? "none" : `1px solid ${BORDER}`,
                   }}
                 >
-                  <div className="flex items-center gap-2">
-                    <img src={it.image} className="w-12 h-12" alt={it.name} />
-                    <Typography sx={{ fontWeight: 400, color: "#374151" }}>
-                      {it.name}
-                    </Typography>
-                  </div>
-                  <Typography sx={{ color: "#6B7280" }}>x{it.qty}</Typography>
-                  <Typography sx={{ color: "#111827", fontWeight: 600 }}>
-                    {currency(it.price * it.qty)}
-                  </Typography>
+                  <Typography sx={{ color: "#6B7280" }}>{pad2(i + 1)}</Typography>
+
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
+                    <Box
+                      component="img"
+                      src={it.image}
+                      alt={it.name}
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        objectFit: "cover",
+                        borderRadius: 1.2,
+                        border: `1px solid ${BORDER}`,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <Typography sx={{ color: "#374151" }}>{it.name}</Typography>
+                    <Typography sx={{ color: "#6B7280", ml: "auto" }}>x{it.qty}</Typography>
+                  </Box>
+
+                  <h5 style={{ color: "#111827", fontSize: ".9rem", fontWeight: 400, textAlign: "right" }}>
+                    QAR {currency(it.qty * it.price)}
+                  </h5>
                 </Box>
               ))}
-              <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-                <Typography sx={{ fontWeight: 700, color: PRIMARY }}>
-                  Total: {currency(totalOfActiveOrder)}
-                </Typography>
-              </Box>
             </Box>
-          ) : null}
+
+            {/* Total row */}
+            <Divider sx={{ borderColor: BORDER, mt: 0.5, mb: 1 }} />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <h5 style={{ color: PRIMARY, fontWeight: 800, fontSize: "1.3rem" }}>
+                Total
+              </h5>
+              <h5
+                style={{ ml: "auto", fontWeight: 400, color: "#111827", fontSize: "1rem" }}
+              >
+                QAR {currency(totalOfActiveOrder)}
+              </h5>
+            </div>
+          </Box>
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, py: 2 }}>
+        <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
           <Button
             onClick={closeItems}
             variant="contained"
@@ -330,11 +333,13 @@ export default function OrdersTable({
               bgcolor: PRIMARY,
               "&:hover": { bgcolor: "#0fb4bbd9" },
               borderRadius: "10px",
+              px: 4,
             }}
           >
             Close
           </Button>
         </DialogActions>
+        </div>
       </Dialog>
     </>
   );
