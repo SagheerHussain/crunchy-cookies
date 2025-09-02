@@ -35,17 +35,17 @@ export default function GiftIdeasSection({ en_title, ar_title, items = [], class
               {items.map((it) => (
                 <Link key={it.id} to={``} className="flex flex-col items-center group">
                   {/* circular badge behind image */}
-                  <div className="rounded-full flex items-center justify-center">
+                  <div className="h-[150px] w-[150px] bg-[#f0e9df] rounded-full flex items-center justify-center">
                     <img
                       src={it.image}
                       alt={isAr ? it.ar_title : it.en_title}
-                      className="transition-transform duration-200 scale-75 group-hover:scale-90"
+                      className="transition-transform duration-200 rounded-full"
                       loading="lazy"
                     />
                   </div>
 
                   {/* caption */}
-                  <p className={`font-medium text-primary text-center ${isAr ? "text-[24px]" : "text-[20px] "}`}>
+                  <p className={`font-medium text-primary text-center mt-4 ${isAr ? "text-[24px]" : "text-[20px] "}`}>
                     {isAr ? it.ar_title : it.en_title}
                   </p>
                 </Link>

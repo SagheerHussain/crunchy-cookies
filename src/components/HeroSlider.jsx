@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Button from "./Button";
 import { useTranslation } from "react-i18next";
+import { flushSync } from "react-dom";
 
 export default function CenterModeCarousel({
   autoplay = true,
-  interval = 4000,   // fixed per-slide delay
+  interval = 5000, // 15s — apki value rakhni ho to 150000 bhi ok
   pauseOnHover = false,
 }) {
   const items = [
@@ -68,107 +69,86 @@ export default function CenterModeCarousel({
       en_buttonLabel: "Explore Collection",
       ar_buttonLabel: "اكتشف المجموعة",
     },
-  ];  
+  ];
 
   const { i18n } = useTranslation();
   const langClass = i18n.language === "ar" ? "ar" : "en";
+  const isRTL = i18n.language === "ar";
 
   const n = items.length;
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [dir, setDir] = useState(1); // 1=next, -1=prev
+  const [dir, setDir] = useState(1); // 1 = forward, -1 = backward
 
-  // one-shot timer (resets after each change)
+  // single timer
   const timeoutRef = useRef(null);
   const clearTimer = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
     timeoutRef.current = null;
   };
 
-  const goNext = () => {
-    setDir(1);
-    clearTimer();
-    setCurrent((c) => (c + 1) % n);
-  };
-  const goPrev = () => {
-    setDir(-1);
-    clearTimer();
-    setCurrent((c) => (c - 1 + n) % n);
+  const step = (delta) => {
+    flushSync(() => setDir(delta > 0 ? 1 : -1));
+    setCurrent((c) => (c + delta + n) % n);
   };
 
-  // Auto-advance exactly every `interval` ms after the *last* change
+  const goNext = () => {
+    clearTimer();
+    const delta = isRTL ? -1 : 1; // RTL me visually "next" left ko jata hai
+    step(delta);
+  };
+
+  const goPrev = () => {
+    clearTimer();
+    const delta = isRTL ? -1 : 1;
+    step(delta);
+  };
+
+  // Autoplay (exactly every `interval` after last change)
   useEffect(() => {
     clearTimer();
     if (!autoplay || paused) return;
-    timeoutRef.current = setTimeout(() => {
-      setDir(1);
-      setCurrent((c) => (c + 1) % n);
+    const delta = isRTL ? -1 : 1;
+    timeoutRef.current = window.setTimeout(() => {
+      step(delta);
     }, interval);
     return clearTimer;
-  }, [autoplay, paused, interval, current, n]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoplay, paused, interval, current, n, isRTL]);
 
-  // Pause when tab is hidden; resume when visible
+  // Pause when tab hidden
   useEffect(() => {
     const onVis = () => setPaused(document.hidden);
     document.addEventListener("visibilitychange", onVis);
     return () => document.removeEventListener("visibilitychange", onVis);
   }, []);
 
-  // Swipe / drag
-  const startX = useRef(0);
-  const dx = useRef(0);
-  const dragging = useRef(false);
-
-  const onPointerDown = (e) => {
-    dragging.current = true;
-    setPaused(true);
-    startX.current = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
-    dx.current = 0;
-  };
-  const onPointerMove = (e) => {
-    if (!dragging.current) return;
-    const x = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
-    if (x) dx.current = x - startX.current;
-  };
-  const onPointerUp = () => {
-    if (!dragging.current) return;
-    dragging.current = false;
-    if (Math.abs(dx.current) > 50) {
-      dx.current < 0 ? goNext() : goPrev();
-    }
-    dx.current = 0;
-    setPaused(false);
-  };
-
   const hoverHandlers = pauseOnHover
-    ? { onMouseEnter: () => setPaused(true), onMouseLeave: () => setPaused(false) }
+    ? {
+        onMouseEnter: () => setPaused(true),
+        onMouseLeave: () => setPaused(false),
+      }
     : {};
 
-  // Virtualized visible window: center ±1 ±2
+  // Visible window: center ±2
   const visible = useMemo(() => {
     const order = [-2, -1, 0, 1, 2].map((k) => (current + k + n) % n);
     return order.map((realIdx, j) => {
-      const rel = j - 2; // [-2,-1,0,1,2]
+      const rel = j - 2; // [-2, -1, 0, 1, 2]
       let cls = "far";
       if (rel === -2) cls = "lt2";
       else if (rel === -1) cls = "lt1";
       else if (rel === 0) cls = "slick-center";
       else if (rel === 1) cls = "gt1";
       else if (rel === 2) cls = "gt2";
-      return { id: realIdx, src: items[realIdx], cls, ...items[realIdx] };
+      return { id: realIdx, cls, ...items[realIdx] };
     });
   }, [current, n, items]);
 
   return (
-    <section className="hero_slider py-10">
+    <section className="hero_slider py-5">
       <div
         className="cmc-wrap custom-container mx-auto px-4"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onTouchStart={onPointerDown}
-        onTouchMove={onPointerMove}
-        onTouchEnd={onPointerUp}
         data-paused={paused ? "1" : "0"}
         {...hoverHandlers}
       >
@@ -184,25 +164,45 @@ export default function CenterModeCarousel({
           </svg>
         </button>
 
-        {/* direction drives tiny entrance animation for far slide */}
-        <div className="track" data-dir={dir}>
-          {visible.map(({ id, src, cls, en_title, ar_title, en_description, ar_description, en_buttonLabel, ar_buttonLabel }) => (
-            <div className={`z-2 relative slide ${cls} ${langClass}`} key={id}>
-              <img
-                src={src}
-                className="absolute top-0 left-0 rounded-[35px] w-full h-full object-cover"
-                alt=""
-              />
-              <div className="overlay rounded-[35px] absolute top-0 left-0 w-full h-full bg-black/30 z-[0]" />
-              <div className="slider-content flex flex-col ms-auto justify-center max-w-sm p-4 z-[2]">
-                <h5 className="text-white font-medium text-[1.7rem]">{langClass === "en" ? en_title : ar_title}</h5>
-                <p className={`${langClass === "ar" ? "text-[18px]" : "text-[14px]"}  py-1`}>{langClass === "en" ? en_description : ar_description}</p>
-                <div className="slider-content-btn">
-                  <Button label={langClass === "en" ? en_buttonLabel : ar_buttonLabel} />
+        {/* dir drives directional easing via [data-dir] */}
+        <div className="track" data-dir={dir} data-lang={langClass}>
+          {visible.map(
+            ({
+              id,
+              src,
+              cls,
+              en_title,
+              ar_title,
+              en_description,
+              ar_description,
+              en_buttonLabel,
+              ar_buttonLabel,
+            }) => (
+              <div className={`z-2 relative slide ${cls} ${langClass}`} key={id}>
+                <img
+                  src={src}
+                  className="absolute top-0 left-0 rounded-[35px] w-full h-full object-cover"
+                  alt=""
+                />
+                <div className="overlay rounded-[35px] absolute top-0 left-0 w-full h-full bg-black/30 z-[0]" />
+                <div className="slider-content flex flex-col ms-auto justify-center max-w-sm p-4 z-[2]">
+                  <h5 className="text-white font-medium text-[1.7rem]">
+                    {langClass === "en" ? en_title : ar_title}
+                  </h5>
+                  <p
+                    className={`${langClass === "ar" ? "text-[18px]" : "text-[14px]"} py-1`}
+                  >
+                    {langClass === "en" ? en_description : ar_description}
+                  </p>
+                  <div className="slider-content-btn">
+                    <Button
+                      label={langClass === "en" ? en_buttonLabel : ar_buttonLabel}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          )}
         </div>
 
         <button className="nav next" onClick={goNext} aria-label="Next">

@@ -76,10 +76,8 @@ h4 {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.35s ease, opacity 0.35s ease, filter 0.35s ease;
   transform: translateX(0) scale(0.7); /* Far default */
   opacity: 1;
-  will-change: transform, opacity, filter;
 }
 
 .slide > img {
@@ -97,6 +95,7 @@ h4 {
   transform: translateX(-32%) scale(0.70);
   opacity: 1;
   z-index: -1 !important;
+
 }
 
 .slide.lt1.en {
@@ -180,38 +179,6 @@ h4 {
   display: block;
 }
 
-/* Far-slide entrance animation (prevents “instant pop”) */
-@keyframes enterFarLeft {
-  from {
-    transform: translateX(48%) scale(0.68);
-    opacity: 0.9;
-  }
-  to {
-    transform: translateX(32%) scale(0.70);
-    opacity: 1;
-  }
-}
-
-@keyframes enterFarRight {
-  from {
-    transform: translateX(-48%) scale(0.68);
-    opacity: 0.9;
-  }
-  to {
-    transform: translateX(-32%) scale(0.70);
-    opacity: 1;
-  }
-}
-
-/* When going PREV, the new far-left (.lt2) animates in */
-.track[data-dir="-1"] .slide.lt2 {
-  animation: enterFarLeft 0.35s ease both;
-}
-
-/* When going NEXT, the new far-right (.gt2) animates in */
-.track[data-dir="1"] .slide.gt2 {
-  animation: enterFarRight 0.35s ease both;
-}
 
 /* Responsive tweak */
 @media (min-width: 1024px) and (max-width: 1280px) {
@@ -225,7 +192,39 @@ h4 {
   }
 }
 
+.slide.slick-center,
+.slide.lt1,
+.slide.gt1 {
+  transition: all 0.45s ease, opacity 0.45s ease, filter 0.45s ease;
+}
 
 
+/* Swiper Navigation Arrows */
+.swiper-button-next,
+.swiper-button-prev {
+  background-color: #0FB4BB;
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -15px;
+}
+.swiper-button-next {
+  transform: translateX(10px) !important;
+}
+.swiper-button-prev {
+  transform: translateX(-10px) !important;
+}
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 16px;
+  font-weight: bold;
+}
 
-
+/* Pagination */
+.MuiPaginationItem-root.Mui-selected {
+  background: #0FB4BB !important;
+}

@@ -1,0 +1,276 @@
+export const products = [
+    {
+      id: "p1",
+      en_title: "Get Well Soon Roses Bouquet",
+      ar_title: "باقة ورود للشفاء العاجل",
+      en_description: "Cheerful white & yellow arrangement to lift spirits.",
+      ar_description: "تنسيق مبهج بالأبيض والأصفر يرفع المعنويات.",
+      categories: [
+        { en_name: "Flower", ar_name: "زهور", slug: "flower" },
+        { en_name: "Bouquet", ar_name: "باقة", slug: "bouquet" },
+      ],
+      type: { en_name: "Baby Rose", ar_name: "ورد صغير" },
+      occasions: [
+        { en_name: "Friendship Day", ar_name: "يوم الصداقة", slug: "friendship-day" },
+        { en_name: "Grandparents Day", ar_name: "يوم الأجداد", slug: "grandparents-day" },
+      ],
+      colors: [
+        { en_name: "Yellow", ar_name: "أصفر" },
+        { en_name: "White", ar_name: "أبيض" },
+      ],
+      packaging: { en_name: "Hand Bouquet", ar_name: "باقة يدوية" },
+      price: 200,
+      image: "/images/filter images/1.jpg",
+    },
+    {
+      id: "p2",
+      en_title: "Fragrance Of The Day Flowers Vase",
+      ar_title: "مزهرية زهور منعشة",
+      en_description: "Fresh-cut mix in a glass vase.",
+      ar_description: "مزيج من الزهور المقطوفة حديثًا في مزهرية زجاجية.",
+      categories: [
+        { en_name: "Flower", ar_name: "زهور", slug: "flower" },
+        { en_name: "Vase", ar_name: "مزهرية", slug: "vase" },
+      ],
+      type: { en_name: "Gerbera", ar_name: "جيربيرا" },
+      occasions: [
+        { en_name: "Eid Al Adha Gifts", ar_name: "هدايا عيد الأضحى", slug: "eid-al-adha" },
+        { en_name: "Happy Anniversary", ar_name: "ذكرى سعيدة", slug: "happy-anniversary" },
+      ],
+      colors: [
+        { en_name: "Yellow", ar_name: "أصفر" },
+        { en_name: "Green", ar_name: "أخضر" },
+      ],
+      packaging: { en_name: "Glass Vase", ar_name: "مزهرية زجاجية" },
+      price: 170,
+      image: "/images/filter images/2.jpg",
+    },
+    {
+      id: "p3",
+      en_title: "Gradient Roses Bouquet",
+      ar_title: "باقة ورود متدرجة الألوان",
+      en_description: "Pink gradient rose arrangement.",
+      ar_description: "تنسيق ورود وردية بتدرجات لونية.",
+      categories: [
+        { en_name: "Flower", ar_name: "زهور", slug: "flower" },
+        { en_name: "Bouquet", ar_name: "باقة", slug: "bouquet" },
+      ],
+      type: { en_name: "Rose", ar_name: "ورد" },
+      occasions: [
+        { en_name: "Friendship Day", ar_name: "يوم الصداقة", slug: "friendship-day" },
+        { en_name: "Happy Anniversary", ar_name: "ذكرى سعيدة", slug: "happy-anniversary" },
+      ],
+      colors: [
+        { en_name: "Pink", ar_name: "وردي" },
+        { en_name: "White", ar_name: "أبيض" },
+      ],
+      packaging: { en_name: "Hand Bouquet", ar_name: "باقة يدوية" },
+      price: 230,
+      image: "/images/filter images/3.jpg",
+    },
+    {
+      id: "p4",
+      en_title: "Radiant Pink Flower Bouquet",
+      ar_title: "باقة زهور وردية متألقة",
+      en_description: "Vibrant pinks with white accents.",
+      ar_description: "درجات وردية نابضة مع لمسات بيضاء.",
+      categories: [
+        { en_name: "Flower", ar_name: "زهور", slug: "flower" },
+        { en_name: "Bouquet", ar_name: "باقة", slug: "bouquet" },
+      ],
+      type: { en_name: "Rose", ar_name: "ورد" },
+      occasions: [
+        { en_name: "Grandparents Day", ar_name: "يوم الأجداد", slug: "grandparents-day" },
+        { en_name: "Happy Anniversary", ar_name: "ذكرى سعيدة", slug: "happy-anniversary" },
+      ],
+      colors: [
+        { en_name: "Pink", ar_name: "وردي" },
+      ],
+      packaging: { en_name: "Hand Bouquet", ar_name: "باقة يدوية" },
+      price: 225,
+      image: "/images/filter images/4.jpg",
+    },
+    {
+      id: "p5",
+      en_title: "Sunrise Meadow Mix",
+      ar_title: "مزيج مرج شروق الشمس",
+      en_description: "Bright seasonal stems for any room.",
+      ar_description: "سيقان موسمية مشرقة تناسب أي مكان.",
+      categories: [
+        { en_name: "Flower", ar_name: "زهور", slug: "flower" },
+        { en_name: "Arrangement", ar_name: "تنسيق", slug: "arrangement" },
+      ],
+      type: { en_name: "Gerbera", ar_name: "جيربيرا" },
+      occasions: [
+        { en_name: "Friendship Day", ar_name: "يوم الصداقة", slug: "friendship-day" },
+      ],
+      colors: [
+        { en_name: "Yellow", ar_name: "أصفر" },
+        { en_name: "Orange", ar_name: "برتقالي" },
+      ],
+      packaging: { en_name: "Glass Vase", ar_name: "مزهرية زجاجية" },
+      price: 190,
+      image: "/images/filter images/5.jpg",
+    },
+    {
+      id: "p6",
+      en_title: "Classic Red Roses",
+      ar_title: "ورود حمراء كلاسيكية",
+      en_description: "Dozen red roses in premium wrap.",
+      ar_description: "دزينة ورود حمراء بلف فاخر.",
+      categories: [
+        { en_name: "Flower", ar_name: "زهور", slug: "flower" },
+        { en_name: "Bouquet", ar_name: "باقة", slug: "bouquet" },
+      ],
+      type: { en_name: "Rose", ar_name: "ورد" },
+      occasions: [
+        { en_name: "Happy Anniversary", ar_name: "ذكرى سعيدة", slug: "happy-anniversary" },
+      ],
+      colors: [
+        { en_name: "Red", ar_name: "أحمر" },
+      ],
+      packaging: { en_name: "Hand Bouquet", ar_name: "باقة يدوية" },
+      price: 260,
+      image: "/images/filter images/6.jpg",
+    },
+    {
+      id: "p7",
+      en_title: "Peachy Garden Vase",
+      ar_title: "مزهرية حديقة بلون الخوخ",
+      en_description: "Soft peach tones in a vase.",
+      ar_description: "درجات خوخية ناعمة في مزهرية.",
+      categories: [
+        { en_name: "Flower", ar_name: "زهور", slug: "flower" },
+        { en_name: "Vase", ar_name: "مزهرية", slug: "vase" },
+      ],
+      type: { en_name: "Baby Rose", ar_name: "ورد صغير" },
+      occasions: [
+        { en_name: "Eid Al Adha Gifts", ar_name: "هدايا عيد الأضحى", slug: "eid-al-adha" },
+      ],
+      colors: [
+        { en_name: "Peach", ar_name: "خوخي" },
+        { en_name: "White", ar_name: "أبيض" },
+      ],
+      packaging: { en_name: "Glass Vase", ar_name: "مزهرية زجاجية" },
+      price: 210,
+      image: "/images/filter images/7.jpg",
+    },
+    {
+      id: "p8",
+      en_title: "Spring Whisper",
+      ar_title: "همسة الربيع",
+      en_description: "Gentle pastel bouquet for warm wishes.",
+      ar_description: "باقة بألوان باستيل ناعمة للتمنيات الدافئة.",
+      categories: [
+        { en_name: "Flower", ar_name: "زهور", slug: "flower" },
+        { en_name: "Bouquet", ar_name: "باقة", slug: "bouquet" },
+      ],
+      type: { en_name: "Gerbera", ar_name: "جيربيرا" },
+      occasions: [
+        { en_name: "Grandparents Day", ar_name: "يوم الأجداد", slug: "grandparents-day" },
+      ],
+      colors: [
+        { en_name: "Lavender", ar_name: "لافندر" },
+        { en_name: "White", ar_name: "أبيض" },
+      ],
+      packaging: { en_name: "Hand Bouquet", ar_name: "باقة يدوية" },
+      price: 175,
+      image: "/images/filter images/8.jpg",
+    },
+    {
+      id: "p9",
+      en_title: "Coral Charm",
+      ar_title: "سحر المرجان",
+      en_description: "Rich coral tones for bold statements.",
+      ar_description: "درجات مرجانية غنية لِطلة جريئة.",
+      categories: [
+        { en_name: "Flower", ar_name: "زهور", slug: "flower" },
+        { en_name: "Arrangement", ar_name: "تنسيق", slug: "arrangement" },
+      ],
+      type: { en_name: "Rose", ar_name: "ورد" },
+      occasions: [
+        { en_name: "Friendship Day", ar_name: "يوم الصداقة", slug: "friendship-day" },
+      ],
+      colors: [
+        { en_name: "Coral", ar_name: "مرجاني" },
+      ],
+      packaging: { en_name: "Glass Vase", ar_name: "مزهرية زجاجية" },
+      price: 240,
+      image: "/images/filter images/1.jpg",
+    },
+    {
+      id: "p10",
+      en_title: "Blush Harmony",
+      ar_title: "تناغم وردي",
+      en_description: "Balanced pinks with lush greens.",
+      ar_description: "ورديات متوازنة مع خُضراء وارفة.",
+      categories: [
+        { en_name: "Flower", ar_name: "زهور", slug: "flower" },
+        { en_name: "Bouquet", ar_name: "باقة", slug: "bouquet" },
+      ],
+      type: { en_name: "Rose", ar_name: "ورد" },
+      occasions: [
+        { en_name: "Happy Anniversary", ar_name: "ذكرى سعيدة", slug: "happy-anniversary" },
+      ],
+      colors: [
+        { en_name: "Pink", ar_name: "وردي" },
+        { en_name: "Green", ar_name: "أخضر" },
+      ],
+      packaging: { en_name: "Hand Bouquet", ar_name: "باقة يدوية" },
+      price: 215,
+      image: "/images/filter images/2.jpg",
+    },
+    {
+      id: "p11",
+      en_title: "Ivory Elegance",
+      ar_title: "أناقة العاج",
+      en_description: "Minimal whites in a modern vase.",
+      ar_description: "بياض بسيط في مزهرية عصرية.",
+      categories: [
+        { en_name: "Flower", ar_name: "زهور", slug: "flower" },
+        { en_name: "Vase", ar_name: "مزهرية", slug: "vase" },
+      ],
+      type: { en_name: "Baby Rose", ar_name: "ورد صغير" },
+      occasions: [
+        { en_name: "Grandparents Day", ar_name: "يوم الأجداد", slug: "grandparents-day" },
+      ],
+      colors: [
+        { en_name: "White", ar_name: "أبيض" },
+      ],
+      packaging: { en_name: "Glass Vase", ar_name: "مزهرية زجاجية" },
+      price: 205,
+      image: "/images/filter images/3.jpg",
+    },
+    {
+      id: "p12",
+      en_title: "Berry Bliss",
+      ar_title: "متعة التوت",
+      en_description: "Deep berry palette for luxe feels.",
+      ar_description: "لوحة ألوان توتية عميقة لإحساس فاخر.",
+      categories: [
+        { en_name: "Flower", ar_name: "زهور", slug: "flower" },
+        { en_name: "Bouquet", ar_name: "باقة", slug: "bouquet" },
+      ],
+      type: { en_name: "Rose", ar_name: "ورد" },
+      occasions: [
+        { en_name: "Friendship Day", ar_name: "يوم الصداقة", slug: "friendship-day" },
+      ],
+      colors: [
+        { en_name: "Magenta", ar_name: "أرجواني" },
+      ],
+      packaging: { en_name: "Hand Bouquet", ar_name: "باقة يدوية" },
+      price: 280,
+      image: "/images/filter images/4.jpg",
+    },
+  ];
+  
+
+export const allOccasions = [
+    { en_name: "Eid Al Adha Gifts", ar_name: "هدايا عيد الأضحى", slug: "eid-al-adha" },
+    { en_name: "Friendship Day", ar_name: "يوم الصداقة", slug: "friendship-day" },
+    { en_name: "Grandparents Day", ar_name: "يوم الأجداد", slug: "grandparents-day" },
+    { en_name: "Sister's Day", ar_name: "يوم الأخت", slug: "sisters-day" },
+    { en_name: "Eid Al Fiter Gifts", ar_name: "هدايا عيد الفطر", slug: "eid-al-fiter" },
+    { en_name: "Thank You Day", ar_name: "يوم الشكر", slug: "thank-you-day" },
+    { en_name: "Valentine's Day", ar_name: "عيد الحب", slug: "valentines-day" },
+];

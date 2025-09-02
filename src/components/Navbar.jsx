@@ -3,6 +3,7 @@ import { FiMenu, FiSearch, FiHeart, FiUser } from "react-icons/fi";
 import { PiShoppingCartSimpleLight } from "react-icons/pi";
 import MenuListBox from "./MenuListBox";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 export default function Navbar() {
   const { t, i18n } = useTranslation("translation");
@@ -86,9 +87,11 @@ export default function Navbar() {
           </div>
 
           {/* Center logo */}
-          <h1 className="lg:text-[1.5rem] xl:text-4xl 2xl:text-5xl text-primary uppercase">
-            {t("logo")}
-          </h1>
+          <Link to={`/`}>
+            <h1 className="lg:text-[1.5rem] xl:text-4xl 2xl:text-5xl text-primary uppercase">
+              {t("logo")}
+            </h1>
+          </Link>
 
           {/* Right cluster */}
           <div className="flex items-center gap-3">
@@ -107,7 +110,9 @@ export default function Navbar() {
               aria-label={t("navbar.favorite")}
             >
               <FiHeart className="text-[18px] text-primary" />
-              <span className="text-black font-medium">{t("navbar.favorite")}</span>
+              <span className="text-black font-medium">
+                {t("navbar.favorite")}
+              </span>
             </button>
 
             <button
@@ -116,7 +121,9 @@ export default function Navbar() {
               aria-label={t("navbar.member")}
             >
               <FiUser className="text-[18px] text-primary" />
-              <span className="text-black font-medium">{t("navbar.member")}</span>
+              <span className="text-black font-medium">
+                {t("navbar.member")}
+              </span>
             </button>
           </div>
         </div>

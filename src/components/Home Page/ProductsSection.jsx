@@ -15,7 +15,7 @@ const ProductsSection = ({ en_title, ar_title, products }) => {
         {/* Section Title */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="lg:text-[1.8rem] xl:text-[2.5rem] text-primary">{isAr ? ar_title : en_title}</h2>
-          <Button label="See more" />
+          <Button href="/filters/:chocolates" label="See more" />
         </div>
 
         {/* Grid of Cards */}
