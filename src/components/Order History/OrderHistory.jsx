@@ -24,7 +24,7 @@ import { MdOutlineArrowBackIos, MdArrowForwardIos } from "react-icons/md";
 import { useTranslation } from "react-i18next";
 
 const PRIMARY = "#0FB4BB";
-const BORDER = "#0FB4BB";
+const BORDER = "#BFE8E7";
 const ROW_BG = "rgba(15, 180, 187, 0.03)";
 
 const pad2 = (n) => String(n).padStart(2, "0");
