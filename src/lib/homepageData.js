@@ -206,7 +206,6 @@ export const bestSellerProducts = [
   },
 ];
 
-
 export const houseOfDelights = [
   {
     id: 1,

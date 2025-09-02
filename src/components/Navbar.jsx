@@ -3,13 +3,16 @@ import { FiMenu, FiSearch, FiHeart, FiUser } from "react-icons/fi";
 import { PiShoppingCartSimpleLight } from "react-icons/pi";
 import MenuListBox from "./MenuListBox";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Navbar() {
   const { t, i18n } = useTranslation("translation");
   const [menuOpen, setMenuOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const btnRef = useRef(null);
+
+  const location = useLocation();
+  console.log(location.pathname);
 
   // keep document direction in sync with language (dir comes from translations)
   useEffect(() => {
@@ -95,36 +98,36 @@ export default function Navbar() {
 
           {/* Right cluster */}
           <div className="flex items-center gap-3">
-            <button
+            <Link to={`/cart/29421784161`}
               type="button"
               className="border-b border-primary_light_mode hidden sm:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]"
               aria-label={t("navbar.cart")}
             >
               <PiShoppingCartSimpleLight className="text-[20px] text-primary" />
               <span className="text-black font-medium">{t("navbar.cart")}</span>
-            </button>
+            </Link>
 
-            <button
+            <Link to={`/wishlist/29421784161`}
               type="button"
-              className="border-b border-primary_light_mode hidden sm:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]"
+              className={`${location.pathname.includes("wishlist") ? "bg-primary" : "bg-transparent"} border-b border-primary_light_mode hidden sm:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.favorite")}
             >
-              <FiHeart className="text-[18px] text-primary" />
-              <span className="text-black font-medium">
+              <FiHeart className={`text-[18px] ${location.pathname.includes("wishlist") ? "text-white" : "text-primary"}`} />
+              <span className={`font-medium ${location.pathname.includes("wishlist") ? "text-white" : "text-black"}`}>
                 {t("navbar.favorite")}
               </span>
-            </button>
+            </Link>
 
-            <button
+            <Link to={`/member/29421784161`}
               type="button"
               className="border-b border-primary_light_mode flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]"
               aria-label={t("navbar.member")}
             >
-              <FiUser className="text-[18px] text-primary" />
+              <FiUser className={`text-[18px] ${location.pathname.includes("member") ? "text-white" : "text-primary"}`} />
               <span className="text-black font-medium">
                 {t("navbar.member")}
               </span>
-            </button>
+            </Link>
           </div>
         </div>
       </div>
