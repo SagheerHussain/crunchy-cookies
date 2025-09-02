@@ -87,45 +87,44 @@ h4 {
 
 /* Symmetric positions (same feel both directions) */
 .slide.lt2.en {
-  transform: translateX(32%) scale(0.70);
+  transform: translateX(32%) scale(0.7);
   opacity: 1;
 }
 
 .slide.gt2.en {
-  transform: translateX(-32%) scale(0.70);
+  transform: translateX(-32%) scale(0.7);
   opacity: 1;
   z-index: -1 !important;
-
 }
 
 .slide.lt1.en {
-  transform: translateX(10%) scale(0.80);
+  transform: translateX(10%) scale(0.8);
   opacity: 1;
 }
 
 .slide.gt1.en {
-  transform: translateX(-10%) scale(0.80);
+  transform: translateX(-10%) scale(0.8);
   opacity: 1;
 }
 
 .slide.lt2.ar {
-  transform: translateX(-32%) scale(0.70);
+  transform: translateX(-32%) scale(0.7);
   opacity: 1;
 }
 
 .slide.gt2.ar {
-  transform: translateX(32%) scale(0.70) !important;
+  transform: translateX(32%) scale(0.7) !important;
   opacity: 1;
   z-index: -1 !important;
 }
 
 .slide.lt1.ar {
-  transform: translateX(-10%) scale(0.80);
+  transform: translateX(-10%) scale(0.8);
   opacity: 1;
 }
 
 .slide.gt1.ar {
-  transform: translateX(10%) scale(0.80);
+  transform: translateX(10%) scale(0.8);
   opacity: 1;
 }
 
@@ -179,7 +178,6 @@ h4 {
   display: block;
 }
 
-
 /* Responsive tweak */
 @media (min-width: 1024px) and (max-width: 1280px) {
   .slide.slick-center {
@@ -198,11 +196,19 @@ h4 {
   transition: all 0.45s ease, opacity 0.45s ease, filter 0.45s ease;
 }
 
-
 /* Swiper Navigation Arrows */
+.filter_gifts_occasion {
+  overflow-y: visible !important;
+}
+.swiper {
+  overflow-y: visible !important;
+}
+.filter_gifts_occasion .swiper-button-next {
+  top: 2rem;
+}
 .swiper-button-next,
 .swiper-button-prev {
-  background-color: #0FB4BB;
+  background-color: #0fb4bb;
   color: #fff;
   width: 30px;
   height: 30px;
@@ -212,6 +218,7 @@ h4 {
   justify-content: center;
   margin-top: -15px;
 }
+
 .swiper-button-next {
   transform: translateX(10px) !important;
 }
@@ -226,5 +233,57 @@ h4 {
 
 /* Pagination */
 .MuiPaginationItem-root.Mui-selected {
-  background: #0FB4BB !important;
+  background: #0fb4bb !important;
+}
+
+/* Curve Effect */
+.curve-effect::after {
+  width: 2rem;
+  height: 2rem;
+  content: "";
+  position: absolute;
+  background-color: transparent;
+  right: -1.7rem;
+  top: -.1rem;
+  border-top-left-radius: 2rem;
+  box-shadow: -0.375rem -0.375rem #fff;   
+}
+
+.curve_effect_two::after {
+  width: 2rem;
+  height: 2rem;
+  content: "";
+  position: absolute;
+  background-color: transparent;
+  right: -.4rem;
+  top: -2rem;
+  border-top-left-radius: 2rem;
+  box-shadow: -0.375rem -0.375rem #fff; 
+  transform: rotate(180deg);  
+}
+
+.curve_three {
+  width: 2rem;
+  height: 2rem;
+  content: "";
+  position: absolute;
+  background-color: transparent;
+  top: 85%;
+  left: 0rem;
+  border-top-left-radius: 2rem;
+  box-shadow: -0.375rem -0.375rem #fff;
+  transform: rotate(10deg);
+}
+
+.curve_four {
+  width: 2rem;
+  height: 2rem;
+  content: "";
+  position: absolute;
+  background-color: transparent;
+  bottom: 0rem;
+  left: -2rem;
+  border-top-left-radius:1rem;
+  box-shadow: -0.375rem -0.375rem #fff;
+  transform: rotate(180deg);
 }

@@ -53,7 +53,7 @@ export default function GiftMomentsCarousel({ en_title, ar_title, items = [], on
           // Make it a horizontal row
           direction="horizontal"
           // visible slides per breakpoint
-          slidesPerView={1.2}
+          // slidesPerView={1.2}
           breakpoints={{
             640: { slidesPerView: 2.2, spaceBetween: 20 },
             768: { slidesPerView: 3.2, spaceBetween: 22 },

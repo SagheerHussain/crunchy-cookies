@@ -52,7 +52,7 @@ const Footer = () => {
 
             <div className="flex items-center gap-4">
               {/* Country select */}
-              <Menu as="div" className="relative">
+              {/* <Menu as="div" className="relative">
                 <Menu.Button className="bg-[#0fb5bb50] flex items-center gap-2 rounded-[10px] px-4 py-2 text-[15px] text-white font-medium shadow-sm focus:outline-none">
                   <span>
                     {i18n.language === "ar" ? "التوصيل إلى" : "Delivery to"} {selected}
@@ -86,12 +86,12 @@ const Footer = () => {
                     </div>
                   </Menu.Items>
                 </Transition>
-              </Menu>
+              </Menu> */}
 
               {/* Language pill */}
               <button
                 onClick={() => changeLanguage(i18n.language === "ar" ? "en" : "ar")}
-                className="flex items-center bg-[#0fb5bb50] gap-2 rounded-[10px] px-4 py-2 text-[15px] text-white font-medium shadow-sm"
+                className="flex items-center bg-[#0fb5bb50] gap-2 rounded-[10px] px-8 py-2 text-[15px] text-white font-medium shadow-sm"
               >
                 <span>{i18n.language === "ar" ? "English" : "العربية"}</span>
                 <PiGlobeHemisphereWestLight className="text-[18px]" style={{ color: "#0FB4BB" }} />

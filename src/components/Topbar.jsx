@@ -42,7 +42,7 @@ export default function Topbar() {
           {/* Right controls */}
           <div className="flex items-center gap-3">
             {/* Delivery Dropdown */}
-            <Menu as="div" className="relative">
+            {/* <Menu as="div" className="relative">
               <Menu.Button className="bg-primary_light_mode flex items-center gap-2 rounded-full px-4 py-2 text-[15px] text-neutral-700 shadow-sm focus:outline-none">
                 <span>{i18n.language === "ar" ? "التوصيل إلى" : "Delivery to"} {selected}</span>
                 <FiChevronDown className="text-[18px]" />
@@ -74,7 +74,7 @@ export default function Topbar() {
                   </div>
                 </Menu.Items>
               </Transition>
-            </Menu>
+            </Menu> */}
 
             {/* Language pill */}
             <button
