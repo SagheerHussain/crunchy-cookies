@@ -16,7 +16,7 @@ const ShowcaseProducts = ({ products, en_title, ar_title }) => {
             <div className="custom-container relative">
                 <div className="flex items-center justify-between">
                     <h2 className="text-center lg:text-[1.8rem] xl:text-[2.5rem] text-primary">{langClass === "ar" ? ar_title : en_title}</h2>
-                    <Button label="See more" />
+                    <Button label="See more" href="/filters/chocolate" />
                 </div>
                 <div className="absolute bottom-[-7%] left-0 w-full bg-[#0fb5bb25] rounded-[25px] lg:h-[200px] xl:h-[250px] border-[1px] border-primary"></div>
                 <div className="grid grid-cols-4 gap-x-6 lg:px-0 xl:px-2 2xl:px-6 py-6">
