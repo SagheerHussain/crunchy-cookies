@@ -1,0 +1,341 @@
+import React, { useMemo, useState } from "react";
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  Typography,
+  Divider,
+  Paper,
+} from "@mui/material";
+import { GrClose } from "react-icons/gr";
+import { orders } from "../../lib/orderHistory";
+import { Link } from "react-router-dom";
+import { MdOutlineArrowBackIos, MdArrowForwardIos } from "react-icons/md";
+import { useTranslation } from "react-i18next";
+
+/* ---------- Colors to match your design ---------- */
+const PRIMARY = "#0FB4BB";
+const BORDER = "#BFE8E7";
+const ROW_BG = "rgba(15, 180, 187, 0.03)"; // subtle teal tint
+
+/* ---------- Helpers ---------- */
+const pad2 = (n) => String(n).padStart(2, "0");
+const currency = (n) => `${n}`; // customize if you need QAR, etc.
+
+/* ---------- Main component ---------- */
+export default function OrdersTable({
+  rows = orders, // pass your own rows if you like
+}) {
+  const [itemsOpen, setItemsOpen] = useState(false);
+  const [activeOrder, setActiveOrder] = useState(null);
+
+  const { i18n } = useTranslation();
+  const langClass = i18n.language === "ar";
+
+  const openItems = (order) => {
+    setActiveOrder(order);
+    setItemsOpen(true);
+  };
+  const closeItems = () => setItemsOpen(false);
+
+  const totalOfActiveOrder = useMemo(() => {
+    if (!activeOrder) return 0;
+    return activeOrder.items.reduce((sum, it) => sum + it.qty * it.price, 0);
+  }, [activeOrder]);
+
+  return (
+    <>
+      <section id="order-history" className="py-10">
+        <div className="custom-container">
+          <Link to={"/"}>
+            <div className="bg-[#0fb5bb25] p-2 inline-block rounded-full">
+              {langClass ? (
+                <MdArrowForwardIos
+                  size={24}
+                  className="cursor-pointer text-primary"
+                />
+              ) : (
+                <MdOutlineArrowBackIos
+                  size={24}
+                  className="cursor-pointer text-primary"
+                />
+              )}
+            </div>
+          </Link>
+
+          <div className="flex items-center justify-between mt-4 mb-8">
+            <h2 className="text-center lg:text-[1.8rem] xl:text-[2.5rem] text-primary">
+              {langClass ? "تاريخ الطلب" : "Order History"}
+            </h2>
+          </div>
+
+          <TableContainer
+            component={Paper}
+            elevation={0}
+            sx={{
+              border: `1px solid ${BORDER}`,
+              borderRadius: "18px",
+              overflow: "hidden",
+              bgcolor: "#FFFFFF",
+              // Make it usable on phones
+              width: "100%",
+              overflowX: "auto",
+            }}
+          >
+            {/* Top border accent and padding wrapper */}
+            <Box sx={{ px: { xs: 1, sm: 2 }, pt: 2 }}>
+              <Table
+                sx={{
+                  minWidth: 700,
+                  "& th": {
+                    color: PRIMARY,
+                    fontWeight: 600,
+                    borderBottom: `1px solid ${BORDER}`,
+                    whiteSpace: "nowrap",
+                  },
+                  "& td": {
+                    borderBottom: `1px solid ${BORDER}`,
+                  },
+                }}
+                aria-label="orders table"
+              >
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontSize: "1.2rem", width: 80 }}>
+                      S.No
+                    </TableCell>
+                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>
+                      Sender Number
+                    </TableCell>
+                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>
+                      Receiver Number
+                    </TableCell>
+                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>
+                      Price
+                    </TableCell>
+                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>
+                      Total Items
+                    </TableCell>
+                    <TableCell sx={{ fontSize: "1.2rem", fontWeight: 400 }}>
+                      Date
+                    </TableCell>
+                    <TableCell align="right" sx={{ width: 220 }}>
+                      {/* actions */}
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+
+                <TableBody>
+                  {rows.map((row, idx) => (
+                    <TableRow
+                      key={row.id}
+                      sx={{
+                        bgcolor: ROW_BG, // subtle fill like screenshot
+                        "&:last-child td": { borderBottom: 0 },
+                      }}
+                    >
+                      <TableCell
+                        sx={{
+                          color: PRIMARY,
+                          fontSize: "1.2rem",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {pad2(idx + 1)}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          color: "#4B5563",
+                          fontSize: "1.2rem",
+                          fontWeight: 400,
+                        }}
+                      >
+                        {row.sender}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          color: "#4B5563",
+                          fontSize: "1.2rem",
+                          fontWeight: 400,
+                        }}
+                      >
+                        {row.receiver}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          color: "#4B5563",
+                          fontSize: "1.2rem",
+                          fontWeight: 400,
+                        }}
+                      >
+                        {currency(row.price)}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          color: "#4B5563",
+                          fontSize: "1.2rem",
+                          fontWeight: 400,
+                        }}
+                      >
+                        {pad2(row.totalItems)}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          color: "#4B5563",
+                          fontSize: "1.2rem",
+                          fontWeight: 400,
+                        }}
+                      >
+                        {row.date}
+                      </TableCell>
+                      <TableCell align="right">
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 1,
+                            justifyContent: "flex-end",
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <Button
+                            href={
+                              "https://b.stripecdn.com/docs-statics-srv/assets/terminal-pre-built-receipt.64db66739eaf8f8db1f9dd61c463a322.png"
+                            }
+                            target="_blank"
+                            size="small"
+                            variant="contained"
+                            sx={{
+                              textTransform: "none",
+                              bgcolor: PRIMARY,
+                              "&:hover": { bgcolor: "#0fb4bbd9" },
+                              borderRadius: "10px",
+                              px: 2,
+                              minWidth: 120,
+                            }}
+                          >
+                            View receipt
+                          </Button>
+                          <Button
+                            onClick={() => openItems(row)}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              textTransform: "none",
+                              color: PRIMARY,
+                              borderColor: PRIMARY,
+                              "&:hover": {
+                                borderColor: PRIMARY,
+                                bgcolor: "rgba(15,180,187,0.08)",
+                              },
+                              borderRadius: "10px",
+                              px: 2,
+                              minWidth: 120,
+                            }}
+                          >
+                            View items
+                          </Button>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <Divider sx={{ borderColor: BORDER }} />
+            </Box>
+          </TableContainer>
+        </div>
+      </section>
+
+      {/* ---------- Items Modal ---------- */}
+      <Dialog
+        open={itemsOpen}
+        onClose={closeItems}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: 5,
+            border: `3px solid ${BORDER}`,
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{ pr: 6, color: PRIMARY, fontWeight: 700, fontSize: "1.1rem" }}
+        >
+          {activeOrder ? `Order #${activeOrder.id} — Items` : "Items"}
+          <IconButton
+            aria-label="close"
+            onClick={closeItems}
+            sx={{ position: "absolute", right: 8, top: 8 }}
+          >
+            <GrClose />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent dividers sx={{ borderColor: BORDER }}>
+          {activeOrder ? (
+            <Box>
+              {activeOrder.items.map((it, i) => (
+                <Box
+                  key={`${activeOrder.id}-${i}`}
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto auto",
+                    gap: 1.5,
+                    alignItems: "center",
+                    py: 1,
+                    borderBottom:
+                      i === activeOrder.items.length - 1
+                        ? "none"
+                        : `1px solid ${BORDER}`,
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <img src={it.image} className="w-12 h-12" alt={it.name} />
+                    <Typography sx={{ fontWeight: 400, color: "#374151" }}>
+                      {it.name}
+                    </Typography>
+                  </div>
+                  <Typography sx={{ color: "#6B7280" }}>x{it.qty}</Typography>
+                  <Typography sx={{ color: "#111827", fontWeight: 600 }}>
+                    {currency(it.price * it.qty)}
+                  </Typography>
+                </Box>
+              ))}
+              <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                <Typography sx={{ fontWeight: 700, color: PRIMARY }}>
+                  Total: {currency(totalOfActiveOrder)}
+                </Typography>
+              </Box>
+            </Box>
+          ) : null}
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button
+            onClick={closeItems}
+            variant="contained"
+            sx={{
+              textTransform: "none",
+              bgcolor: PRIMARY,
+              "&:hover": { bgcolor: "#0fb4bbd9" },
+              borderRadius: "10px",
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
