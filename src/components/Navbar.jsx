@@ -120,11 +120,11 @@ export default function Navbar() {
 
             <Link to={`/member/29421784161`}
               type="button"
-              className="border-b border-primary_light_mode flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]"
+              className={`${location.pathname.includes("member") ? "bg-primary" : "bg-transparent"} border-b border-primary_light_mode flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A] ${location.pathname.includes("member") ? "bg-primary" : "bg-transparent"}`}
               aria-label={t("navbar.member")}
             >
               <FiUser className={`text-[18px] ${location.pathname.includes("member") ? "text-white" : "text-primary"}`} />
-              <span className="text-black font-medium">
+              <span className={`font-medium ${location.pathname.includes("member") ? "text-white" : "text-black"}`}>
                 {t("navbar.member")}
               </span>
             </Link>

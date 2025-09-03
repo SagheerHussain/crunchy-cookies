@@ -307,3 +307,17 @@ h4 {
 #cart ::-webkit-scrollbar {
   width: 0px;
 }
+
+/* Stepper */
+.MuiStepLabel-iconContainer.Mui-completed svg {
+  color: #0FB4BB !important;
+}
+.MuiStepLabel-iconContainer.Mui-active svg {
+  color: #0FB4BB !important;
+}
+.MuiStepLabel-iconContainer.Mui-disabled svg {
+  color: #ddd !important;
+}
+.MuiStepLabel-label.Mui-disabled {
+  color: #ddd !important;
+}
