@@ -152,7 +152,7 @@ export default function OrdersTable({ rows = orders }) {
                               minWidth: 120,
                             }}
                           >
-                            View receipt
+                            {isAr ? "عرض الإيصال" : "View receipt"}
                           </Button>
 
                           {/* View items -> CRUNCHY style modal */}
@@ -170,7 +170,7 @@ export default function OrdersTable({ rows = orders }) {
                               minWidth: 120,
                             }}
                           >
-                            View items
+                            {isAr ? "عرض العناصر" : "View items"}
                           </Button>
                         </Box>
                       </TableCell>
@@ -212,10 +212,10 @@ export default function OrdersTable({ rows = orders }) {
             fontWeight: 800,
             letterSpacing: ".06em",
             textTransform: "uppercase",
-            fontSize: "1.2rem",
+            fontSize: `${isAr ? "2rem" : "1.2rem"}`,
           }}
         >
-          CRUNCHY COOKIES
+          {isAr ? "كرنشي كوكيز" : "CRUNCHY COOKIES"}
         </h1>
 
         <DialogContent sx={{ px: 0, pb: 0 }}>
@@ -232,14 +232,14 @@ export default function OrdersTable({ rows = orders }) {
               }}
             >
               <Box>
-                <Typography sx={{ color: PRIMARY, fontWeight: 700, mb: 0.5 }}>
-                  Sender Number
+                <Typography sx={{ color: PRIMARY, fontSize: `${isAr ? "1.3rem" : "1.2rem"}`, fontWeight: 700, mb: 0.5 }}>
+                  {isAr ? "رقم المرسل" : "Sender Number"}
                 </Typography>
                 <Typography sx={{ color: "#6B7280" }}>{activeOrder?.sender}</Typography>
               </Box>
               <Box sx={{ textAlign: isAr ? "right" : "left" }}>
-                <Typography sx={{ color: PRIMARY, fontWeight: 700, mb: 0.5 }}>
-                  Receiver Number
+                <Typography sx={{ color: PRIMARY, fontSize: `${isAr ? "1.3rem" : "1.2rem"}`, fontWeight: 700, mb: 0.5 }}>
+                  {isAr ? "رقم المتلقي" : "Receiver Number"}
                 </Typography>
                 <Typography sx={{ color: "#6B7280" }}>{activeOrder?.receiver}</Typography>
               </Box>
@@ -259,9 +259,9 @@ export default function OrdersTable({ rows = orders }) {
                 fontWeight: 700,
               }}
             >
-              <Typography>S.no</Typography>
-              <Typography>Item</Typography>
-              <Typography textAlign="right">Item Price</Typography>
+              <Typography>{isAr ? "S.no" : "S.no"}</Typography>
+              <Typography>{isAr ? "غرض" : "Item"}</Typography>
+              <Typography textAlign="right">{isAr ? "سعر السلعة" : "Item Price"}</Typography>
             </Box>
 
             <Divider sx={{ borderColor: BORDER }} />
@@ -298,7 +298,7 @@ export default function OrdersTable({ rows = orders }) {
                         flexShrink: 0,
                       }}
                     />
-                    <Typography sx={{ color: "#374151" }}>{it.name}</Typography>
+                    <Typography sx={{ color: "#374151" }}>{isAr ? it.ar_name : it.en_name}</Typography>
                     <Typography sx={{ color: "#6B7280", ml: "auto" }}>x{it.qty}</Typography>
                   </Box>
 
@@ -313,7 +313,7 @@ export default function OrdersTable({ rows = orders }) {
             <Divider sx={{ borderColor: BORDER, mt: 0.5, mb: 1 }} />
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <h5 style={{ color: PRIMARY, fontWeight: 800, fontSize: "1.3rem" }}>
-                Total
+                {isAr ? "المجموع" : "Total"}
               </h5>
               <h5
                 style={{ ml: "auto", fontWeight: 400, color: "#111827", fontSize: "1rem" }}
@@ -334,9 +334,10 @@ export default function OrdersTable({ rows = orders }) {
               "&:hover": { bgcolor: "#0fb4bbd9" },
               borderRadius: "10px",
               px: 4,
+              fontSize: `${isAr ? "1.3rem" : "1rem"}`,
             }}
           >
-            Close
+            {isAr ? "يغلق" : "Close"}
           </Button>
         </DialogActions>
         </div>

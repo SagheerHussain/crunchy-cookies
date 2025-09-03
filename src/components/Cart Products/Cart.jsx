@@ -23,7 +23,7 @@ export default function Cart() {
   const [items, setItems] = useState(initialItems);
   const [phones, setPhones] = useState({ sender: "", receiver: "" });
   const [cardMsg, setCardMsg] = useState(
-    "Wishing You All The Best For The Next Year. Stay Happy And Blessed."
+    ""
   );
   const [voucher, setVoucher] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -71,7 +71,7 @@ export default function Cart() {
         </Link>
 
         {/* Header */}
-        <h1 className="text-4xl text-primary mb-4">CART</h1>
+        <h1 className="text-4xl text-primary mb-4">{langClass ? "عربة التسوق" : "CART"}</h1>
 
         <div className="grid lg:grid-cols-[1.1fr_.9fr] gap-6 mt-6">
           {/* LEFT: Items */}
@@ -80,7 +80,7 @@ export default function Cart() {
           >
             <div className="flex items-center justify-between p-5 border-b border-primary/20">
               <h5 className="text-2xl font-semibold text-primary">
-                Total Items
+                {langClass ? "إجمالي العناصر" : "Total Items"}
               </h5>
               <div className="text-2xl font-semibold text-primary">
                 {items.length}
@@ -88,7 +88,7 @@ export default function Cart() {
             </div>
 
             <div className="py-4 pt-4 pb-2 text-black text-lg font-medium">
-              Select Items You Want To Purchase
+              {langClass ? "حدد العناصر التي تريد شراءها" : "Select Items You Want To Purchase"}
             </div>
 
             {/* Items list */}
@@ -131,7 +131,7 @@ export default function Cart() {
 
                   {/* Title + meta */}
                   <div className="flex-1">
-                    <h5 className="text-black font-medium">{i.title}</h5>
+                    <h5 className="text-black font-medium">{langClass ? i.ar_title : i.en_title}</h5>
                     <div className="text-primary font-semibold text-sm mt-2 mb-4">
                       {CURRENCY(i.price)}
                     </div>
@@ -181,7 +181,7 @@ export default function Cart() {
             >
               <header className="flex items-center gap-2 p-5 border-b border-primary/20">
                 <FiGift className="text-primary" />
-                <h3 className="text-primary text-xl">Details</h3>
+                <h3 className="text-primary text-xl">{langClass ? "تفاصيل" : "Details"}</h3>
               </header>
 
               <div className="py-4 space-y-5">
@@ -189,7 +189,7 @@ export default function Cart() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <label className="block">
                     <span className="text-primary font-medium">
-                      Sender Phone :
+                      {langClass ? "هاتف المرسل" : "Sender Phone"}
                     </span>
                     <div className="mt-2 relative">
                       <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -207,7 +207,7 @@ export default function Cart() {
 
                   <label className="block">
                     <span className="text-primary font-medium">
-                      Receiver Phone :
+                      {langClass ? "هاتف المتلقي" : "Receiver Phone"}
                     </span>
                     <div className="mt-2 relative">
                       <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -227,27 +227,27 @@ export default function Cart() {
                 {/* Card message */}
                 <label className="block">
                   <span className="text-primary font-medium">
-                    Card Message :
+                    {langClass ? "رسالة البطاقة" : "Card Message"}
                   </span>
                   <textarea
                     rows={3}
                     value={cardMsg}
                     onChange={(e) => setCardMsg(e.target.value)}
                     className="mt-2 w-full rounded-xl border-2 border-primary/20 p-3 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    placeholder="Your message…"
+                    placeholder={`${langClass ? "رسالتك" : "Your message…"}`}
                   />
                 </label>
 
                 {/* Actions */}
                 <div className="flex items-center gap-3 pt-1">
                   <button className="px-6 py-2.5 rounded-xl border border-primary/20 text-[#333] hover:bg-primary hover:text-white font-medium transition-all duration-200">
-                    Cancel
+                    {langClass ? "يلغي" : "Cancel"}
                   </button>
                   <button
                     onClick={() => setPreviewOpen(true)}
                     className="px-6 py-3 rounded-xl bg-primary text-white font-medium hover:bg-primary/70"
                   >
-                    Preview
+                    {langClass ? "معاينة" : "Preview"}
                   </button>
                 </div>
               </div>
@@ -259,19 +259,18 @@ export default function Cart() {
             >
               <header className="flex items-center gap-2 py-4 border-b border-primary/20">
                 <FiGift className="text-primary" />
-                <h3 className="text-primary text-xl">Order Summary</h3>
+                <h3 className="text-primary text-xl">{langClass ? "ملخص الطلب" : "Order Summary"}</h3>
               </header>
 
               <div className="py-4 space-y-4">
-                <Row label="Subtotal" value={CURRENCY(subtotal)} />
-                <Row label="Delivery charges" value={CURRENCY(delivery)} />
+                <Row label={`${langClass ? "المجموع الفرعي" : "Subtotal"}`} value={CURRENCY(subtotal)} />
+                <Row label={`${langClass ? "رسوم التوصيل" : "Delivery charges"}`} value={CURRENCY(delivery)} />
                 <p className="text-[#333] text-sm leading-relaxed max-w-sm">
-                  Please note that specific regions and express delivery may
-                  incur extra delivery fees
+                  {langClass ? ".يرجى ملاحظة أن بعض المناطق والتوصيل السريع قد يتطلبان رسوم توصيل إضافية" : "Please note that specific regions and express delivery may incur extra delivery fees"}
                 </p>
                 <hr className="border-primary/20" />
                 <Row
-                  label={<span className="font-semibold text-lg">Total</span>}
+                  label={<span className="font-semibold text-lg">{langClass ? "المجموع" : "Total"}</span>}
                   value={
                     <span className="font-semibold text-lg text-primary">
                       {CURRENCY(total)}
@@ -287,24 +286,24 @@ export default function Cart() {
                       : "bg-primary/50 cursor-not-allowed"
                   }`}
                 >
-                  Check out
+                  {langClass ? "الدفع" : "Check out"}
                 </button>
 
                 <hr className="border-primary/20" />
 
                 <div>
                   <div className="text-primary text-xl font-semibold mb-3">
-                    Voucher Card
+                    {langClass ? "بطاقة قسيمة" : "Voucher Card"}
                   </div>
                   <div className="flex gap-3">
                     <input
                       value={voucher}
                       onChange={(e) => setVoucher(e.target.value)}
-                      placeholder="Enter Voucher Code"
+                      placeholder={langClass ? "أدخل كود القسيمة" : "Enter Voucher Code"}
                       className="flex-1 rounded-xl border-2 border-primary/20 p-3 focus:outline-none"
                     />
                     <button className="px-6 rounded-xl bg-primary text-white font-medium hover:bg-primary/70">
-                      Apply
+                      {langClass ? "يتقدم" : "Apply"}
                     </button>
                   </div>
                 </div>
@@ -339,6 +338,9 @@ function Row({ label, value }) {
 function PreviewModal({ open, onClose, phones, cardMsg, items }) {
   if (!open) return null;
 
+  const { i18n } = useTranslation();
+  const langClass = i18n.language === "ar";
+
   return (
     <div
       className="fixed inset-0 z-50"
@@ -360,7 +362,7 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <FiGift />
               </span>
-              <h3 className="text-primary text-xl">History</h3>
+              <h3 className="text-primary text-xl">{langClass ? "تاريخ" : "Details"}</h3>
             </div>
             <button
               onClick={onClose}
@@ -376,7 +378,7 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
             {/* Phones */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="block">
-                <span className="text-primary font-medium">Sender Phone :</span>
+                <span className="text-primary font-medium">{langClass ? "هاتف المرسل :" : "Sender Phone :"}</span>
                 <input
                   value={phones.sender}
                   disabled
@@ -386,9 +388,7 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
               </label>
 
               <label className="block">
-                <span className="text-primary font-medium">
-                  Receiver Phone :
-                </span>
+                <span className="text-primary font-medium">{langClass ? "هاتف المتلقي :" : "Receiver Phone :"}</span>
                 <input
                   value={phones.receiver}
                   disabled
@@ -401,7 +401,7 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
             {/* Message + Card image */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="block">
-                <span className="text-primary font-medium">Card Message :</span>
+                <span className="text-primary font-medium">{langClass ? "رسالة البطاقة :" : "Card Message :"}</span>
                 <textarea
                   value={cardMsg}
                   disabled
@@ -411,7 +411,7 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
               </label>
 
               <label className="block">
-                <span className="text-primary font-medium">Card :</span>
+                <span className="text-primary font-medium">{langClass ? "بطاقة :" : "Card :"}</span>
                 <div className="mt-2 h-[180px] rounded-2xl overflow-hidden ring-1 ring-primary/20">
                   {/* Replace with your card image */}
                   <img
@@ -425,7 +425,7 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
 
             {/* Items */}
             <div>
-              <div className="text-primary font-medium mb-2">Item :</div>
+              <div className="text-primary font-medium mb-2">{langClass ? "أغراض :" : "Items :"}</div>
               <div className="space-y-3">
                 {items.map((i) => (
                   <article
@@ -438,11 +438,11 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
                   >
                     <img
                       src={i.image}
-                      alt={i.title}
+                      alt={langClass ? i.ar_title : i.en_title}
                       className="h-16 w-20 object-cover rounded-xl ring-1 ring-primary/10"
                     />
                     <div className="flex-1">
-                      <h5 className="text-black font-medium">{i.title}</h5>
+                      <h5 className="text-black font-medium">{langClass ? i.ar_title : i.en_title}</h5>
                       <div className="text-primary font-semibold text-sm mt-2 mb-4">
                         {CURRENCY(i.price)}
                       </div>
@@ -476,7 +476,7 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
                 ))}
 
                 {items.length === 0 && (
-                  <p className="text-sm text-slate-500">No items selected.</p>
+                  <p className="text-sm text-slate-500">{langClass ? "لم يتم تحديد أي عناصر." : "No items selected."}</p>
                 )}
               </div>
             </div>
