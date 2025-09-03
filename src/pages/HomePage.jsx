@@ -10,8 +10,6 @@ import ShowcaseProducts from "../components/Home Page/ShowcaseProducts";
 import LatestCollection from "../components/Home Page/LatestCollection";
 import Footer from "../components/Footer";
 
-
-
 const HomePage = () => {
   return (
     <>

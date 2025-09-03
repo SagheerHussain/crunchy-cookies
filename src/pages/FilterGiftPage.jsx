@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import FilterGifts from "../components/Filter Products/FilterGifts";
 import Footer from "../components/Footer";
 
-const HomePage = () => {
+const FilterGiftPage = () => {
     return (
         <>
             <header id="header">
@@ -22,4 +22,4 @@ const HomePage = () => {
     );
 };
 
-export default HomePage;
+export default FilterGiftPage;

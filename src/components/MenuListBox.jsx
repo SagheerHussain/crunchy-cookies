@@ -17,7 +17,7 @@ export default function MenuListBox({ onClose }) {
     { label: "Favorites", to: "/wishlist/295428429752", icon: <AiOutlineHeart className="text-cyan-700" /> },
     { label: "About us", to: "/about", icon: <AiOutlineInfoCircle className="text-cyan-700" /> },
     { label: "Contact us", to: "/contact", icon: <AiOutlinePhone className="text-cyan-700" /> },
-    { label: "Order Tracking", to: "/order-tracking/342252245", icon: <AiOutlineGift className="text-cyan-700" /> },
+    // { label: "Order Tracking", to: "/order-tracking/342252245", icon: <AiOutlineGift className="text-cyan-700" /> },
     { label: "Order History", to: "/order-history/413143151", icon: <AiOutlineGift className="text-cyan-700" /> },
   ];
 

@@ -2,20 +2,21 @@ import React from 'react';
 import { AiOutlineArrowRight } from 'react-icons/ai';
 import Button from '../Button';
 import { useTranslation } from "react-i18next";
+import { useLocation } from 'react-router-dom';
 
 const LatestCollection = ({ collections, en_title, ar_title }) => {
 
     const { i18n } = useTranslation();
     const langClass = i18n.language === "ar";
 
-    console.log("collections", collections);
+    const location = useLocation();
 
     return (
         <section className="py-20">
             <div className="custom-container">
                 <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-center lg:text-[1.8rem] xl:text-[2.5rem] font-medium text-primary">{langClass === "ar" ? ar_title : en_title}</h2>
-                    <Button label={"See More"} href="/filters/chocolate" />
+                    <h2 className="text-center lg:text-[1.8rem] xl:text-[2.5rem] font-medium text-primary">{langClass ? ar_title : en_title}</h2>
+                    {location.pathname === "/about" ? null : <Button label={"See More"} href="/filters/chocolate" />}
                 </div>
                 <div className="grid grid-cols-3 gap-6">
                     {collections?.map((item) => (

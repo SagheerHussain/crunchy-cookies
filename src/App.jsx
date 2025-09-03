@@ -5,6 +5,8 @@ import FilterGiftPage from "./pages/FilterGiftPage";
 import WishlistPage from "./pages/WishlistPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import CartPage from "./pages/CartPage";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
 import "./App.css";
 
 export default function App() {
@@ -15,6 +17,8 @@ export default function App() {
       <Route path="/wishlist/:id" element={<WishlistPage />} />
       <Route path="/order-history/:id" element={<OrderHistoryPage />} />
       <Route path="/cart/:id" element={<CartPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/contact" element={<ContactPage />} />
     </Routes>
   );
 }
