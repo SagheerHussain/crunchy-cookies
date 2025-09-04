@@ -3,6 +3,7 @@ import Button from "./Button";
 import { FiHeart } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
 import { FaHeart } from "react-icons/fa6";
+import { Link } from "react-router-dom";
 
 const ProductCard = ({ product }) => {
 
@@ -12,7 +13,8 @@ const ProductCard = ({ product }) => {
   const [isLiked, setIsLiked] = useState(false);
 
   return (
-    <div className="relative bg-primary_light_mode rounded-[35px] border-[1px] border-primary/30 flex flex-col items-center transition-shadow duration-300 p-4">
+    <Link to={`/gift-detail/${product.id}`}>
+      <div className="relative bg-primary_light_mode rounded-[35px] border-[1px] border-primary/30 flex flex-col items-center transition-shadow duration-300 p-4">
       <img
         src={product.image}
         alt={product.en_title}
@@ -33,6 +35,7 @@ const ProductCard = ({ product }) => {
         </div>
       </div>
     </div>
+    </Link>
   );
 };
 
