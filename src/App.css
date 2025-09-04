@@ -321,3 +321,9 @@ h4 {
 .MuiStepLabel-label.Mui-disabled {
   color: #ddd !important;
 }
+.MuiStepLabel-iconContainer.Mui-completed svg {
+  color: #fff !important;
+}
+.previous_order_table .MuiBox-root {
+  padding: 0 !important;
+}

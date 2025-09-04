@@ -1,222 +1,512 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import Button from "./Button";
-import { useTranslation } from "react-i18next";
+import React, { useMemo, useState } from "react";
+import {
+  FiUser,
+  FiFileText,
+  FiMapPin,
+  FiLogOut,
+  FiShoppingBag,
+  FiEdit2,
+  FiTrash2,
+} from "react-icons/fi";
+import { IoIosArrowBack } from "react-icons/io";
+import { FiCheck } from "react-icons/fi";
+import { BsBagCheck } from "react-icons/bs";
 
-export default function CenterModeCarousel({
-  autoplay = true,
-  interval = 4000,   // fixed per-slide delay
-  pauseOnHover = false,
-}) {
-  const items = [
-    {
-      id: "bannerOne",
-      src: "/images/Hero Slider/banner-one.jpg",
-      en_title: "Gift That Speaks From The Heart",
-      ar_title: "هدية تتحدث من القلب",
-      en_description:
-        "Express your emotions with the perfect gift that conveys your deepest thoughts. Thoughtful, elegant, and full of love.",
-      ar_description:
-        "عبّر عن مشاعرك بالهدية المثالية التي تنقل أعمق أفكارك. مدروسة، أنيقة ومليئة بالحب.",
-      en_buttonLabel: "Explore Collection",
-      ar_buttonLabel: "اكتشف المجموعة",
-    },
-    {
-      id: "bannerTwo",
-      src: "/images/Hero Slider/banner-two.jpg",
-      en_title: "Say It With Flowers",
-      ar_title: "عبّر بالزهور",
-      en_description:
-        "Flowers have a language of their own. Send a beautiful bouquet that says more than words can express.",
-      ar_description:
-        "للزهور لغة خاصة بها. أرسل باقة جميلة تعبّر أكثر مما تستطيع الكلمات قوله.",
-      en_buttonLabel: "Explore Collection",
-      ar_buttonLabel: "اكتشف المجموعة",
-    },
-    {
-      id: "bannerThree",
-      src: "/images/Hero Slider/banner-three.avif",
-      en_title: "Celebrate Love",
-      ar_title: "احتفل بالحب",
-      en_description:
-        "Whether it’s love, admiration, or gratitude, flowers are the best way to express how much someone means to you.",
-      ar_description:
-        "سواء كان حبًا، إعجابًا أو امتنانًا، الزهور هي أفضل وسيلة للتعبير عن مدى أهمية شخص ما بالنسبة لك.",
-      en_buttonLabel: "Explore Collection",
-      ar_buttonLabel: "اكتشف المجموعة",
-    },
-    {
-      id: "bannerFour",
-      src: "/images/Hero Slider/banner-four.avif",
-      en_title: "Make A Statement",
-      ar_title: "كن مميزًا",
-      en_description:
-        "Make every occasion unforgettable with bold, stunning floral arrangements that leave a lasting impression.",
-      ar_description:
-        "اجعل كل مناسبة لا تُنسى مع تنسيقات زهور جريئة ومذهلة تترك انطباعًا دائمًا.",
-      en_buttonLabel: "Explore Collection",
-      ar_buttonLabel: "اكتشف المجموعة",
-    },
-    {
-      id: "bannerFive",
-      src: "/images/Hero Slider/banner-five.avif",
-      en_title: "The Perfect Gift",
-      ar_title: "الهدية المثالية",
-      en_description:
-        "The perfect gift for any occasion – beautiful flowers that brighten any room and warm any heart.",
-      ar_description:
-        "الهدية المثالية لأي مناسبة – زهور جميلة تُضيء أي غرفة وتُبهج أي قلب.",
-      en_buttonLabel: "Explore Collection",
-      ar_buttonLabel: "اكتشف المجموعة",
-    },
-  ];  
+import { styled } from "@mui/material/styles";
+import Stepper from "@mui/material/Stepper";
+import Step from "@mui/material/Step";
+import StepLabel from "@mui/material/StepLabel";
+import StepConnector, {
+  stepConnectorClasses,
+} from "@mui/material/StepConnector";
+import Modal from "../Modal";
 
-  const { i18n } = useTranslation();
-  const langClass = i18n.language === "ar" ? "ar" : "en";
+import { orders } from "../../lib/orderHistory";
 
-  const n = items.length;
-  const [current, setCurrent] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [dir, setDir] = useState(1); // 1=next, -1=prev
-
-  // one-shot timer (resets after each change)
-  const timeoutRef = useRef(null);
-  const clearTimer = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = null;
-  };
-
-  const goNext = () => {
-    setDir(1);
-    clearTimer();
-    setCurrent((c) => (c + 1) % n);
-  };
-  const goPrev = () => {
-    setDir(-1);
-    clearTimer();
-    setCurrent((c) => (c - 1 + n) % n);
-  };
-
-  // Auto-advance exactly every `interval` ms after the *last* change
-  useEffect(() => {
-    clearTimer();
-    if (!autoplay || paused) return;
-    timeoutRef.current = setTimeout(() => {
-      setDir(1);
-      setCurrent((c) => (c + 1) % n);
-    }, interval);
-    return clearTimer;
-  }, [autoplay, paused, interval, current, n]);
-
-  // Pause when tab is hidden; resume when visible
-  useEffect(() => {
-    const onVis = () => setPaused(document.hidden);
-    document.addEventListener("visibilitychange", onVis);
-    return () => document.removeEventListener("visibilitychange", onVis);
-  }, []);
-
-  // Swipe / drag
-  const startX = useRef(0);
-  const dx = useRef(0);
-  const dragging = useRef(false);
-
-  const onPointerDown = (e) => {
-    dragging.current = true;
-    setPaused(true);
-    startX.current = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
-    dx.current = 0;
-  };
-  const onPointerMove = (e) => {
-    if (!dragging.current) return;
-    const x = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
-    if (x) dx.current = x - startX.current;
-  };
-  const onPointerUp = () => {
-    if (!dragging.current) return;
-    dragging.current = false;
-    if (Math.abs(dx.current) > 50) {
-      dx.current < 0 ? goNext() : goPrev();
-    }
-    dx.current = 0;
-    setPaused(false);
-  };
-
-  const hoverHandlers = pauseOnHover
-    ? { onMouseEnter: () => setPaused(true), onMouseLeave: () => setPaused(false) }
-    : {};
-
-  // Virtualized visible window: center ±1 ±2
-  const visible = useMemo(() => {
-    const order = [-2, -1, 0, 1, 2].map((k) => (current + k + n) % n);
-    return order.map((realIdx, j) => {
-      const rel = j - 2; // [-2,-1,0,1,2]
-      let cls = "far";
-      if (rel === -2) cls = "lt2";
-      else if (rel === -1) cls = "lt1";
-      else if (rel === 0) cls = "slick-center";
-      else if (rel === 1) cls = "gt1";
-      else if (rel === 2) cls = "gt2";
-      return { id: realIdx, src: items[realIdx], cls, ...items[realIdx] };
-    });
-  }, [current, n, items]);
+export default function ProfileDashboard() {
+  const [tab, setTab] = useState("profile");
+  const [ordersTab, setOrdersTab] = useState("ongoing");
 
   return (
-    <section className="hero_slider py-5">
-      <div
-        className="cmc-wrap custom-container mx-auto px-4"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onTouchStart={onPointerDown}
-        onTouchMove={onPointerMove}
-        onTouchEnd={onPointerUp}
-        data-paused={paused ? "1" : "0"}
-        {...hoverHandlers}
-      >
-        <button className="nav prev" onClick={goPrev} aria-label="Previous">
-          <svg viewBox="0 0 24 24" width="28" height="28">
-            <path
-              d="M15 6l-6 6 6 6"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
-
-        {/* direction drives tiny entrance animation for far slide */}
-        <div className="track" data-dir={dir}>
-          {visible.map(({ id, src, cls, en_title, ar_title, en_description, ar_description, en_buttonLabel, ar_buttonLabel }) => (
-            <div className={`z-2 relative slide ${cls} ${langClass}`} key={id}>
-              <img
-                src={src}
-                className="absolute top-0 left-0 rounded-[35px] w-full h-full object-cover"
-                alt=""
-              />
-              <div className="overlay rounded-[35px] absolute top-0 left-0 w-full h-full bg-black/30 z-[0]" />
-              <div className="slider-content flex flex-col ms-auto justify-center max-w-sm p-4 z-[2]">
-                <h5 className="text-white font-medium text-[1.7rem]">{langClass === "en" ? en_title : ar_title}</h5>
-                <p className={`${langClass === "ar" ? "text-[18px]" : "text-[14px]"}  py-1`}>{langClass === "en" ? en_description : ar_description}</p>
-                <div className="slider-content-btn">
-                  <Button label={langClass === "en" ? en_buttonLabel : ar_buttonLabel} />
-                </div>
-              </div>
-            </div>
-          ))}
+    <section className="w-full py-4 px-4">
+      <div className="custom-container">
+        {/* Header */}
+        <div className="bg-primary/10 inline-block p-1 rounded-full">
+          <IoIosArrowBack className="text-3xl text-primary" />
+        </div>
+        <div className="my-4">
+          <h1 className="text-3xl text-primary">Profile</h1>
         </div>
 
-        <button className="nav next" onClick={goNext} aria-label="Next">
-          <svg viewBox="0 0 24 24" width="28" height="28">
-            <path
-              d="M9 6l6 6-6 6"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
+        <div className="mx-auto grid mt-10 grid-cols-1 gap-6 lg:grid-cols-[320px,1fr]">
+          {/* Sidebar */}
+          <aside className="rounded-2xl border border-primary/30 bg-white p-4 shadow-sm">
+            <nav className="space-y-3">
+              <SideItem
+                active={tab === "profile"}
+                onClick={() => setTab("profile")}
+                icon={<FiUser />}
+                label="Profile"
+              />
+              <SideItem
+                active={tab === "orders"}
+                onClick={() => setTab("orders")}
+                icon={<FiShoppingBag />}
+                label="My Orders"
+              />
+              <SideItem
+                active={tab === "invoices"}
+                onClick={() => setTab("")}
+                icon={<FiFileText />}
+                label="My Invoices"
+              />
+              <SideItem
+                active={tab === "addresses"}
+                onClick={() => setTab("")}
+                icon={<FiMapPin />}
+                label="My Addresses"
+              />
+            </nav>
+
+            <button className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-3 font-semibold text-white shadow-[0_8px_20px_rgba(239,68,68,0.3)]">
+              <FiLogOut className="h-4 w-4" /> Log out
+            </button>
+          </aside>
+
+          {/* Main Panel */}
+          <div className="">
+            {tab === "profile" && <ProfilePanel />}
+            {tab === "orders" && (
+              <OrdersPanel ordersTab={ordersTab} setOrdersTab={setOrdersTab} />
+            )}
+            {tab === "invoices" && (
+              <Placeholder
+                title="My Invoices"
+                subtitle="No invoices to display."
+              />
+            )}
+            {tab === "addresses" && (
+              <Placeholder
+                title="My Addresses"
+                subtitle="Add a new address to get started."
+              />
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );
+}
+
+function SideItem({ active, onClick, icon, label }) {
+  return (
+    <button
+      onClick={onClick}
+      className={[
+        "flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition",
+        active
+          ? "border-transparent bg-teal-500 text-white shadow"
+          : "border-cyan-200/70 bg-white text-slate-700 hover:bg-cyan-50",
+      ].join(" ")}
+    >
+      <span className="text-lg">{icon}</span>
+      <span className="font-medium">{label}</span>
+    </button>
+  );
+}
+
+function Card({ children, className = "" }) {
+  return (
+    <div
+      className={
+        "rounded-2xl border border-primary/30 bg-primary_light_mode p-5 shadow-sm " +
+        className
+      }
+    >
+      {children}
+    </div>
+  );
+}
+
+function SectionTitle({ children, action }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl text-primary">{children}</h2>
+        {action}
+      </div>
+      <hr className="mt-3 border-cyan-100" />
+    </div>
+  );
+}
+
+/*************************
+ * Profile panel
+ *************************/
+function ProfilePanel() {
+  return (
+    <Card>
+      <SectionTitle
+        action={
+          <button className="inline-flex items-center gap-2 rounded-full bg-primary p-2">
+            <FiEdit2 className="h-4 w-4 text-white" />
+          </button>
+        }
+      >
+        Personal Info
+      </SectionTitle>
+
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Field label="Name :">
+          <input
+            className="Input border-[1px] bg-[#fff] rounded-[10px] w-full border-primary/20 px-4 py-3"
+            defaultValue="Ethan sage"
+          />
+        </Field>
+        <Field label="Email :">
+          <input
+            className="Input border-[1px] bg-[#fff] rounded-[10px] w-full border-primary/20 px-4 py-3"
+            defaultValue="Ethansage123@gmail.com"
+          />
+        </Field>
+        <Field label="Phone Number :">
+          <input
+            className="Input border-[1px] bg-[#fff] rounded-[10px] w-full border-primary/20 px-4 py-3"
+            defaultValue="(555) 123-4567"
+          />
+        </Field>
+        <Field label="Date of Birth :">
+          <input
+            className="Input border-[1px] bg-[#fff] rounded-[10px] w-full border-primary/20 px-4 py-3"
+            defaultValue="01 \ 03 \ 1999"
+          />
+        </Field>
+        <Field label="Gender :">
+          <input
+            className="Input border-[1px] bg-[#fff] rounded-[10px] w-full border-primary/20 px-4 py-3"
+            defaultValue="Male"
+          />
+        </Field>
+        <Field label="Password :">
+          <input
+            className="Input border-[1px] bg-[#fff] rounded-[10px] w-full border-primary/20 px-4 py-3"
+            type="password"
+            defaultValue="********"
+          />
+        </Field>
+      </div>
+
+      {/* <div className="mt-6 flex justify-end">
+        <button className="inline-flex items-center gap-2 rounded-[10px] bg-red-600 hover:bg-red-700 px-5 py-3 font-semibold text-white">
+          <FiTrash2 className="h-4 w-4" /> Delete My Account
+        </button>
+      </div> */}
+    </Card>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <div className="space-y-1">
+      <div className="text-primary font-semibold">{label}</div>
+      {children}
+    </div>
+  );
+}
+
+/*************************
+ * Orders panel
+ *************************/
+function OrdersPanel({ ordersTab, setOrdersTab }) {
+  return (
+    <div className="space-y-6">
+      {/* Tabs */}
+      <div className="flex items-center gap-3">
+        <OrdersTab
+          active={ordersTab === "ongoing"}
+          onClick={() => setOrdersTab("ongoing")}
+          label="Ongoing Orders"
+          count={1}
+        />
+        <OrdersTab
+          active={ordersTab === "previous"}
+          onClick={() => setOrdersTab("previous")}
+          label="Previous Orders"
+          count={1}
+        />
+      </div>
+
+      {/* Divider */}
+      <hr className="border-cyan-100" />
+
+      {ordersTab === "ongoing" ? (
+        <OngoingOrdersCard />
+      ) : (
+        <PreviousOrdersTable />
+      )}
+    </div>
+  );
+}
+
+function OrdersTab({ active, onClick, label, count }) {
+  return (
+    <button
+      onClick={onClick}
+      className={[
+        "inline-flex items-center gap-2 rounded-xl border px-5 py-2 text-sm font-semibold",
+        active
+          ? "border-transparent bg-primary text-white shadow"
+          : "border-primary/20 text-primary hover:bg-primary/20",
+      ].join(" ")}
+    >
+      <span>{label}</span>
+      <span
+        className={[
+          "inline-flex h-6 min-w-[24px] items-center justify-center rounded-full px-2 text-xs",
+          active ? "bg-white text-primary" : "bg-primary text-white",
+        ].join(" ")}
+      >
+        {count}
+      </span>
+    </button>
+  );
+}
+
+// --- Styled MUI parts to match your teal/cyan look ---
+const CyanConnector = styled(StepConnector)(({ theme }) => ({
+  [`&.${stepConnectorClasses.alternativeLabel}`]: {
+    top: 10,
+    left: "calc(-50% + 16px)",
+    right: "calc(50% + 16px)",
+  },
+  [`&.${stepConnectorClasses.active}`]: {
+    [`& .${stepConnectorClasses.line}`]: {
+      borderColor: "#0FB4BB",
+    },
+  },
+  [`&.${stepConnectorClasses.completed}`]: {
+    [`& .${stepConnectorClasses.line}`]: {
+      borderColor: "#0FB4BB",
+    },
+  },
+  [`& .${stepConnectorClasses.line}`]: {
+    borderColor: "#eaeaf0",
+    borderTopWidth: 1,
+    borderRadius: 1,
+    ...theme.applyStyles("dark", {
+      borderColor: theme.palette.grey[800],
+    }),
+  },
+}));
+
+const Dot = styled("div")(({ $active, $completed }) => ({
+  width: 16,
+  height: 16,
+  borderRadius: "50%",
+  border: `2px solid ${$active || $completed ? "#0FB4BB" : "#ddd"}`,
+  backgroundColor: $completed ? "#fff" : "#fff",
+  transition: "all .2s ease",
+}));
+
+function DotStepIcon(props) {
+    const { active, completed, className } = props;
+    return (
+      <span
+        className={className}
+        style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+      >
+        <Dot $active={active} $completed={completed} />
+        {completed && (
+          <FiCheck className="absolute" size={12} color="#fff" style={{ color: "#fff" }} />
+        )}
+      </span>
+    );
+  }
+
+function OngoingOrdersCard() {
+
+  const isAr = false;
+
+  const stages = ["Confirm", "Preparing", "Picked up", "Delivered"];
+  const current = 2; // 0..3 (Preparing)
+  const progressPct = useMemo(
+    () => (current / (stages.length - 1)) * 100,
+    [current, stages.length]
+  );
+
+  const [itemsOpen, setItemsOpen] = useState(false);
+  const [activeOrder, setActiveOrder] = useState(null);
+
+  const openItems = (order) => {
+    console.log("order", order)
+    setActiveOrder(order[0]);
+    setItemsOpen(true);
+  };
+  const closeItems = () => setItemsOpen(false);
+
+  return (
+    <Card>
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-50 text-primary ring-1 ring-primary/20">
+            <BsBagCheck />
+          </div>
+          <div className="text-black">
+            <div className="font-semibold">Order no # 1125</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stepper + actions (same row) */}
+      <div className="mt-4 flex items-center gap-4">
+        <div className="w-[70%]">
+          <Stepper
+            activeStep={current}
+            alternativeLabel
+            connector={<CyanConnector />}
+            sx={{
+              "& .MuiStepLabel-label": {
+                color: "rgb(100 116 139)", // slate-500
+                fontSize: 12,
+              },
+            }}
+          >
+            {stages.map((label) => (
+              <Step key={label}>
+                <StepLabel StepIconComponent={DotStepIcon}>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        </div>
+
+        {/* Actions on the right of the stepper */}
+        <div className="shrink-0 flex gap-3">
+          <button onClick={() => openItems(orders)} className="rounded-xl bg-primary px-5 py-2 font-semibold text-white shadow hover:bg-primary/80">
+            View Items
+          </button>
+          <button className="rounded-xl bg-rose-50 px-5 py-2 font-semibold text-rose-500">
+            Cancel Order
+          </button>
+        </div>
+      </div>
+
+      {/* Meta row under the stepper */}
+      <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-500">
+        <span className="font-semibold text-slate-700">06</span> Items
+        <span className="mx-1">•</span> Cash on Delivery
+        <span className="mx-1">•</span> Ordered 2 mins ago
+        <span className="mx-1">•</span> Delivery within a week
+      </div>
+
+      <Modal
+        itemsOpen={itemsOpen}
+        closeItems={closeItems}
+        activeOrder={activeOrder}
+        isAr={isAr}
+      />
+    </Card>
+  );
+}
+
+function PreviousOrdersTable() {
+  const rows = [
+    {
+      sn: "01",
+      sender: "+974 2345 456",
+      receiver: "+974 9867 456",
+      price: "2,456",
+      items: "04",
+      date: "27-08-2025",
+    },
+    {
+      sn: "02",
+      sender: "+974 8367 456",
+      receiver: "+974 9345 456",
+      price: "2,234",
+      items: "03",
+      date: "27-08-2025",
+    },
+  ];
+
+  const [itemsOpen, setItemsOpen] = useState(false);
+  const [activeOrder, setActiveOrder] = useState(null);
+
+  const openItems = (order) => {
+    console.log("order", order)
+    setActiveOrder(order[0]);
+    setItemsOpen(true);
+  };
+  const closeItems = () => setItemsOpen(false);
+
+  const isAr = false;
+
+  return (
+    <Card>
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-left text-sm">
+          <thead>
+            <tr className="text-primary">
+              {[
+                "S.No",
+                "Sender Number",
+                "Receiver Number",
+                "Price",
+                "Total Items",
+                "Date",
+              ].map((h) => (
+                <th key={h} className="px-4 py-3 font-semibold">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, idx) => (
+              <tr
+                key={idx}
+                className="border-t border-cyan-100/70 text-slate-700"
+              >
+                <td className="px-4 py-3 text-primary font-medium">{r.sn}</td>
+                <td className="px-4 py-3">{r.sender}</td>
+                <td className="px-4 py-3">{r.receiver}</td>
+                <td className="px-4 py-3">{r.price}</td>
+                <td className="px-4 py-3">{r.items}</td>
+                <td className="px-4 py-3">{r.date}</td>
+                <td className="px-4 py-3">
+                  <button onClick={() => openItems(orders)} className="rounded-xl bg-primary px-5 py-2 font-semibold text-white shadow hover:bg-primary/80">
+                    View Items
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <Modal
+        itemsOpen={itemsOpen}
+        closeItems={closeItems}
+        activeOrder={activeOrder}
+        isAr={isAr}
+      />
+    </Card>
+  );
+}
+
+const inputBase =
+  "h-11 w-full rounded-lg border border-cyan-200/70 bg-cyan-50/50 px-3 text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-300";
+
+if (typeof document !== "undefined") {
+  const id = "profile-input-style";
+  if (!document.getElementById(id)) {
+    const style = document.createElement("style");
+    style.id = id;
+    style.innerHTML = `.Input{${toCss(inputBase)}}`;
+    document.head.appendChild(style);
+  }
+}
+
+function toCss(cls) {
+  return "";
 }
