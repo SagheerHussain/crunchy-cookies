@@ -15,7 +15,7 @@ const ProductsSection = ({ en_title, ar_title, products }) => {
         {/* Section Title */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="lg:text-[1.8rem] xl:text-[2.5rem] text-primary">{isAr ? ar_title : en_title}</h2>
-          <Button href="/filters/chocolates" label="See more" />
+          <Button href="/filters/chocolates" label={`${isAr ? "شاهد المزيد" : "See more"}`} />
         </div>
 
         {/* Grid of Cards */}
@@ -27,7 +27,7 @@ const ProductsSection = ({ en_title, ar_title, products }) => {
 
         {/* Load More Button */}
         <div className="flex justify-center mt-8">
-          <Button label="Load more" />
+          <Button label={`${isAr ? "تحميل المزيد" : "Load more"}`} />
         </div>
       </div>
     </section>

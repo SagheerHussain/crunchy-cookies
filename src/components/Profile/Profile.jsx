@@ -37,7 +37,7 @@ export default function ProfileDashboard() {
           </div>
         </Link>
         <div className="my-4">
-          <h1 className="text-3xl text-primary">Profile</h1>
+          <h1 className="text-3xl text-primary">{langClass ? "حساب تعريفي" : "Profile"}</h1>
         </div>
 
         <div className="mx-auto flex gap-6 items-start mt-10 ">
@@ -55,8 +55,8 @@ export default function ProfileDashboard() {
             {tab === "edit" && <EditProfile tab={tab} setTab={setTab} />}
             {tab === "invoices" && (
               <Placeholder
-                title="My Invoices"
-                subtitle="No invoices to display."
+                title={`${langClass ? "فواتيري" : "My Invoices"}`}
+                subtitle={`${langClass ? "لا يوجد فواتير" : "No invoices to display."}`}
               />
             )}
             {tab === "addresses" && <MyAddresses tab={tab} setTab={setTab} />}

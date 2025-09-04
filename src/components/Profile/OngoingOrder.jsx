@@ -5,12 +5,17 @@ import { CyanConnector, DotStepIcon } from "./StepperUtils";
 import Modal from "../Modal";
 import Card from "./Card";
 import { orders } from "../../lib/orderHistory";
+import { useTranslation } from "react-i18next";
 
 export default function OngoingOrdersCard() {
+
+  const { i18n } = useTranslation();
+  const langClass = i18n.language === "ar";
+
   const [itemsOpen, setItemsOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
 
-  const stages = ["Confirm", "Preparing", "Picked up", "Delivered"];
+  const stages = [`${langClass ? "التأكيد" : "Confirm"}`, `${langClass ? "التحضير" : "Preparing"}`, `${langClass ? "التقديم" : "Picked up"}`, `${langClass ? "التسليم" : "Delivered"}`];
   const current = 2;
   const progressPct = useMemo(
     () => (current / (stages.length - 1)) * 100,
@@ -32,13 +37,13 @@ export default function OngoingOrdersCard() {
           <BsBagCheck />
         </div>
         <div className="text-black">
-          <div className="font-semibold">Order no # 1125</div>
+          <div className="font-semibold">{langClass ? "الطلب رقم" : "Order no"} # 1125</div>
         </div>
       </div>
 
       {/* Stepper */}
       <div className="mt-4 flex items-center gap-4">
-        <div className="w-[70%]">
+        <div className="w-[70%]" style={{ direction: "ltr" }}>
           <Stepper
             activeStep={current}
             alternativeLabel
@@ -68,10 +73,10 @@ export default function OngoingOrdersCard() {
 
       {/* Meta Info */}
       <div className="mt-4 flex flex-wrap items-center lg:gap-x-3 xl:gap-x-6 gap-y-2 text-sm text-slate-500">
-        <span className="font-semibold text-slate-700">06</span> Items
-        <span className="mx-1">•</span> Cash on Delivery
-        <span className="mx-1">•</span> Ordered 2 mins ago
-        <span className="mx-1">•</span> Delivery within a week
+        <span className="font-semibold text-slate-700">06</span> {langClass ? "البضائع" : "Items"}
+        <span className="mx-1">•</span> {langClass ? "الدفع عند الاستلام" : "Cash on Delivery"}
+        <span className="mx-1">•</span> {langClass ? "تم الطلب منذ 2 دقائق" : "Ordered 2 mins ago"}
+        <span className="mx-1">•</span> {langClass ? "تسليم خلال أسبوع" : "Delivery within a week"}
       </div>
 
       {/* Modal for View Items */}

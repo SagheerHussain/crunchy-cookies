@@ -10,15 +10,18 @@ import {
   AiOutlineLogout,
 } from "react-icons/ai";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function MenuListBox({ onClose }) {
+  const { i18n } = useTranslation();
+  const langClass = i18n.language === "ar";
+
   const items = [
-    { label: "Cart", to: "/cart/295428429752", icon: <AiOutlineShoppingCart className="text-cyan-700" /> },
-    { label: "Favorites", to: "/wishlist/295428429752", icon: <AiOutlineHeart className="text-cyan-700" /> },
-    { label: "About us", to: "/about", icon: <AiOutlineInfoCircle className="text-cyan-700" /> },
-    { label: "Contact us", to: "/contact", icon: <AiOutlinePhone className="text-cyan-700" /> },
-    // { label: "Order Tracking", to: "/order-tracking/342252245", icon: <AiOutlineGift className="text-cyan-700" /> },
-    { label: "Order History", to: "/order-history/413143151", icon: <AiOutlineGift className="text-cyan-700" /> },
+    { en_label: "Cart", ar_label: "عربة", to: "/cart/295428429752", icon: <AiOutlineShoppingCart className="text-cyan-700" /> },
+    { en_label: "Favorites", ar_label: "المفضلة", to: "/wishlist/295428429752", icon: <AiOutlineHeart className="text-cyan-700" /> },
+    { en_label: "About us", ar_label: "معلومات عنا", to: "/about", icon: <AiOutlineInfoCircle className="text-cyan-700" /> },
+    { en_label: "Contact us", ar_label: "اتصل بنا", to: "/contact", icon: <AiOutlinePhone className="text-cyan-700" /> },
+    { en_label: "Order History", ar_label: "تاريخ الطلبات", to: "/order-history/413143151", icon: <AiOutlineGift className="text-cyan-700" /> },
   ];
 
   return (
@@ -29,7 +32,7 @@ export default function MenuListBox({ onClose }) {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-6">
-          <h2 className="text-2xl text-primary">Menu</h2>
+          <h2 className="text-2xl text-primary">{langClass ? "قائمة طعام" : "Menu"}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -48,7 +51,7 @@ export default function MenuListBox({ onClose }) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 text-slate-700">
                     {/* <span className="text-[18px]">{it.icon}</span> */}
-                    <span className="font-medium text-lg">{it.label}</span>
+                    <span className="font-medium text-lg">{langClass ? it.ar_label : it.en_label}</span>
                   </div>
                   <AiOutlineRight className="text-primary" />
                 </div>
@@ -64,7 +67,7 @@ export default function MenuListBox({ onClose }) {
             className="inline-flex items-center justify-start gap-2 rounded-xl bg-red-700 hover:bg-red-800 px-4 py-2 font-medium text-white shadow-md"
           >
             <AiOutlineLogout className="text-xl" />
-            <span className="text-lg">Log out</span>
+            <span className="text-lg">{langClass ? "تسجيل الخروج" : "Log out"}</span>
           </button>
         </div>
       </div>

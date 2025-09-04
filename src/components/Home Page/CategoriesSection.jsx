@@ -17,7 +17,7 @@ export default function GiftIdeasSection({ en_title, ar_title, items = [], class
           <h2 className="text-center lg:text-[1.8rem] xl:text-[2.5rem] tracking-wide text-primary">
             {isAr ? ar_title : en_title}
           </h2>
-          <Button label="See more" href="/filters/chocolate" />
+          <Button label={`${isAr ? "شاهد المزيد" : "See more"}`} href="/filters/chocolate" />
         </div>
 
         {/* Gradient container */}

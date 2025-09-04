@@ -29,7 +29,7 @@ const ProductCard = ({ product }) => {
         </p>
         <h5 className={`text-black ${langClass === "ar" ? "text-[18px]" : "text-[14px]"}  mt-1`}>{langClass === "en" ? product.en_title : product.ar_title}</h5>
         <div className="card-content-btn flex justify-end">
-          <Button label="Add to cart" />
+          <Button label={`${langClass === "ar" ? "أضف إلى السلة" : "Add to cart"}`} />
         </div>
       </div>
     </div>

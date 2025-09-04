@@ -35,14 +35,14 @@ export default function GiftMomentsCarousel({ en_title, ar_title, items = [], on
               className="cc-navbtn grid place-items-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary hover:bg-primary/70 text-white shadow"
               aria-label="Previous"
             >
-              <FiChevronLeft size={30} />
+              {isAr ? <FiChevronRight size={30} /> : <FiChevronLeft size={30} />}
             </button>
             <button
               ref={nextRef}
               className="cc-navbtn grid place-items-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary hover:bg-primary/70 text-white shadow"
               aria-label="Next"
             >
-              <FiChevronRight size={30} />
+              {isAr ? <FiChevronLeft size={30} /> : <FiChevronRight size={30} />}
             </button>
           </div>
         </div>
