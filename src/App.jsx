@@ -8,6 +8,8 @@ import CartPage from "./pages/CartPage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import ProfilePage from "./pages/ProfilePage";
+import GiftDetailPage from "./pages/GiftDetailPage";
+
 import "./App.css";
 
 export default function App() {
@@ -21,6 +23,7 @@ export default function App() {
       <Route path="/about" element={<AboutPage />} />
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/member/:id" element={<ProfilePage />} />
+      <Route path="/gift-detail/:id" element={<GiftDetailPage />} />
     </Routes>
   );
 }
