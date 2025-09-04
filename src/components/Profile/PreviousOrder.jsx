@@ -37,8 +37,8 @@ export default function PreviousOrdersTable() {
   const closeItems = () => setItemsOpen(false);
 
   return (
-    <Card>
-      <div className="previous_order_table" style={{ overflowX: "hidden !important" }}>
+    <Card className="h-[14rem]">
+      <div className="previous_order_table">
         {/* <table className="min-w-full text-left text-sm">
           <thead>
             <tr className="text-primary">
@@ -74,7 +74,7 @@ export default function PreviousOrdersTable() {
             borderRadius: "18px",
             overflow: "auto !important",
             bgcolor: "transparent",
-            width: "100%",
+            maxHeight: "200px",
           }}
         >
           <Box sx={{ px: { xs: 1, sm: 2 }, pt: 2 }}>

@@ -12,11 +12,11 @@ const WishlistGifts = () => {
 
   return (
     <>
-      <section id="wishlist" className="py-10">
+      <section id="wishlist" className="py-4">
         <div className="custom-container">
 
           <Link to={"/"}>
-            <div className="bg-[#0fb5bb25] p-2 inline-block rounded-full">
+            <div className="bg-[#0fb5bb25] p-2 inline-block rounded-full mb-4">
                 {
                     langClass ? (
                         <MdArrowForwardIos
@@ -33,12 +33,12 @@ const WishlistGifts = () => {
             </div>
           </Link>
 
-          <div className="flex items-center justify-between mt-4 mb-8">
-            <h2 className="text-center lg:text-[1.8rem] xl:text-[2.5rem] text-primary">
+          <div className="">
+            <h2 className="lg:text-[1.8rem] xl:text-[2.5rem] text-primary">
               {langClass ? "المفضلة" : "Favourites"}
             </h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 mt-10">
             {flowerBouquets.map((item) => (
               <ProductCard key={item.id} product={item} />
             ))}

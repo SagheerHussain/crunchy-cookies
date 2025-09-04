@@ -304,8 +304,24 @@ h4 {
   transform: rotate(180deg);
 }
 
-#cart ::-webkit-scrollbar {
-  width: 0px;
+#cart ::-webkit-scrollbar,
+.previous_order_table ::-webkit-scrollbar {
+  width: 2px;
+}
+
+#cart ::-webkit-scrollbar-track,
+.previous_order_table ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+#cart ::-webkit-scrollbar-thumb,
+.previous_order_table ::-webkit-scrollbar-thumb {
+  background: #ccc;
+}
+
+#cart ::-webkit-scrollbar-thumb:hover,
+.previous_order_table ::-webkit-scrollbar-thumb:hover {
+  background: #ddd;
 }
 
 /* Stepper */

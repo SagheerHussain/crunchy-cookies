@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import Button from "./Button";
 import { FiHeart } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
+import { FaHeart } from "react-icons/fa6";
 
 const ProductCard = ({ product }) => {
 
   const { i18n } = useTranslation();
   const langClass = i18n.language === "ar" ? "ar" : "en";
+
+  const [isLiked, setIsLiked] = useState(false);
 
   return (
     <div className="relative bg-primary_light_mode rounded-[35px] border-[1px] border-primary/30 flex flex-col items-center transition-shadow duration-300 p-4">
@@ -16,8 +19,8 @@ const ProductCard = ({ product }) => {
         className="w-full h-[300px] object-cover rounded-[35px] mb-3"
       />
       <div className="absolute top-[calc(100%-92%)] right-[calc(100%-92%)]">
-        <button className="bg-white p-2 rounded-full">
-          <FiHeart size={20} className='text-black' />
+        <button className="bg-white p-2 rounded-full" onClick={() => setIsLiked(!isLiked)}>
+          {!isLiked ? <FiHeart size={20} className='text-primary' /> : <FaHeart size={20} className='text-primary' />}
         </button>
       </div>
       <div className="card-content w-full">

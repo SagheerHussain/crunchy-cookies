@@ -1,15 +1,22 @@
 // BestSellersSection.js
-import React from 'react';
+import React, { useState } from 'react';
 import { FiHeart } from "react-icons/fi";
 import { IoIosArrowForward } from "react-icons/io";
 import { Link } from 'react-router-dom';
 import Button from "../Button";
 import { useTranslation } from "react-i18next";
+import { FaHeart } from "react-icons/fa6";
 
 const ShowcaseProducts = ({ products, en_title, ar_title }) => {
 
     const { i18n } = useTranslation();
     const langClass = i18n.language === "ar" ? "ar" : "en";
+
+    const [currentIdx, setCurrentIdx] = useState(null);
+
+    const handleCurrentIndex = (id) => {
+        setCurrentIdx(currentIdx === id ? null : id);
+    };
 
     return (
         <section className="py-20 px-4">
@@ -20,7 +27,7 @@ const ShowcaseProducts = ({ products, en_title, ar_title }) => {
                 </div>
                 <div className="absolute bottom-[-7%] left-0 w-full bg-[#0fb5bb25] rounded-[25px] lg:h-[200px] xl:h-[250px] border-[1px] border-primary"></div>
                 <div className="grid grid-cols-4 gap-x-6 lg:px-0 xl:px-2 2xl:px-6 py-6">
-                    {products.map((product) => (
+                    {products.map((product, id) => (
                         <div key={product.id} className="relative">
                             <img
                                 src={product.image}
@@ -29,8 +36,8 @@ const ShowcaseProducts = ({ products, en_title, ar_title }) => {
                             />
                             <div className="absolute w-full h-full top-0 left-0 bg-black/30 rounded-[35px]"></div>
                             <div className="absolute top-[5%] right-[5%]">
-                                <button className="bg-white p-2 rounded-full">
-                                    <FiHeart size={20} className='text-black' />
+                                <button className="bg-white p-2 rounded-full" onClick={() => handleCurrentIndex(id)}>
+                                    {currentIdx !== id ? <FiHeart size={20} className='text-primary' /> : <FaHeart size={20} className='text-primary' />}
                                 </button>
                             </div>
                             <div className="absolute bottom-0 w-full p-4 flex items-center justify-between">

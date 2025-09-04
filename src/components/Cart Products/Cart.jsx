@@ -8,6 +8,7 @@ import {
   FiGift,
   FiX,
 } from "react-icons/fi";
+import previewCard from "/images/preview-card.png"
 
 const CURRENCY = (n) => `QAR ${n.toLocaleString()}`;
 const PANEL_RING = "ring-1 ring-primary/10";
@@ -17,14 +18,12 @@ import { MdArrowForwardIos, MdOutlineArrowBackIos } from "react-icons/md";
 import { useTranslation } from "react-i18next";
 
 export default function Cart() {
-    const { i18n } = useTranslation();
-    const langClass = i18n.language === "ar";
+  const { i18n } = useTranslation();
+  const langClass = i18n.language === "ar";
 
   const [items, setItems] = useState(initialItems);
   const [phones, setPhones] = useState({ sender: "", receiver: "" });
-  const [cardMsg, setCardMsg] = useState(
-    ""
-  );
+  const [cardMsg, setCardMsg] = useState("");
   const [voucher, setVoucher] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -52,10 +51,10 @@ export default function Cart() {
     setItems((prev) => prev.filter((i) => i.id !== id));
 
   return (
-    <section id="cart" className="py-10">
+    <section id="cart" className="py-4">
       <div className="custom-container">
         <Link to={"/"}>
-          <div className="bg-[#0fb5bb25] p-2 inline-block rounded-full mb-4">
+          <div className="bg-[#0fb5bb25] p-2 inline-block rounded-full">
             {langClass ? (
               <MdArrowForwardIos
                 size={24}
@@ -71,9 +70,11 @@ export default function Cart() {
         </Link>
 
         {/* Header */}
-        <h1 className="text-4xl text-primary mb-4">{langClass ? "عربة التسوق" : "CART"}</h1>
+        <h1 className="text-4xl text-primary mt-4">
+          {langClass ? "عربة التسوق" : "CART"}
+        </h1>
 
-        <div className="grid lg:grid-cols-[1.1fr_.9fr] gap-6 mt-6">
+        <div className="grid lg:grid-cols-[1.1fr_.9fr] gap-6 mt-10">
           {/* LEFT: Items */}
           <section
             className={`bg-primary_light_mode border text-primary_light_mode border-primary/20 rounded-2xl px-4`}
@@ -88,7 +89,9 @@ export default function Cart() {
             </div>
 
             <div className="py-4 pt-4 pb-2 text-black text-lg font-medium">
-              {langClass ? "حدد العناصر التي تريد شراءها" : "Select Items You Want To Purchase"}
+              {langClass
+                ? "حدد العناصر التي تريد شراءها"
+                : "Select Items You Want To Purchase"}
             </div>
 
             {/* Items list */}
@@ -112,7 +115,7 @@ export default function Cart() {
                         i.selected ? "border-primary" : "border-primary/30"
                       }
                       grid place-items-center bg-white transition
-                      focus:outline-none focus:ring-2 focus:ring-primary/30
+                      focus:outline-none
                     `}
                   >
                     <span
@@ -131,7 +134,9 @@ export default function Cart() {
 
                   {/* Title + meta */}
                   <div className="flex-1">
-                    <h5 className="text-black font-medium">{langClass ? i.ar_title : i.en_title}</h5>
+                    <h5 className="text-black font-medium">
+                      {langClass ? i.ar_title : i.en_title}
+                    </h5>
                     <div className="text-primary font-semibold text-sm mt-2 mb-4">
                       {CURRENCY(i.price)}
                     </div>
@@ -181,7 +186,9 @@ export default function Cart() {
             >
               <header className="flex items-center gap-2 p-5 border-b border-primary/20">
                 <FiGift className="text-primary" />
-                <h3 className="text-primary text-xl">{langClass ? "تفاصيل" : "Details"}</h3>
+                <h3 className="text-primary text-xl">
+                  {langClass ? "تفاصيل" : "Details"}
+                </h3>
               </header>
 
               <div className="py-4 space-y-5">
@@ -259,18 +266,32 @@ export default function Cart() {
             >
               <header className="flex items-center gap-2 py-4 border-b border-primary/20">
                 <FiGift className="text-primary" />
-                <h3 className="text-primary text-xl">{langClass ? "ملخص الطلب" : "Order Summary"}</h3>
+                <h3 className="text-primary text-xl">
+                  {langClass ? "ملخص الطلب" : "Order Summary"}
+                </h3>
               </header>
 
               <div className="py-4 space-y-4">
-                <Row label={`${langClass ? "المجموع الفرعي" : "Subtotal"}`} value={CURRENCY(subtotal)} />
-                <Row label={`${langClass ? "رسوم التوصيل" : "Delivery charges"}`} value={CURRENCY(delivery)} />
+                <Row
+                  label={`${langClass ? "المجموع الفرعي" : "Subtotal"}`}
+                  value={CURRENCY(subtotal)}
+                />
+                <Row
+                  label={`${langClass ? "رسوم التوصيل" : "Delivery charges"}`}
+                  value={CURRENCY(delivery)}
+                />
                 <p className="text-[#333] text-sm leading-relaxed max-w-sm">
-                  {langClass ? ".يرجى ملاحظة أن بعض المناطق والتوصيل السريع قد يتطلبان رسوم توصيل إضافية" : "Please note that specific regions and express delivery may incur extra delivery fees"}
+                  {langClass
+                    ? ".يرجى ملاحظة أن بعض المناطق والتوصيل السريع قد يتطلبان رسوم توصيل إضافية"
+                    : "Please note that specific regions and express delivery may incur extra delivery fees"}
                 </p>
                 <hr className="border-primary/20" />
                 <Row
-                  label={<span className="font-semibold text-lg">{langClass ? "المجموع" : "Total"}</span>}
+                  label={
+                    <span className="font-semibold text-lg">
+                      {langClass ? "المجموع" : "Total"}
+                    </span>
+                  }
                   value={
                     <span className="font-semibold text-lg text-primary">
                       {CURRENCY(total)}
@@ -299,7 +320,9 @@ export default function Cart() {
                     <input
                       value={voucher}
                       onChange={(e) => setVoucher(e.target.value)}
-                      placeholder={langClass ? "أدخل كود القسيمة" : "Enter Voucher Code"}
+                      placeholder={
+                        langClass ? "أدخل كود القسيمة" : "Enter Voucher Code"
+                      }
                       className="flex-1 rounded-xl border-2 border-primary/20 p-3 focus:outline-none"
                     />
                     <button className="px-6 rounded-xl bg-primary text-white font-medium hover:bg-primary/70">
@@ -343,7 +366,7 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
 
   return (
     <div
-      className="fixed inset-0 z-50"
+      className="fixed inset-0 z-50 flex items-center justify-center"
       onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
       {/* Backdrop */}
@@ -352,7 +375,7 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
         onClick={onClose}
       />
       {/* Panel */}
-      <div className="relative z-10 mx-auto mt-10 xl:mt-40 w-[860px] max-w-[92vw]">
+      <div className="relative z-10 mx-auto w-[860px] max-w-[60vw] max-h-[90vh] overflow-y-auto">
         <div
           className={`bg-white border border-primary/20 rounded-3xl shadow-2xl ${PANEL_RING}`}
         >
@@ -362,7 +385,9 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <FiGift />
               </span>
-              <h3 className="text-primary text-xl">{langClass ? "تاريخ" : "Details"}</h3>
+              <h3 className="text-primary text-xl">
+                {langClass ? "تاريخ" : "Details"}
+              </h3>
             </div>
             <button
               onClick={onClose}
@@ -378,7 +403,9 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
             {/* Phones */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="block">
-                <span className="text-primary font-medium">{langClass ? "هاتف المرسل :" : "Sender Phone :"}</span>
+                <span className="text-primary font-medium">
+                  {langClass ? "هاتف المرسل :" : "Sender Phone :"}
+                </span>
                 <input
                   value={phones.sender}
                   disabled
@@ -388,7 +415,9 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
               </label>
 
               <label className="block">
-                <span className="text-primary font-medium">{langClass ? "هاتف المتلقي :" : "Receiver Phone :"}</span>
+                <span className="text-primary font-medium">
+                  {langClass ? "هاتف المتلقي :" : "Receiver Phone :"}
+                </span>
                 <input
                   value={phones.receiver}
                   disabled
@@ -401,21 +430,26 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
             {/* Message + Card image */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="block">
-                <span className="text-primary font-medium">{langClass ? "رسالة البطاقة :" : "Card Message :"}</span>
+                <span className="text-primary font-medium">
+                  {langClass ? "رسالة البطاقة :" : "Card Message :"}
+                </span>
                 <textarea
                   value={cardMsg}
+                  placeholder={langClass ? "أدخل رسالتك" : "Enter your message"}
                   disabled
                   rows={6}
-                  className="mt-2 w-full rounded-xl border-2 border-primary/20 p-3 bg-white text-slate-700 cursor-default"
+                  className="mt-2 w-full rounded-xl h-[300px] xl:h-[350px] border-2 border-primary/20 p-3 bg-white text-slate-700 cursor-default"
                 />
               </label>
 
               <label className="block">
-                <span className="text-primary font-medium">{langClass ? "بطاقة :" : "Card :"}</span>
-                <div className="mt-2 h-[180px] rounded-2xl overflow-hidden ring-1 ring-primary/20">
+                <span className="text-primary font-medium">
+                  {langClass ? "بطاقة :" : "Card :"}
+                </span>
+                <div className="mt-2 lg:h-[300px] xl:h-[350px] rounded-2xl overflow-hidden ring-1 ring-primary/20">
                   {/* Replace with your card image */}
                   <img
-                    src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop"
+                    src={previewCard}
                     alt="card"
                     className="h-full w-full object-cover"
                   />
@@ -425,8 +459,10 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
 
             {/* Items */}
             <div>
-              <div className="text-primary font-medium mb-2">{langClass ? "أغراض :" : "Items :"}</div>
-              <div className="space-y-3">
+              <div className="text-primary font-medium mb-2">
+                {langClass ? "أغراض :" : "Items :"}
+              </div>
+              <div className="space-y-3 max-h-[120px] overflow-y-auto">
                 {items.map((i) => (
                   <article
                     key={i.id}
@@ -442,7 +478,9 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
                       className="h-16 w-20 object-cover rounded-xl ring-1 ring-primary/10"
                     />
                     <div className="flex-1">
-                      <h5 className="text-black font-medium">{langClass ? i.ar_title : i.en_title}</h5>
+                      <h5 className="text-black font-medium">
+                        {langClass ? i.ar_title : i.en_title}
+                      </h5>
                       <div className="text-primary font-semibold text-sm mt-2 mb-4">
                         {CURRENCY(i.price)}
                       </div>
@@ -476,7 +514,11 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
                 ))}
 
                 {items.length === 0 && (
-                  <p className="text-sm text-slate-500">{langClass ? "لم يتم تحديد أي عناصر." : "No items selected."}</p>
+                  <p className="text-sm text-slate-500">
+                    {langClass
+                      ? "لم يتم تحديد أي عناصر."
+                      : "No items selected."}
+                  </p>
                 )}
               </div>
             </div>

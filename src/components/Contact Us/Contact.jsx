@@ -15,7 +15,7 @@ export default function Contact() {
   const langClass = i18n.language === "ar";
 
   return (
-    <section className="w-full py-8 px-4">
+    <section className="w-full p-4">
       <div className="custom-container">
         <div className="rounded-[22px] border border-primary bg-white shadow-[0_8px_30px_rgba(0,0,0,0.06)] p-6">
           <div className="flex gap-8">

@@ -7,35 +7,58 @@ import { IoIosArrowBack } from "react-icons/io";
 import MyAddresses from "./MyAddresses";
 import EditProfile from "./EditProfile";
 import EditAddress from "./EditAddress";
+import { Link } from "react-router-dom";
+import { MdArrowForwardIos, MdOutlineArrowBackIos } from "react-icons/md";
+import { useTranslation } from "react-i18next";
 
 export default function ProfileDashboard() {
   const [tab, setTab] = useState("profile");
   const [ordersTab, setOrdersTab] = useState("ongoing");
 
+  const { i18n } = useTranslation();
+  const langClass = i18n.language === "ar";
+
   return (
     <section className="w-full py-4 px-4">
       <div className="custom-container">
-        <div className="bg-primary/10 inline-block p-1 rounded-full">
-          <IoIosArrowBack className="text-3xl text-primary" />
-        </div>
+        <Link to={"/"}>
+          <div className="bg-[#0fb5bb25] p-2 inline-block rounded-full">
+            {langClass ? (
+              <MdArrowForwardIos
+                size={24}
+                className="cursor-pointer text-primary"
+              />
+            ) : (
+              <MdOutlineArrowBackIos
+                size={24}
+                className="cursor-pointer text-primary"
+              />
+            )}
+          </div>
+        </Link>
         <div className="my-4">
           <h1 className="text-3xl text-primary">Profile</h1>
         </div>
 
-        <div className="mx-auto flex gap-6 items-center mt-10 ">
+        <div className="mx-auto flex gap-6 items-start mt-10 ">
           {/* Sidebar */}
-          <div className="lg:w-[30%] xl:w-[25%] 2xl:w-[20%]">
+          <div className="lg:min-w-[30%] xl:min-w-[25%] 2xl:min-w-[20%]">
             <Sidebar tab={tab} setTab={setTab} />
           </div>
 
           {/* Main Panel */}
-          <div className="lg:w-[70%] xl:w-[75%] 2xl:w-[80%]">
+          <div className="lg:min-w-[70%] xl:min-w-[75%] 2xl:min-w-[80%]">
             {tab === "profile" && <ProfilePanel tab={tab} setTab={setTab} />}
             {tab === "orders" && (
               <OrdersPanel ordersTab={ordersTab} setOrdersTab={setOrdersTab} />
             )}
             {tab === "edit" && <EditProfile tab={tab} setTab={setTab} />}
-            {tab === "invoices" && <Placeholder title="My Invoices" subtitle="No invoices to display." />}
+            {tab === "invoices" && (
+              <Placeholder
+                title="My Invoices"
+                subtitle="No invoices to display."
+              />
+            )}
             {tab === "addresses" && <MyAddresses tab={tab} setTab={setTab} />}
             {tab === "editAddress" && <EditAddress tab={tab} setTab={setTab} />}
           </div>

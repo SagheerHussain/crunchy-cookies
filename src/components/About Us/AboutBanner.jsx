@@ -22,7 +22,7 @@ export default function AboutBanner() {
   const langClass = i18n.language === "ar";
 
   return (
-    <section className="w-full py-10 px-4">
+    <section className="w-full p-4">
       <div className="relative custom-container rounded-[28px] overflow-hidden">
         {/* Background image */}
         <img
