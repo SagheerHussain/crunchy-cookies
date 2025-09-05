@@ -29,7 +29,7 @@ const ProductCard = ({ product }) => {
         <p className="text-primary font-medium text-lg flex items-center">
           Qar <span className="text-2xl ps-2">{product.price}</span>
         </p>
-        <h5 className={`text-black ${langClass === "ar" ? "text-[18px]" : "text-[14px]"}  mt-1`}>{langClass === "en" ? product.en_title : product.ar_title}</h5>
+        <h5 className={`text-black ${langClass === "ar" ? "text-[18px]" : "text-[14px]"}  mt-1`}>{langClass === "en" ? product.en_title.slice(0, 30) : product.ar_title.slice(0, 25)} {product.en_title.length > 30 || product.ar_title.length > 30 ? "..." : ""}</h5>
         <div className="card-content-btn flex justify-end">
           <Button label={`${langClass === "ar" ? "أضف إلى السلة" : "Add to cart"}`} />
         </div>

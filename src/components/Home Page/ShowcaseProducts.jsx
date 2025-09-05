@@ -1,7 +1,7 @@
 // BestSellersSection.js
 import React, { useState } from 'react';
 import { FiHeart } from "react-icons/fi";
-import { IoIosArrowForward } from "react-icons/io";
+import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { Link } from 'react-router-dom';
 import Button from "../Button";
 import { useTranslation } from "react-i18next";
@@ -19,14 +19,14 @@ const ShowcaseProducts = ({ products, en_title, ar_title }) => {
     };
 
     return (
-        <section className="py-20 px-4">
+        <section className="py-10 px-4">
             <div className="custom-container relative">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-center lg:text-[1.8rem] xl:text-[2.5rem] text-primary">{langClass === "ar" ? ar_title : en_title}</h2>
-                    <Button label={`${langClass ? "شاهد المزيد" : "See more"}`} href="/filters/chocolate" />
+                <div className="flex md:flex-row flex-col items-center justify-between mb-10">
+                    <h2 className="text-center text-[1.3rem] md:text-[1.5rem] lg:text-[1.8rem] xl:text-[2.5rem] tracking-wide text-primary">{langClass === "ar" ? ar_title : en_title}</h2>
+                    <Button label={`${langClass === "ar" ? "شاهد المزيد" : "See more"}`} href="/filters/chocolate" />
                 </div>
-                <div className="absolute bottom-[-7%] left-0 w-full bg-[#0fb5bb25] rounded-[25px] lg:h-[200px] xl:h-[250px] border-[1px] border-primary"></div>
-                <div className="grid grid-cols-4 gap-x-6 lg:px-0 xl:px-2 2xl:px-6 py-6">
+                <div className="md:block hidden absolute bottom-[-7%] left-0 w-full bg-[#0fb5bb25] rounded-[25px] md:h-[500px] lg:h-[200px] xl:h-[250px] border-[1px] border-primary"></div>
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:px-0 xl:px-2 2xl:px-6">
                     {products.map((product, id) => (
                         <div key={product.id} className="relative">
                             <img
@@ -47,7 +47,9 @@ const ShowcaseProducts = ({ products, en_title, ar_title }) => {
                                 </div>
                                 <div className="flex justify-between items-center mt-4">
                                     <Link to={``} className="bg-primary hover:bg-primary/70 rounded-full p-2">
-                                        <IoIosArrowForward size={28} className='text-white' />
+                                    {
+                                        langClass === "ar" ? <IoIosArrowBack size={28} className='text-white' /> : <IoIosArrowForward size={28} className='text-white' />
+                                    }
                                     </Link>
                                 </div>
                             </div>

@@ -2,6 +2,12 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Button from "./Button";
 import { useTranslation } from "react-i18next";
 import { flushSync } from "react-dom";
+import { Swiper, SwiperSlide } from "swiper/react";
+
+import "swiper/css";
+import "swiper/css/navigation";
+
+import { Navigation } from "swiper/modules";
 
 export default function CenterModeCarousel({
   autoplay = true,
@@ -71,6 +77,8 @@ export default function CenterModeCarousel({
     },
   ];
 
+  
+
   const { i18n } = useTranslation();
   const langClass = i18n.language === "ar" ? "ar" : "en";
   const isRTL = i18n.language === "ar";
@@ -88,19 +96,19 @@ export default function CenterModeCarousel({
   };
 
   const step = (delta) => {
-    flushSync(() => setDir(delta > 0 ? 1 : -1));
+    flushSync(() => setDir(delta > 0 ? 1 : 1));
     setCurrent((c) => (c + delta + n) % n);
   };
 
   const goNext = () => {
     clearTimer();
-    const delta = isRTL ? -1 : 1; // RTL me visually "next" left ko jata hai
+    const delta = isRTL ? 1 : 1; // RTL me visually "next" left ko jata hai
     step(delta);
   };
 
   const goPrev = () => {
     clearTimer();
-    const delta = isRTL ? -1 : 1;
+    const delta = isRTL ? 1 : 1;
     step(delta);
   };
 
@@ -108,7 +116,7 @@ export default function CenterModeCarousel({
   useEffect(() => {
     clearTimer();
     if (!autoplay || paused) return;
-    const delta = isRTL ? -1 : 1;
+    const delta = isRTL ? 1 : 1;
     timeoutRef.current = window.setTimeout(() => {
       step(delta);
     }, interval);
@@ -148,7 +156,7 @@ export default function CenterModeCarousel({
   return (
     <section className="hero_slider py-5">
       <div
-        className="cmc-wrap custom-container mx-auto px-4"
+        className="cmc-wrap custom-container mx-auto px-4 lg:block hidden"
         data-paused={paused ? "1" : "0"}
         {...hoverHandlers}
       >
@@ -178,7 +186,10 @@ export default function CenterModeCarousel({
               en_buttonLabel,
               ar_buttonLabel,
             }) => (
-              <div className={`z-2 relative slide ${cls} ${langClass}`} key={id}>
+              <div
+                className={`z-2 relative slide ${cls} ${langClass}`}
+                key={id}
+              >
                 <img
                   src={src}
                   className="absolute top-0 left-0 rounded-[35px] w-full h-full object-cover"
@@ -190,13 +201,17 @@ export default function CenterModeCarousel({
                     {langClass === "en" ? en_title : ar_title}
                   </h5>
                   <p
-                    className={`${langClass === "ar" ? "text-[18px]" : "text-[14px]"} py-1`}
+                    className={`${
+                      langClass === "ar" ? "text-[18px]" : "text-[14px]"
+                    } py-1`}
                   >
                     {langClass === "en" ? en_description : ar_description}
                   </p>
                   <div className="slider-content-btn">
                     <Button
-                      label={langClass === "en" ? en_buttonLabel : ar_buttonLabel}
+                      label={
+                        langClass === "en" ? en_buttonLabel : ar_buttonLabel
+                      }
                     />
                   </div>
                 </div>
@@ -216,6 +231,50 @@ export default function CenterModeCarousel({
             />
           </svg>
         </button>
+      </div>
+
+      {/* Tablet & Mobile View */}
+      <div className="custom-container lg:hidden block">
+        <Swiper autoplay={true} delay={1000} navigation={true} modules={[Navigation]} loop={true} className="mySwiper overflow-hidden">
+          {items?.map(
+            ({
+              id,
+              src,
+              en_title,
+              ar_title,
+              en_description,
+              ar_description,
+              en_buttonLabel,
+              ar_buttonLabel,
+            }) => (
+              <SwiperSlide key={id}>
+                <div className={`relative z-[5]`}>
+                  <img src={src} className="w-full min-h-[300px] object-cover rounded-[35px]" alt="" />
+                  <div className="overlay absolute rounded-[35px] top-0 left-0 w-full h-full bg-black/40 z-[0]" />
+                  <div className="absolute top-1/2 md:text-start text-center -translate-y-1/2 sm:right-12 slider-content flex flex-col justify-center sm:max-w-sm p-4 z-[2]">
+                    <h5 className="text-white font-medium text-[1.7rem]">
+                      {langClass === "en" ? en_title : ar_title}
+                    </h5>
+                    <p
+                      className={`${
+                        langClass === "ar" ? "text-[18px]" : "text-[14px]"
+                      } py-1 text-white sm:px-0 px-8`}
+                    >
+                      {langClass === "en" ? en_description : ar_description}
+                    </p>
+                    <div className="slider-content-btn">
+                      <Button
+                        label={
+                          langClass === "en" ? en_buttonLabel : ar_buttonLabel
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+              </SwiperSlide>
+            )
+          )}
+        </Swiper>
       </div>
     </section>
   );

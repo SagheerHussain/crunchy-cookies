@@ -9,8 +9,8 @@ import { Link } from "react-router-dom"
 import "swiper/css";
 import "swiper/css/navigation";
 
-export default function GiftMomentsCarousel({ en_title, ar_title, items = [], onItemClick }) {
-  const { i18n } = useTranslation();
+export default function GiftMomentsCarousel({ className = "", en_title, ar_title, items = [], onItemClick }) {
+  const { i18n } = useTranslation(); 
   const isAr = i18n.language === "ar";
 
   const prevRef = useRef(null);
@@ -22,14 +22,14 @@ export default function GiftMomentsCarousel({ en_title, ar_title, items = [], on
   const label = (it) => (isAr ? it.ar_title : it.en_title);
 
   return (
-    <section className="py-8" dir={isAr ? "rtl" : "ltr"}>
+    <section className="py-10" dir={isAr ? "rtl" : "ltr"}>
       <div className="custom-container">
         {/* Title + custom nav */}
-        <div className="relative mb-10">
-          <h2 className="lg:text-[1.8rem] xl:text-[2.5rem] text-primary">
+        <div className="relative mb-20 md:mb-10">
+          <h2 className="text-center md:text-start text-[1.3rem] md:text-[1.5rem] lg:text-[1.8rem] xl:text-[2.5rem] tracking-wide text-primary">
             {isAr ? ar_title : en_title}
           </h2>
-          <div className={`absolute top-1/2 -translate-y-1/2 ${isAr ? "left-0" : "right-0"} flex gap-3`}>
+          <div className={`absolute top-0 md:translate-y-2 translate-y-full ${isAr ? "left-0" : "right-0"} flex gap-3`}>
             <button
               ref={prevRef}
               className="cc-navbtn grid place-items-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary hover:bg-primary/70 text-white shadow"
@@ -51,10 +51,11 @@ export default function GiftMomentsCarousel({ en_title, ar_title, items = [], on
         <Swiper
           modules={[Navigation, A11y]}
           // Make it a horizontal row
-          direction="horizontal"
+          // direction="horizontal"
           // visible slides per breakpoint
           // slidesPerView={1.2}
           breakpoints={{
+            0: { slidesPerView: 1, spaceBetween: 20 },
             640: { slidesPerView: 2.2, spaceBetween: 20 },
             768: { slidesPerView: 3.2, spaceBetween: 22 },
             1024: { slidesPerView: 4.2, spaceBetween: 24 },
@@ -88,11 +89,11 @@ export default function GiftMomentsCarousel({ en_title, ar_title, items = [], on
                   className="rounded-[35px] border-[1px] border-black/20 p-4 flex flex-col items-center h-full"
                   style={{ background: cardBg }}
                 >
-                  <div className="rounded-full flex items-center justify-center">
+                  <div className={`${className} rounded-full flex items-center justify-center`}>
                     <img
                       src={it.image}
                       alt={label(it)}
-                      className="rounded-full object-contain transition-transform duration-200 hover:scale-105"
+                      className="rounded-full object-contain transition-transform duration-200"
                       loading="lazy"
                     />
                   </div>

@@ -10,11 +10,11 @@ export default function GiftIdeasSection({ en_title, ar_title, items = [], class
   console.log("items", items)
 
   return (
-    <section className={`py-20 ${className}`}>
+    <section className={`py-10 ${className}`}>
       <div className="custom-container">
         {/* Title */}
-        <div className="flex items-center justify-between mb-10">
-          <h2 className="text-center lg:text-[1.8rem] xl:text-[2.5rem] tracking-wide text-primary">
+        <div className="flex md:flex-row flex-col items-center justify-between mb-10">
+          <h2 className="text-center text-[1.3rem] md:text-[1.5rem] lg:text-[1.8rem] xl:text-[2.5rem] tracking-wide text-primary">
             {isAr ? ar_title : en_title}
           </h2>
           <Button label={`${isAr ? "شاهد المزيد" : "See more"}`} href="/filters/chocolate" />

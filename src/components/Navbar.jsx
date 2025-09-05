@@ -60,7 +60,7 @@ export default function Navbar() {
   return (
     <nav className="navbar py-4 relative">
       <div className="custom-container px-4">
-        <div className="flex items-center justify-between py-4">
+        <div className="flex items-center lg:justify-between md:justify-between lg:gap-0 gap-4 py-4">
           {/* Left cluster */}
           <div className="flex items-center gap-4 min-w-0">
             {/* Menu button (anchor) */}
@@ -78,7 +78,7 @@ export default function Navbar() {
             </button>
 
             {/* Search pill */}
-            <div className="border-b border-primary_light_mode hidden md:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-neutral-700 shadow-sm ring-1 ring-[#0FB4BB1A] w-[200px] xl:w-[320px]">
+            <div className="border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-neutral-700 shadow-sm ring-1 ring-[#0FB4BB1A] w-[200px] xl:w-[320px]">
               <FiSearch className="text-[18px] text-primary" />
               <input
                 type="text"
@@ -90,8 +90,8 @@ export default function Navbar() {
           </div>
 
           {/* Center logo */}
-          <Link to={`/`}>
-            <h1 className="lg:text-[1.5rem] xl:text-4xl 2xl:text-5xl text-primary uppercase">
+          <Link to={`/`} className="lg:me-0 md:me-16">
+            <h1 className="text-[1.3rem] md:text-[2rem] lg:text-[1.5rem] xl:text-4xl 2xl:text-5xl text-primary uppercase">
               {t("logo")}
             </h1>
           </Link>
@@ -100,7 +100,7 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             <Link to={`/cart/29421784161`}
               type="button"
-              className={`${location.pathname.includes("cart") ? "bg-primary" : "bg-transparent"} border-b border-primary_light_mode hidden sm:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
+              className={`${location.pathname.includes("cart") ? "bg-primary" : "bg-transparent"} border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.cart")}
             >
               <PiShoppingCartSimpleLight className={`text-[20px] ${location.pathname.includes("cart") ? "text-white" : "text-primary"}`} />
@@ -109,7 +109,7 @@ export default function Navbar() {
 
             <Link to={`/wishlist/29421784161`}
               type="button"
-              className={`${location.pathname.includes("wishlist") ? "bg-primary" : "bg-transparent"} border-b border-primary_light_mode hidden sm:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
+              className={`${location.pathname.includes("wishlist") ? "bg-primary" : "bg-transparent"} border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.favorite")}
             >
               <FiHeart className={`text-[18px] ${location.pathname.includes("wishlist") ? "text-white" : "text-primary"}`} />
@@ -120,7 +120,7 @@ export default function Navbar() {
 
             <Link to={`/member/29421784161`}
               type="button"
-              className={`${location.pathname.includes("member") ? "bg-primary" : "bg-transparent"} border-b border-primary_light_mode flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A] ${location.pathname.includes("member") ? "bg-primary" : "bg-transparent"}`}
+              className={`${location.pathname.includes("member") ? "bg-primary" : "bg-transparent"} border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A] ${location.pathname.includes("member") ? "bg-primary" : "bg-transparent"}`}
               aria-label={t("navbar.member")}
             >
               <FiUser className={`text-[18px] ${location.pathname.includes("member") ? "text-white" : "text-primary"}`} />

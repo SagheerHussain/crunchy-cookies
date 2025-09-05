@@ -89,6 +89,7 @@ const HomePage = () => {
         />
 
         <CategoriesSlider
+          className="bg-[#F0E9E0] scale-[.95]"
           en_title="Gifts For Everyone"
           ar_title="هدايا للجميع"
           items={recipients}

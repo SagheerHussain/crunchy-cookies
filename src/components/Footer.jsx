@@ -41,54 +41,16 @@ const Footer = () => {
   const copyright = t("footer.copyright");
 
   return (
-    <footer className="bg-black text-white py-10 mt-20">
+    <footer className="bg-black text-white py-10">
       <div className="custom-container">
-        <div className="flex justify-between gap-8">
+        <div className="lg:flex justify-between gap-8">
           {/* Brand + controls */}
-          <div className="w-[40%] flex flex-col justify-between">
+          <div className="lg:w-[35%] flex lg:flex-col justify-between">
             <h1 className={`text-primary ${i18n.language === "ar" ? "lg:text-4xl xl:text-5xl 2xl:text-6xl" : "lg:text-[1.5rem] xl:text-4xl 2xl:text-4xl"}`}>
               {t("logo")}
             </h1>
 
             <div className="flex items-center gap-4">
-              {/* Country select */}
-              {/* <Menu as="div" className="relative">
-                <Menu.Button className="bg-[#0fb5bb50] flex items-center gap-2 rounded-[10px] px-4 py-2 text-[15px] text-white font-medium shadow-sm focus:outline-none">
-                  <span>
-                    {i18n.language === "ar" ? "التوصيل إلى" : "Delivery to"} {selected}
-                  </span>
-                  <FiChevronDown className="text-[18px]" />
-                </Menu.Button>
-
-                <Transition
-                  as={Fragment}
-                  enter="transition ease-out duration-100"
-                  enterFrom="transform opacity-0 scale-95"
-                  enterTo="transform opacity-100 scale-100"
-                  leave="transition ease-in duration-75"
-                  leaveFrom="transform opacity-100 scale-100"
-                  leaveTo="transform opacity-0 scale-95"
-                >
-                  <Menu.Items className="absolute right-0 mt-2 w-52 origin-top-right rounded-md bg-white shadow-lg focus:outline-none z-50">
-                    <div className="px-2 py-2">
-                      {countries.map((place) => (
-                        <Menu.Item key={place}>
-                          {({ active }) => (
-                            <button
-                              onClick={() => setSelected(place)}
-                              className={`${active ? "bg-gray-100" : ""} block w-full text-left px-2 py-2 text-sm text-neutral-700 rounded-md`}
-                            >
-                              {place}
-                            </button>
-                          )}
-                        </Menu.Item>
-                      ))}
-                    </div>
-                  </Menu.Items>
-                </Transition>
-              </Menu> */}
-
-              {/* Language pill */}
               <button
                 onClick={() => changeLanguage(i18n.language === "ar" ? "en" : "ar")}
                 className="flex items-center bg-[#0fb5bb50] gap-2 rounded-[10px] px-8 py-2 text-[15px] text-white font-medium shadow-sm"
@@ -100,15 +62,15 @@ const Footer = () => {
           </div>
 
           {/* Link columns */}
-          <div className="w-[60%]">
-            <div className="grid grid-cols-3 gap-10">
+          <div className="lg:w-[65%] lg:mt-0 mt-12">
+            <div className="grid md:grid-cols-3 gap-10">
               {/* Explore */}
               <div>
-                <h5 className="text-lg xl:text-xl font-semibold text-primary mb-4">{explore.title}</h5>
+                <h5 className="text-lg xl:text-lg font-semibold text-primary mb-4">{explore.title}</h5>
                 <ul>
                   {explore.links.map((l) => (
                     <li key={l.href}>
-                      <Link to={l.href} className="text-white xl:text-lg inline-block mb-3 hover:text-primary">
+                      <Link to={l.href} className="text-white lg:text-lg 2xl:text-xl inline-block mb-3 hover:text-primary">
                         {l.label}
                       </Link>
                     </li>
@@ -118,7 +80,7 @@ const Footer = () => {
 
               {/* Know us */}
               <div>
-                <h5 className="text-lg xl:text-xl font-semibold text-primary mb-4">{knowUs.title}</h5>
+                <h5 className="text-lg xl:text-lg font-semibold text-primary mb-4">{knowUs.title}</h5>
                 <ul>
                   {knowUs.links.map((l) => (
                     <li key={l.href}>
@@ -132,11 +94,11 @@ const Footer = () => {
 
               {/* Customer service */}
               <div>
-                <h5 className="text-lg xl:text-xl font-semibold text-primary mb-4">{customerService.title}</h5>
+                <h5 className="text-lg lg:text-lg 2xl:text-xl font-semibold text-primary mb-4">{customerService.title}</h5>
                 <ul>
                   {customerService.links.map((l) => (
                     <li key={l.href}>
-                      <Link to={l.href} className="text-white xl:text-lg inline-block mb-3 hover:text-primary">
+                      <Link to={l.href} className="text-white lg:text-lg 2xl:text-xl inline-block mb-3 hover:text-primary">
                         {l.label}
                       </Link>
                     </li>
@@ -148,11 +110,11 @@ const Footer = () => {
         </div>
 
         {/* Stores + payments */}
-        <div className="flex items-center justify-between mt-10">
-          <div className="flex items-center justify-between gap-4">
-            <img src={playStore} className="w-[120px] rounded-[10px]" alt="Google Play" />
-            <img src={appGallary} className="w-[120px] rounded-[10px]" alt="AppGallery" />
-            <img src={appStore} className="w-[120px] rounded-[10px]" alt="App Store" />
+        <div className="sm:flex items-center justify-between mt-10">
+          <div className="flex items-center justify-between gap-4 sm:mb- mb-4">
+            <img src={playStore} className="w-[90px] sm:w-[120px] rounded-[10px]" alt="Google Play" />
+            <img src={appGallary} className="w-[90px] sm:w-[120px] rounded-[10px]" alt="AppGallery" />
+            <img src={appStore} className="w-[90px] sm:w-[120px] rounded-[10px]" alt="App Store" />
           </div>
           <div className="flex items-center justify-between gap-4">
             <img src={paypal} className="w-[60px] h-[40px] object-contain rounded-[5px] bg-white" alt="PayPal" />
@@ -165,8 +127,8 @@ const Footer = () => {
         <hr className="border-white/20 mt-8" />
 
         {/* Copyright + socials */}
-        <div className="mt-8 flex items-center justify-between">
-          <p className="text-white font-medium">{copyright}</p>
+        <div className="mt-8 flex md:flex-row flex-col md:gap-0 gap-4 items-center justify-center md:justify-between">
+          <p className="text-white md:text-start text-center font-medium">{copyright}</p>
           <div className="flex items-center gap-4">
             <Link to=""><FaLinkedinIn className="hover:text-primary transition-all duration-200 text-[24px]" /></Link>
             <Link to=""><FaFacebookF className="hover:text-primary transition-all duration-200 text-[24px]" /></Link>

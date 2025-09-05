@@ -24,12 +24,12 @@ export default function Topbar() {
       <div className="custom-container mx-auto px-4">
         <div className="flex items-center justify-between py-3 text-sm">
           {/* Left feature items */}
-          <ul className="flex items-center gap-8 text-neutral-600">
+          <ul className="md:flex items-center gap-8 text-neutral-600">
             <li className="flex items-center gap-2">
               <TbTruckDelivery className="text-[18px] text-primary" />
               <span className="text-[16px]">{t("topBar.expressDelivery")}</span>
             </li>
-            <li className="flex items-center gap-2">
+            <li className="flex items-center gap-2 md:py-0 py-1">
               <TbMapPin className="text-[18px] text-primary" />
               <span className="text-[16px]">{t("topBar.address")}</span>
             </li>

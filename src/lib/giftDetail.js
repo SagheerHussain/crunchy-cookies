@@ -46,11 +46,17 @@ export const frequentlyBuyGifts = [
   {
     product: [
       {
-        name: "Get Well Soon Roses Bouquet",
+        name: {
+          en: "Get Well Soon Roses Bouquet",
+          ar: "باقة ورد للشفاء العاجل",
+        },
         image: "/images/beauty/1.jpg", // Replace with actual image path
       },
       {
-        name: "Get Well Soon Roses Bouquet",
+        name: {
+          en: "Get Well Soon Roses Bouquet",
+          ar: "باقة ورد للشفاء العاجل",
+        },
         image: "/images/beauty/2.jpg", // Replace with actual image path
       },
     ],
@@ -59,11 +65,17 @@ export const frequentlyBuyGifts = [
   {
     product: [
       {
-        name: "Chanel Bleu De Chanel EDP For Men | 150ml",
+        name: {
+          en: "Chanel Bleu De Chanel EDP For Men | 150ml",
+          ar: "عطر شانيل بلو دي شانيل للرجال | 150 مل",
+        },
         image: "/images/beauty/3.jpg", // Replace with actual image path
       },
       {
-        name: "Chanel Bleu De Chanel EDP For Men | 150ml",
+        name: {
+          en: "Chanel Bleu De Chanel EDP For Men | 150ml",
+          ar: "عطر شانيل بلو دي شانيل للرجال | 150 مل",
+        },
         image: "/images/beauty/4.jpeg", // Replace with actual image path
       },
     ],
@@ -72,11 +84,17 @@ export const frequentlyBuyGifts = [
   {
     product: [
       {
-        name: "More Cioccolato Luce Bonbos",
+        name: {
+          en: "More Cioccolato Luce Bonbos",
+          ar: "شوكولاتة مور تشوكولاتو لوتشي بونبون",
+        },
         image: "/images/beauty/5.jpg", // Replace with actual image path
       },
       {
-        name: "More Cioccolato Luce Bonbos",
+        name: {
+          en: "More Cioccolato Luce Bonbos",
+          ar: "شوكولاتة مور تشوكولاتو لوتشي بونبون",
+        },
         image: "/images/beauty/6.jpg", // Replace with actual image path
       },
     ],
@@ -85,11 +103,17 @@ export const frequentlyBuyGifts = [
   {
     product: [
       {
-        name: "Silver Bracelet | Anchor | For Women & Men",
+        name: {
+          en: "Silver Bracelet | Anchor | For Women & Men",
+          ar: "سوار فضي | أنكر | للنساء والرجال",
+        },
         image: "/images/beauty/1.jpg", // Replace with actual image path
       },
       {
-        name: "Silver Bracelet | Anchor | For Women & Men",
+        name: {
+          en: "Silver Bracelet | Anchor | For Women & Men",
+          ar: "سوار فضي | أنكر | للنساء والرجال",
+        },
         image: "/images/beauty/3.jpg", // Replace with actual image path
       },
     ],
