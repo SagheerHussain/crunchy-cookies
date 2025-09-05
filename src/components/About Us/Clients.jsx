@@ -19,24 +19,24 @@ export default function Clients() {
   ];
 
   return (
-    <section className="w-full px-4 py-8">
+    <section className="w-full pt-8 pb-10">
       <div className="custom-container">
         <div className="rounded-[22px] border border-primary/60 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.04)] p-4 sm:p-6 md:p-8">
-          <div className="flex items-center justify-between">
+          <div className="md:flex items-center justify-between gap-4">
             {/* Left column */}
             <div className="lg:w-[50%]">
               <h3 className="text-2xl sm:text-3xl text-primary mb-6">
                 {langClass ? "عملاؤنا" : "OUR CLIENTS"}
               </h3>
 
-              <div className="flex flex-wrap gap-5">
+              <div className="flex gap-5 md:mb-0 mb-4">
                 {stats.map((s, i) => (
                   <div
                     key={i}
-                    className="lg:w-[170px] xl:w-[200px] rounded-2xl bg-primary px-6 py-5 text-white shadow-[0_8px_18px_rgba(13,148,136,0.25)]"
+                    className="w-1/2 lg:w-[170px] xl:w-[200px] rounded-2xl bg-primary px-3 md:px-6 py-5 text-white md:shadow-[0_8px_18px_rgba(13,148,136,0.25)]"
                   >
                     <h3 className="text-2xl text-white">{s.value}</h3>
-                    <span className="mt-1 text-white text-sm font-medium">
+                    <span className="mt-1 text-white text-xs font-medium">
                       {s.label}
                     </span>
                   </div>

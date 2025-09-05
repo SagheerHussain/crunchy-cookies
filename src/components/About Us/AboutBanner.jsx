@@ -22,7 +22,7 @@ export default function AboutBanner() {
   const langClass = i18n.language === "ar";
 
   return (
-    <section className="w-full p-4">
+    <section className="w-full py-4 px-4">
       <div className="relative custom-container rounded-[28px] overflow-hidden">
         {/* Background image */}
         <img
@@ -36,7 +36,7 @@ export default function AboutBanner() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/30 to-black/30" />
 
         {/* Content grid */}
-        <div className="relative grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-6 p-5 sm:p-8 lg:p-10 min-h-[520px]">
+        <div className="relative grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-6 py-5 sm:p-8 lg:p-10 min-h-[520px]">
           {/* Left content */}
           <div className="flex flex-col justify-between">
             <div className="mb-4 flex items-center gap-3">

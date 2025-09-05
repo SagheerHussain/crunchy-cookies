@@ -9,8 +9,11 @@ import {
   Divider,
 } from "@mui/material";
 
+
+
 const PRIMARY = "#0FB4BB";
 const BORDER = "#BFE8E7";
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const pad2 = (n) => String(n).padStart(2, "0");
 const currency = (n) => `${n}`;
@@ -21,7 +24,7 @@ const Modal = ({ itemsOpen, closeItems, activeOrder, isAr }) => {
     return activeOrder?.items?.reduce((sum, it) => sum + it.qty * it.price, 0);
   }, [activeOrder]);
 
-  console.log("activeOrder", itemsOpen, closeItems, activeOrder, isAr)
+  const matches = useMediaQuery('(max-width:767px)');
 
   return (
     <>
@@ -34,14 +37,14 @@ const Modal = ({ itemsOpen, closeItems, activeOrder, isAr }) => {
         PaperProps={{
           sx: {
             borderRadius: 8,
-            padding: 3,
-            border: `1px solid ${BORDER}`,
+            padding: matches ? 0 : 3,
+            border: `${matches ? 0 : 1}px solid ${BORDER}`,
             overflow: "visible",
             background: "Transparent",
           },
         }}
       >
-        <div style={{ background: "#fff", borderRadius: 32 }}>
+        <div className="max-h-[70vh] overflow-y-scroll modal_box" style={{ background: "#fff", borderRadius: 32 }}>
           {/* Title as centered brand */}
           <h1
             style={{
@@ -64,13 +67,13 @@ const Modal = ({ itemsOpen, closeItems, activeOrder, isAr }) => {
               {/* Sender / Receiver block */}
               <Box
                 sx={{
-                  display: "flex",
                   justifyContent: "space-between",
                   gridTemplateColumns: "1fr 1fr",
                   gap: 3,
                   mt: 1,
                   mb: 2,
                 }}
+                className="flex md:flex-row flex-col gap-3"
               >
                 <Box>
                   <Typography
@@ -150,7 +153,7 @@ const Modal = ({ itemsOpen, closeItems, activeOrder, isAr }) => {
                     </Typography>
 
                     <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 1.2 }}
+                      className="flex md:flex-row flex-col items-center gap-3"
                     >
                       <Box
                         component="img"
@@ -165,10 +168,10 @@ const Modal = ({ itemsOpen, closeItems, activeOrder, isAr }) => {
                           flexShrink: 0,
                         }}
                       />
-                      <Typography sx={{ color: "#374151" }}>
+                      <h6 className="md:text-base text-[.8rem] font-medium" sx={{ color: "#374151" }}>
                         {isAr ? it.ar_name : it.en_name}
-                      </Typography>
-                      <Typography sx={{ color: "#6B7280", ml: "auto" }}>
+                      </h6>
+                      <Typography className="md:text-base text-[.6rem]" sx={{ color: "#6B7280", ml: "auto" }}>
                         x{it.qty}
                       </Typography>
                     </Box>
@@ -178,8 +181,8 @@ const Modal = ({ itemsOpen, closeItems, activeOrder, isAr }) => {
                         color: "#111827",
                         fontSize: ".9rem",
                         fontWeight: 400,
-                        textAlign: "right",
                       }}
+                      className="md:text-end text-center"
                     >
                       QAR {currency(it.qty * it.price)}
                     </h5>

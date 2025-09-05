@@ -19,7 +19,7 @@ export default function ProfileDashboard() {
   const langClass = i18n.language === "ar";
 
   return (
-    <section className="w-full py-4 px-4">
+    <section className="w-full py-4">
       <div className="custom-container">
         <Link to={"/"}>
           <div className="bg-[#0fb5bb25] p-2 inline-block rounded-full">
@@ -40,9 +40,9 @@ export default function ProfileDashboard() {
           <h1 className="text-3xl text-primary">{langClass ? "حساب تعريفي" : "Profile"}</h1>
         </div>
 
-        <div className="mx-auto flex gap-6 items-start mt-10 ">
+        <div className="mx-auto lg:flex gap-6 items-start my-10 ">
           {/* Sidebar */}
-          <div className="lg:min-w-[30%] xl:min-w-[25%] 2xl:min-w-[20%]">
+          <div className="lg:min-w-[30%] xl:min-w-[25%] 2xl:min-w-[20%] lg:mb-0 mb-4">
             <Sidebar tab={tab} setTab={setTab} />
           </div>
 

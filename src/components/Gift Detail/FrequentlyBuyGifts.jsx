@@ -26,7 +26,7 @@ const FrequentlyBuyGifts = () => {
               <img
                 src={product.product[0].image}
                 alt={product.product[1].name[langClass ? "ar" : "en"]}
-                className="w-full 2xl:h-32 lg:h-24 object-cover rounded-lg"
+                className="w-full 2xl:h-32 lg:h-28 md:h-24 h-28 object-cover rounded-lg"
               />
               <h5 className={`text-black font-medium mt-3 ${langClass ? "text-[.8rem]" : "text-[.65rem]"}`}>
                 {product.product[0].name[langClass ? "ar" : "en"].slice(0, 30)}...
@@ -39,7 +39,7 @@ const FrequentlyBuyGifts = () => {
               <img
                 src={product.product[1].image}
                 alt={product.product[1].name[langClass ? "ar" : "en"]}
-                className="w-full lg:h-24 h-24 object-cover rounded-lg"
+                className="w-full 2xl:h-32 lg:h-28 md:h-24 h-28 object-cover rounded-lg"
               />
               <h5 className={`text-black font-medium mt-3 ${langClass ? "text-[.8rem]" : "text-[.65rem]"}`}>
                 {product.product[1].name[langClass ? "ar" : "en"].slice(0, 30)}...

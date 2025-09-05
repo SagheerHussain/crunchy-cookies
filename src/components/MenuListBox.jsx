@@ -47,7 +47,7 @@ export default function MenuListBox({ onClose }) {
       ar_label: "تاريخ الطلبات",
       to: "/order-history/413143151",
       icon: <AiOutlineGift className="text-cyan-700" />,
-    },
+    }
   ];
 
   return (

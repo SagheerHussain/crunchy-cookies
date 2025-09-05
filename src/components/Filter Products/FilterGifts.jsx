@@ -104,25 +104,26 @@ export default function FilterableFlowerGrid() {
   };
 
   return (
-    <section id="filter_gifts">
+    <section id="filter_gifts" className="pb-10">
       <div className="custom-container">
         {/* Header Row */}
-        <div className="pt-10 pb-2 flex items-center justify-between relative">
-          <div className="w-[40%]">
-            <h1 className="lg:text-[1.5rem] xl:text-[2rem] 2xl:text-[2.5rem] text-primary">
+        <div className="pt-10 pb-2 flex md:flex-row flex-col items-center justify-between relative">
+          <div className="md:w-[50%] lg:w-[60%]">
+            <h1 className="text-[1.3rem] md:text-[1.5rem] xl:text-[2rem] 2xl:text-[2.5rem] text-primary">
               {isAr ? "زهور خارجة عن المألوف" : "Flowers Beyond Ordinary"}
             </h1>
           </div>
 
           {/* Occasions chips with custom nav */}
-          <div className="w-[60%] mt-4 relative">
+          <div className="w-full md:w-[50%] lg:w-[60%] mt-4 relative">
             <Swiper
               modules={[Navigation, A11y]}
               dir={isAr ? "rtl" : "ltr"}
               direction="horizontal"
               slidesPerGroup={1}
               breakpoints={{
-                0: { slidesPerView: 2.2 },
+                0: { slidesPerView: 1 },
+                768: { slidesPerView: 1.5 },
                 1024: { slidesPerView: 3 },
                 1280: { slidesPerView: 3.5 },
               }}
@@ -166,7 +167,7 @@ export default function FilterableFlowerGrid() {
             </Swiper>
 
             {/* Custom nav buttons — exact placement jahan chahiye */}
-            <div className="absolute -bottom-12 left-full -translate-x-full flex items-center gap-3">
+            <div className={`absolute -bottom-12 ${isAr ? "left-0" : "left-full -translate-x-full"} flex items-center gap-3`}>
               <button
                 className="oc-prev grid place-items-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary hover:bg-primary/70 text-white shadow"
                 aria-label="Previous"

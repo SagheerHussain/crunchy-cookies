@@ -75,6 +75,9 @@ h4 {
     margin: 0 auto;
     padding: 0 20px;
   }
+  #cart .custom-container {
+    padding: 0;
+  }
 }
 
 /* cmc-wrap container styles */
@@ -316,6 +319,10 @@ h4 {
   transform: rotate(180deg);
 }
 
+.modal_box::-webkit-scrollbar {
+  width: 0px !important;
+}
+
 #cart ::-webkit-scrollbar,
 .previous_order_table ::-webkit-scrollbar {
   width: 2px;
@@ -354,4 +361,16 @@ h4 {
 }
 .previous_order_table .MuiBox-root {
   padding: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .MuiStepper-alternativeLabel {
+    align-items: center !important;
+  }
+}
+
+/* Pagination */
+.MuiPagination-ul {
+  flex-wrap: nowrap !important;
+  -webkit-flex-wrap: none !important;
 }

@@ -11,8 +11,8 @@ export default function OrdersPanel({ ordersTab, setOrdersTab }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <OrdersTab active={ordersTab === "ongoing"} onClick={() => setOrdersTab("ongoing")} label={`${langClass ? "الطلبات الجارية" : "Ongoing Orders"}`} count={1} />
+      <div className="md:flex items-center gap-3">
+        <OrdersTab active={ordersTab === "ongoing"} className="md:mb-0 mb-4" onClick={() => setOrdersTab("ongoing")} label={`${langClass ? "الطلبات الجارية" : "Ongoing Orders"}`} count={1} />
         <OrdersTab active={ordersTab === "previous"} onClick={() => setOrdersTab("previous")} label={`${langClass ? "الطلبات السابقة" : "Previous Orders"}`} count={1} />
       </div>
       <hr className="border-cyan-100" />

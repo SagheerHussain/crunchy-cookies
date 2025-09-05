@@ -6,11 +6,13 @@ import Modal from "../Modal";
 import Card from "./Card";
 import { orders } from "../../lib/orderHistory";
 import { useTranslation } from "react-i18next";
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 export default function OngoingOrdersCard() {
 
   const { i18n } = useTranslation();
   const langClass = i18n.language === "ar";
+  const matches = useMediaQuery('(max-width:767px)');
 
   const [itemsOpen, setItemsOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
@@ -42,12 +44,13 @@ export default function OngoingOrdersCard() {
       </div>
 
       {/* Stepper */}
-      <div className="mt-4 flex items-center gap-4">
-        <div className="w-[70%]" style={{ direction: "ltr" }}>
+      <div className="mt-4 flex md:flex-row flex-col items-center gap-4">
+        <div className="md:w-[70%]" style={{ direction: "ltr" }}>
           <Stepper
             activeStep={current}
             alternativeLabel
-            connector={<CyanConnector />}
+            connector={matches ? false : <CyanConnector />}
+            orientation={matches ? "vertical" : "horizontal"}
           >
             {stages.map((label) => (
               <Step key={label}>
@@ -58,22 +61,22 @@ export default function OngoingOrdersCard() {
         </div>
 
         {/* Actions */}
-        <div className="shrink-0 flex gap-3">
+        <div className="shrink-0 flex md:flex-row flex-col gap-3">
           <button
             onClick={() => openItems(orders)}
-            className="xl:text-base lg:text-xs rounded-xl bg-primary lg:px-3 xl:px-5 py-2 font-semibold text-white shadow hover:bg-primary/80"
+            className="xl:text-base md:w-auto w-full lg:text-xs rounded-xl bg-primary px-3 xl:px-5 py-2 font-semibold text-white shadow hover:bg-primary/80"
           >
             View Items
           </button>
-          <button className="xl:text-base lg:text-xs rounded-xl bg-rose-50 lg:px-3 xl:px-5 py-2 font-semibold text-rose-500">
+          <button className="xl:text-base md:w-auto w-full lg:text-xs rounded-xl bg-rose-50 px-3 xl:px-5 py-2 font-semibold text-rose-500">
             Cancel Order
           </button>
         </div>
       </div>
 
       {/* Meta Info */}
-      <div className="mt-4 flex flex-wrap items-center lg:gap-x-3 xl:gap-x-6 gap-y-2 text-sm text-slate-500">
-        <span className="font-semibold text-slate-700">06</span> {langClass ? "البضائع" : "Items"}
+      <div className="mt-4 flex md:flex-row flex-col items-center lg:gap-x-3 xl:gap-x-6 gap-y-2 text-sm text-slate-500">
+        <span className="font-semibold text-slate-700">06 </span> {langClass ? "البضائع" : "Items"}
         <span className="mx-1">•</span> {langClass ? "الدفع عند الاستلام" : "Cash on Delivery"}
         <span className="mx-1">•</span> {langClass ? "تم الطلب منذ 2 دقائق" : "Ordered 2 mins ago"}
         <span className="mx-1">•</span> {langClass ? "تسليم خلال أسبوع" : "Delivery within a week"}

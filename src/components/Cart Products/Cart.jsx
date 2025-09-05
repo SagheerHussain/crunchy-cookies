@@ -8,7 +8,7 @@ import {
   FiGift,
   FiX,
 } from "react-icons/fi";
-import previewCard from "/images/preview-card.png"
+import previewCard from "/images/preview-card.png";
 
 const CURRENCY = (n) => `QAR ${n.toLocaleString()}`;
 const PANEL_RING = "ring-1 ring-primary/10";
@@ -51,9 +51,10 @@ export default function Cart() {
     setItems((prev) => prev.filter((i) => i.id !== id));
 
   return (
-    <section id="cart" className="py-4">
-      <div className="custom-container">
-        <Link to={"/"}>
+    <section id="cart" className="pt-4 pb-10">
+      <div
+        className="custom-container pb-10">
+        <Link to={"/"} className="px-4">
           <div className="bg-[#0fb5bb25] p-2 inline-block rounded-full">
             {langClass ? (
               <MdArrowForwardIos
@@ -70,14 +71,14 @@ export default function Cart() {
         </Link>
 
         {/* Header */}
-        <h1 className="text-4xl text-primary mt-4">
+        <h1 className="text-4xl text-primary mt-4 px-4">
           {langClass ? "عربة التسوق" : "CART"}
         </h1>
 
-        <div className="grid lg:grid-cols-[1.1fr_.9fr] gap-6 mt-10">
+        <div className="grid lg:grid-cols-2 gap-y-6 mt-10">
           {/* LEFT: Items */}
-          <section
-            className={`bg-primary_light_mode border text-primary_light_mode border-primary/20 rounded-2xl px-4`}
+          <div
+            className={`bg-primary_light_mode border mx-4 px-4 text-primary_light_mode border-primary/20 rounded-2xl`}
           >
             <div className="flex items-center justify-between p-5 border-b border-primary/20">
               <h5 className="text-2xl font-semibold text-primary">
@@ -95,7 +96,7 @@ export default function Cart() {
             </div>
 
             {/* Items list */}
-            <div className="py-4 pb-5 space-y-4 overflow-y-auto max-h-[750px]">
+            <div className="pt-4 pb-5 space-y-4 overflow-y-auto max-h-[750px]">
               {items.map((i) => (
                 <article
                   key={i.id}
@@ -109,6 +110,7 @@ export default function Cart() {
                   <button
                     aria-label="select"
                     onClick={() => toggleSelect(i.id)}
+                    style={{ direction: langClass ? "rtl" : "ltr" }}
                     className={`
                       absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 rounded
                       border-2 ${
@@ -134,7 +136,7 @@ export default function Cart() {
 
                   {/* Title + meta */}
                   <div className="flex-1">
-                    <h5 className="text-black font-medium">
+                    <h5 className="text-black md:text-base text-sm font-medium">
                       {langClass ? i.ar_title : i.en_title}
                     </h5>
                     <div className="text-primary font-semibold text-sm mt-2 mb-4">
@@ -146,50 +148,53 @@ export default function Cart() {
                     </div>
                   </div>
 
-                  {/* Qty stepper */}
-                  <div className="flex items-center">
-                    <button
-                      onClick={() => changeQty(i.id, -1)}
-                      className="h-8 w-8 rounded-full bg-[#ddd] border border-slate-200 grid place-items-center hover:bg-slate-50"
-                    >
-                      <FiMinus className="text-black" />
-                    </button>
-                    <div className="w-10 text-center font-semibold text-slate-700">
-                      {i.qty}
+                  <div className="flex md:flex-row flex-col">
+                    {/* Qty stepper */}
+                    <div className="flex md:flex-row flex-col jsutify-center items-center">
+                      <button
+                        onClick={() => changeQty(i.id, -1)}
+                        className="h-6 w-6 md:h-8 md:w-8 rounded-full bg-[#ddd] border border-slate-200 grid place-items-center hover:bg-slate-50"
+                      >
+                        <FiMinus className="text-black" />
+                      </button>
+                      <div className="md:w-10 font-semibold text-slate-700">
+                        {i.qty}
+                      </div>
+                      <button
+                        onClick={() => changeQty(i.id, +1)}
+                        className="h-6 w-6 md:h-8 md:w-8 rounded-full bg-[#ddd] border border-slate-200 grid place-items-center hover:bg-slate-50"
+                      >
+                        <FiPlus className="text-primary" />
+                      </button>
                     </div>
+
+                    {/* Delete */}
                     <button
-                      onClick={() => changeQty(i.id, +1)}
-                      className="h-8 w-8 rounded-full bg-[#ddd] border border-slate-200 grid place-items-center hover:bg-slate-50"
+                      onClick={() => removeItem(i.id)}
+                      className="text-rose-400 hover:text-rose-500 p-2"
+                      aria-label="remove"
                     >
-                      <FiPlus className="text-primary" />
+                      <FiTrash2 />
                     </button>
                   </div>
-
-                  {/* Delete */}
-                  <button
-                    onClick={() => removeItem(i.id)}
-                    className="text-rose-400 hover:text-rose-500 p-2"
-                    aria-label="remove"
-                  >
-                    <FiTrash2 />
-                  </button>
                 </article>
               ))}
             </div>
-          </section>
+          </div>
 
           {/* RIGHT: Details + Summary */}
-          <aside className="space-y-6">
+          <div className="space-y-6">
             {/* Details */}
-            <section
-              className={`bg-primary_light_mode border border-primary/20 rounded-2xl px-4 ${PANEL_RING}`}
+
+            <div
+              className={`bg-primary_light_mode border mx-4 px-4 border-primary/20 rounded-2xl ${PANEL_RING}`}
             >
-              <header className="flex items-center gap-2 p-5 border-b border-primary/20">
+              <div className="flex items-center gap-2 p-5 border-b border-primary/20">
                 <FiGift className="text-primary" />
                 <h3 className="text-primary text-xl">
                   {langClass ? "تفاصيل" : "Details"}
                 </h3>
-              </header>
+              </div>
 
               <div className="py-4 space-y-5">
                 {/* Phones */}
@@ -258,20 +263,19 @@ export default function Cart() {
                   </button>
                 </div>
               </div>
-            </section>
-
+            </div>
             {/* Order Summary */}
-            <section
-              className={`bg-primary_light_mode border border-primary/20 rounded-2xl px-4 ${PANEL_RING}`}
+            <div
+              className={`bg-primary_light_mode mx-4 px-4 border-primary/20 rounded-2xl ${PANEL_RING}`}
             >
-              <header className="flex items-center gap-2 py-4 border-b border-primary/20">
+              <header className="flex items-center gap-2 p-5 border-b border-primary/20">
                 <FiGift className="text-primary" />
                 <h3 className="text-primary text-xl">
                   {langClass ? "ملخص الطلب" : "Order Summary"}
                 </h3>
               </header>
 
-              <div className="py-4 space-y-4">
+              <div className="py-4 space-y-5">
                 <Row
                   label={`${langClass ? "المجموع الفرعي" : "Subtotal"}`}
                   value={CURRENCY(subtotal)}
@@ -316,7 +320,7 @@ export default function Cart() {
                   <div className="text-primary text-xl font-semibold mb-3">
                     {langClass ? "بطاقة قسيمة" : "Voucher Card"}
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex md:flex-row flex-col gap-3">
                     <input
                       value={voucher}
                       onChange={(e) => setVoucher(e.target.value)}
@@ -325,14 +329,16 @@ export default function Cart() {
                       }
                       className="flex-1 rounded-xl border-2 border-primary/20 p-3 focus:outline-none"
                     />
-                    <button className="px-6 rounded-xl bg-primary text-white font-medium hover:bg-primary/70">
+                    <button className="px-6 py-2 md:py-0 rounded-xl bg-primary text-white font-medium hover:bg-primary/70">
                       {langClass ? "يتقدم" : "Apply"}
                     </button>
                   </div>
                 </div>
+
               </div>
-            </section>
-          </aside>
+            </div>
+            
+          </div>
         </div>
       </div>
 

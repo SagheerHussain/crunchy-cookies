@@ -15,17 +15,17 @@ export default function Contact() {
   const langClass = i18n.language === "ar";
 
   return (
-    <section className="w-full p-4">
+    <section className="w-full pt-4 pb-10">
       <div className="custom-container">
         <div className="rounded-[22px] border border-primary bg-white shadow-[0_8px_30px_rgba(0,0,0,0.06)] p-6">
-          <div className="flex gap-8">
+          <div className="lg:flex gap-8">
             {/* Left Panel */}
             <div
               style={{
                 background:
                   "linear-gradient(90deg, #11e7ff1f 0%, #e59eff1f 55%, #f6b4001f 100%)",
               }}
-              className="w-[35%] flex flex-col justify-between relative overflow-hidden rounded-[18px] bg-gradient-to-br from-cyan-50 to-amber-50 p-6 sm:p-8 text-teal-600"
+              className="lg:w-[35%] lg:h-auto min-h-[400px] flex flex-col justify-between relative overflow-hidden rounded-[18px] bg-gradient-to-br from-cyan-50 to-amber-50 p-6 sm:p-8 text-teal-600"
             >
               {/* pastel circles via pseudo elements */}
               <div className="pointer-events-none absolute inset-0">
@@ -89,7 +89,7 @@ export default function Contact() {
             </div>
 
             {/* Right Form */}
-            <div className="w-[65%]">
+            <div className="lg:w-[65%] lg:mt-0 mt-8">
               <form className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-1">
                   <label className="text-primary font-semibold">

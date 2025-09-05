@@ -12,7 +12,7 @@ const WishlistGifts = () => {
 
   return (
     <>
-      <section id="wishlist" className="py-4">
+      <section id="wishlist" className="pt-4 pb-10">
         <div className="custom-container">
 
           <Link to={"/"}>
@@ -34,7 +34,7 @@ const WishlistGifts = () => {
           </Link>
 
           <div className="">
-            <h2 className="lg:text-[1.8rem] xl:text-[2.5rem] text-primary">
+            <h2 className="text-[2rem] lg:text-[2.5rem] text-primary">
               {langClass ? "المفضلة" : "Favourites"}
             </h2>
           </div>

@@ -39,8 +39,8 @@ export default function OrdersTable({ rows = orders }) {
 
   return (
     <>
-      <section id="order-history" className="py-4" dir={isAr ? "rtl" : "ltr"}>
-        <div className="custom-container">
+      <section id="order-history" className="pt-4 pb-10" dir={isAr ? "rtl" : "ltr"}>
+        <div className="custom-container pb-8">
           <Link to={"/"}>
             <div className="bg-[#0fb5bb25] p-2 inline-block rounded-full">
               {isAr ? (
@@ -58,7 +58,7 @@ export default function OrdersTable({ rows = orders }) {
           </Link>
 
           <div className="flex items-center justify-between mt-4">
-            <h2 className="text-center lg:text-[1.8rem] xl:text-[2.5rem] text-primary">
+            <h2 className="text-center text-[2rem] lg:text-[2.5rem] text-primary">
               {isAr ? "تاريخ الطلب" : "Order History"}
             </h2>
           </div>

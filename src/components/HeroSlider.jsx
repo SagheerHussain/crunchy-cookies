@@ -252,7 +252,7 @@ export default function CenterModeCarousel({
                   <img src={src} className="w-full min-h-[300px] object-cover rounded-[35px]" alt="" />
                   <div className="overlay absolute rounded-[35px] top-0 left-0 w-full h-full bg-black/40 z-[0]" />
                   <div className="absolute top-1/2 md:text-start text-center -translate-y-1/2 sm:right-12 slider-content flex flex-col justify-center sm:max-w-sm p-4 z-[2]">
-                    <h5 className="text-white font-medium text-[1.7rem]">
+                    <h5 className="text-white font-medium text-[1.7rem] md:px-0 px-4">
                       {langClass === "en" ? en_title : ar_title}
                     </h5>
                     <p
