@@ -9,10 +9,22 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import ProfilePage from "./pages/ProfilePage";
 import GiftDetailPage from "./pages/GiftDetailPage";
+import { useLocation } from "react-router-dom";
 
 import "./App.css";
 
 export default function App() {
+
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth"   // 👈 ye animation karega
+    });
+  }, [location.pathname]);
+
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />

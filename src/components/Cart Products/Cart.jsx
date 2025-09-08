@@ -9,6 +9,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import previewCard from "/images/preview-card.png";
+import PaymentMethod from "../PaymentMethod";
 
 const CURRENCY = (n) => `QAR ${n.toLocaleString()}`;
 const PANEL_RING = "ring-1 ring-primary/10";
@@ -96,7 +97,7 @@ export default function Cart() {
             </div>
 
             {/* Items list */}
-            <div className="pt-4 pb-5 space-y-4 overflow-y-auto max-h-[750px]">
+            <div className="pt-4 pb-5 space-y-4 overflow-y-auto max-h-[900px]">
               {items.map((i) => (
                 <article
                   key={i.id}
@@ -191,9 +192,9 @@ export default function Cart() {
             >
               <div className="flex items-center gap-2 p-5 border-b border-primary/20">
                 <FiGift className="text-primary" />
-                <h3 className="text-primary text-xl">
+                <h5 className="text-primary text-xl font-semibold">
                   {langClass ? "تفاصيل" : "Details"}
-                </h3>
+                </h5>
               </div>
 
               <div className="py-4 space-y-5">
@@ -270,9 +271,9 @@ export default function Cart() {
             >
               <header className="flex items-center gap-2 p-5 border-b border-primary/20">
                 <FiGift className="text-primary" />
-                <h3 className="text-primary text-xl">
+                <h5 className="text-primary text-xl font-semibold">
                   {langClass ? "ملخص الطلب" : "Order Summary"}
-                </h3>
+                </h5>
               </header>
 
               <div className="py-4 space-y-5">
@@ -302,6 +303,8 @@ export default function Cart() {
                     </span>
                   }
                 />
+
+                <PaymentMethod />
 
                 <button
                   disabled={!selectedItems.length}

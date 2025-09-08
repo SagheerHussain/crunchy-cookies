@@ -3,6 +3,7 @@ import Topbar from "../components/Topbar";
 import Navbar from "../components/Navbar";
 import Cart from "../components/Cart Products/Cart";
 import Footer from "../components/Footer";
+import ScrollToTopButton from "../components/ScrollToTop";
 
 const CartPage = () => {
   return (
@@ -17,6 +18,7 @@ const CartPage = () => {
       </main>
 
       <Footer />
+      <ScrollToTopButton />
     </>
   );
 };

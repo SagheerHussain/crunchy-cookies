@@ -9,6 +9,7 @@ import CategoriesSlider from "../components/Home Page/CategoriesSlider";
 import ShowcaseProducts from "../components/Home Page/ShowcaseProducts";
 import LatestCollection from "../components/Home Page/LatestCollection";
 import Footer from "../components/Footer";
+import ScrollToTopButton from "../components/ScrollToTop";
 
 const HomePage = () => {
   return (
@@ -99,6 +100,7 @@ const HomePage = () => {
 
 
       <Footer />
+      <ScrollToTopButton />
     </>
   );
 };

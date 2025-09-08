@@ -48,7 +48,7 @@ export default function Navbar() {
   return (
     <nav className="navbar py-4 relative">
       <div className="custom-container px-4">
-        <div className="flex items-center lg:justify-between md:justify-between lg:gap-0 gap-4 py-4">
+        <div className="flex items-center lg:justify-between md:justify-between justify-center lg:gap-0 gap-4 py-4">
           {/* Left cluster */}
           <div className="flex items-center gap-4 min-w-0">
             <button

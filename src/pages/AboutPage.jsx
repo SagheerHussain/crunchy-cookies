@@ -8,6 +8,7 @@ import { aboutCollections } from "../lib/about";
 import LatestCollection from "../components/Home Page/LatestCollection";
 import Contact from "../components/Contact Us/Contact";
 import Clients from "../components/About Us/Clients";
+import ScrollToTopButton from "../components/ScrollToTop";
 
 const AboutPage = () => {
   return (
@@ -30,6 +31,7 @@ const AboutPage = () => {
       </main>
 
       <Footer />
+      <ScrollToTopButton />
     </>
   );
 };

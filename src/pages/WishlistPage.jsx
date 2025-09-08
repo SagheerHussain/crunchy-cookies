@@ -3,6 +3,7 @@ import Topbar from "../components/Topbar";
 import Navbar from "../components/Navbar";
 import WishlistGifts from "../components/Wishlist/WishlistGifts";
 import Footer from "../components/Footer";
+import ScrollToTopButton from "../components/ScrollToTop";
 
 const WishlistPage = () => {
     return (
@@ -17,6 +18,7 @@ const WishlistPage = () => {
             </main>
 
             <Footer />
+            <ScrollToTopButton />
         </>
     );
 };

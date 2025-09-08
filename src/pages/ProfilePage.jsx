@@ -3,6 +3,7 @@ import Topbar from "../components/Topbar";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ProfileDashboard from "../components/Profile/Profile";
+import ScrollToTopButton from "../components/ScrollToTop";
 
 const ProfilePage = () => {
   return (
@@ -17,6 +18,7 @@ const ProfilePage = () => {
       </main>
 
       <Footer />
+      <ScrollToTopButton />
     </>
   );
 };
