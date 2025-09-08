@@ -374,3 +374,6 @@ h4 {
   flex-wrap: nowrap !important;
   -webkit-flex-wrap: none !important;
 }
+.MuiBottomNavigationAction-root.Mui-selected {
+  color: #0FB4BB !important;
+}

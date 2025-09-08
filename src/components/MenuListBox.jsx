@@ -12,62 +12,75 @@ import {
 } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
 
-export default function MenuListBox({ onClose }) {
+export default function MenuListBox({ dir = "ltr", onClose, onLinkClick }) {
   const { i18n } = useTranslation();
   const langClass = i18n.language === "ar";
 
   const items = [
-    {
-      en_label: "Cart",
-      ar_label: "عربة",
-      to: "/cart/295428429752",
-      icon: <AiOutlineShoppingCart className="text-cyan-700" />,
+    { 
+      en_label: "Flowers",         
+      ar_label: "الزهور",    
+      icon: "/images/menu/icon (1).png",      
+      to: "/filters/flowers",        
     },
-    {
-      en_label: "Favorites",
-      ar_label: "المفضلة",
-      to: "/wishlist/295428429752",
-      icon: <AiOutlineHeart className="text-cyan-700" />,
+    { 
+      en_label: "Watches",    
+      ar_label: "الساعات",    
+      icon: "/images/menu/icon (6).png",       
+      to: "/filters/watches",    
     },
-    {
-      en_label: "About us",
-      ar_label: "معلومات عنا",
-      to: "/about",
-      icon: <AiOutlineInfoCircle className="text-cyan-700" />,
+    { 
+      en_label: "Chocolates",     
+      ar_label: "الشوكولاتة",   
+      icon: "/images/menu/icon (4).png",       
+      to: "/filters/chocolates",                    
     },
-    {
-      en_label: "Contact us",
-      ar_label: "اتصل بنا",
-      to: "/contact",
-      icon: <AiOutlinePhone className="text-cyan-700" />,
+    { 
+      en_label: "Perfumes",   
+      ar_label: "العطور",       
+      to: "/filters/perfumes",                  
+      icon: "/images/menu/icon (3).png", 
     },
-    {
-      en_label: "Order History",
-      ar_label: "تاريخ الطلبات",
-      to: "/order-history/413143151",
-      icon: <AiOutlineGift className="text-cyan-700" />,
-    }
+    { 
+      en_label: "Cakes",
+      ar_label: "الكيك", 
+      to: "/filters/cakes",  
+      icon: "/images/menu/icon (2).png", 
+    },
+    { 
+      en_label: "Skin Care",
+      ar_label: "العناية بالبشرة", 
+      to: "/filters/skin-care",  
+      icon: "/images/menu/icon (5).png", 
+    },
   ];
+  
+
+  // Slide from left on LTR, from right on RTL
+  const side = dir === "rtl" ? "right-0" : "left-0";
+  const fromX = dir === "rtl" ? 360 : -360;
 
   return (
-    <aside className="w-[22rem] max-w-[92vw] p-2">
-      <div
-        className="relative rounded-2xl border border-primary bg-cyan-50 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
-        style={{
-          borderTopRightRadius: "15px",
-          borderBottomRightRadius: "15px",
-        }}
-      >
+    <motion.aside
+      className={`fixed top-20 md:top-48 lg:top-20 xl:top-48 ${side} z-50 w-[22rem] max-w-[92vw]`}
+      role="dialog"
+      aria-label={langClass ? "قائمة طعام" : "Menu"}
+      initial={{ x: fromX, opacity: 0.8 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: fromX, opacity: 0.8 }}
+      transition={{ type: "spring", stiffness: 420, damping: 34 }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="relative rounded-br-xl rounded-tr-xl border border-primary bg-cyan-50 shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-6">
-          <h2 className="text-2xl text-primary">
-            {langClass ? "قائمة طعام" : "Menu"}
-          </h2>
+          <h2 className="text-3xl text-primary">{langClass ? "قائمة طعام" : "Menu"}</h2>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center justify-center rounded-full bg-white text-black shadow border border-cyan-100 w-8 h-8"
+            className="inline-flex items-center justify-center rounded-full bg-white text-black shadow border border-primary/10 w-8 h-8"
             aria-label="Close"
           >
             <AiOutlineClose className="text-base" />
@@ -75,13 +88,15 @@ export default function MenuListBox({ onClose }) {
         </div>
 
         {/* List */}
-        <div className="flex flex-col gap-3 px-4 pb-8 pt-2">
+        <div className="flex h-full flex-col gap-3 overflow-y-auto px-4 pb-6">
           {items.map((it) => (
-            <Link to={it.to} key={it.label}>
-              <div className="w-full rounded-xl border border-primary/30 bg-white/60 px-4 py-3 shadow-sm">
+            <Link to={it.to} key={it.to} onClick={onLinkClick}>
+              <div className="w-full rounded-xl border border-primary/30 bg-white/60 px-4 py-3 shadow-sm hover:bg-white transition">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 text-slate-700">
-                    {/* <span className="text-[18px]">{it.icon}</span> */}
+                    <span className="text-[18px]">
+                      <img src={it.icon} className="w-6 h-6" alt={it.en_label} />
+                    </span>
                     <span className="font-medium text-lg">
                       {langClass ? it.ar_label : it.en_label}
                     </span>
@@ -96,20 +111,7 @@ export default function MenuListBox({ onClose }) {
             </Link>
           ))}
         </div>
-
-        {/* Logout */}
-        <div className="mx-6 mb-4 text-start">
-          <button
-            type="button"
-            className="inline-flex items-center justify-start gap-2 rounded-xl bg-red-700 hover:bg-red-800 px-4 py-2 font-medium text-white shadow-md"
-          >
-            <AiOutlineLogout className="text-xl" />
-            <span className="text-lg">
-              {langClass ? "تسجيل الخروج" : "Log out"}
-            </span>
-          </button>
-        </div>
       </div>
-    </aside>
+    </motion.aside>
   );
 }
