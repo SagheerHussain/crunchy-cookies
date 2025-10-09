@@ -21,7 +21,7 @@ const ProductsSection = ({ en_title, ar_title, products }) => {
         {/* Grid of Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {products?.map((product) => (
-            <ProductCard key={product._id} product={product} />
+            <ProductCard data={products} key={product._id} product={product} />
           ))}
         </div>
 

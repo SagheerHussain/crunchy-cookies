@@ -7,43 +7,74 @@ import { AnimatePresence, motion } from "framer-motion";
 import MenuListBox from "./MenuListBox";
 import BottomNavigation from "./BottomNavigation";
 
+const CART_KEY = "cart";
+
 export default function Navbar() {
-  const { t, i18n } = useTranslation("translation");
+  const { t } = useTranslation("translation");
   const dir = t("dir") || "ltr";
-  const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
-  // sync document dir with i18n
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+
+  /* ---------- helpers ---------- */
+  const readCartCount = () => {
+    try {
+      const arr = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
+      return Array.isArray(arr) ? arr.length : 0;
+    } catch {
+      return 0;
+    }
+  };
+
+  /* ---------- dir sync ---------- */
   useEffect(() => {
     document.documentElement.dir = dir;
   }, [dir]);
 
+  /* ---------- monkey-patch: fire custom event on same-tab updates ---------- */
   useEffect(() => {
-    if (menuOpen) {
-      const scrollBarWidth =
-        window.innerWidth - document.documentElement.clientWidth;
-
-      // lock scroll
-      document.body.style.overflow = "hidden";
-      document.body.style.height = "100vh";
-
-      // reserve space for scrollbar to avoid layout shift
-      if (scrollBarWidth > 0) {
-        document.body.style.paddingRight = `${scrollBarWidth}px`;
+    const _setItem = localStorage.setItem;
+    localStorage.setItem = function (key, value) {
+      _setItem.apply(this, arguments);
+      if (key === CART_KEY) {
+        window.dispatchEvent(new Event("cart:updated"));
       }
-    } else {
-      // reset everything
-      document.body.style.overflow = "";
-      document.body.style.height = "";
-      document.body.style.paddingRight = "";
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-      document.body.style.height = "";
-      document.body.style.paddingRight = "";
     };
-  }, [menuOpen]);
+    return () => {
+      localStorage.setItem = _setItem;
+    };
+  }, []);
+
+  /* ---------- hydrate on mount ---------- */
+  useEffect(() => {
+    setCartCount(readCartCount());
+  }, []);
+
+  /* ---------- also refresh on route change (fallback) ---------- */
+  useEffect(() => {
+    setCartCount(readCartCount());
+  }, [location.pathname]);
+
+  /* ---------- listen to cross-tab + custom events ---------- */
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === CART_KEY) setCartCount(readCartCount());
+    };
+    const onCustom = () => setCartCount(readCartCount());
+
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("cart:updated", onCustom);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("cart:updated", onCustom);
+    };
+  }, []);
+
+  /* ---------- active states for buttons (only style) ---------- */
+  const isCart = location.pathname.includes("cart");
+  const isWishlist = location.pathname.includes("wishlist");
+  const isMember = location.pathname.includes("member");
 
   return (
     <nav className="navbar py-4 relative">
@@ -84,27 +115,40 @@ export default function Navbar() {
 
           {/* Right cluster */}
           <div className="flex items-center gap-3">
+            {/* CART with square badge (always when count > 0) */}
             <Link
               to={`/cart/29421784161`}
               className={`${
-                location.pathname.includes("cart")
-                  ? "bg-primary"
-                  : "bg-transparent"
-              } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
+                isCart ? "bg-primary" : "bg-transparent"
+              } relative overflow-visible border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.cart")}
             >
+              {/* Badge */}
+              {cartCount > 0 && (
+                <span
+                  className={[
+                    "absolute",
+                    dir === "rtl" ? "-top-2 -left-2" : "-top-2 -right-2",
+                    "min-w-[18px] h-[18px] px-[3px]",
+                    "rounded-md text-[10px] leading-[18px] font-semibold",
+                    // keep badge visible regardless of active route
+                    "bg-primary text-white border border-white/70 shadow-sm",
+                    "text-center pointer-events-none z-10",
+                  ].join(" ")}
+                  aria-label={`${cartCount} ${t("navbar.items") || "items"}`}
+                >
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
+
               <PiShoppingCartSimpleLight
                 className={`text-[20px] ${
-                  location.pathname.includes("cart")
-                    ? "text-white"
-                    : "text-primary"
+                  isCart ? "text-white" : "text-primary"
                 }`}
               />
               <span
                 className={`font-medium ${
-                  location.pathname.includes("cart")
-                    ? "text-white"
-                    : "text-black"
+                  isCart ? "text-white" : "text-black"
                 }`}
               >
                 {t("navbar.cart")}
@@ -114,24 +158,18 @@ export default function Navbar() {
             <Link
               to={`/wishlist/29421784161`}
               className={`${
-                location.pathname.includes("wishlist")
-                  ? "bg-primary"
-                  : "bg-transparent"
+                isWishlist ? "bg-primary" : "bg-transparent"
               } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.favorite")}
             >
               <FiHeart
                 className={`text-[18px] ${
-                  location.pathname.includes("wishlist")
-                    ? "text-white"
-                    : "text-primary"
+                  isWishlist ? "text-white" : "text-primary"
                 }`}
               />
               <span
                 className={`font-medium ${
-                  location.pathname.includes("wishlist")
-                    ? "text-white"
-                    : "text-black"
+                  isWishlist ? "text-white" : "text-black"
                 }`}
               >
                 {t("navbar.favorite")}
@@ -141,24 +179,18 @@ export default function Navbar() {
             <Link
               to={`/member/29421784161`}
               className={`${
-                location.pathname.includes("member")
-                  ? "bg-primary"
-                  : "bg-transparent"
+                isMember ? "bg-primary" : "bg-transparent"
               } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.member")}
             >
               <FiUser
                 className={`text-[18px] ${
-                  location.pathname.includes("member")
-                    ? "text-white"
-                    : "text-primary"
+                  isMember ? "text-white" : "text-primary"
                 }`}
               />
               <span
                 className={`font-medium ${
-                  location.pathname.includes("member")
-                    ? "text-white"
-                    : "text-black"
+                  isMember ? "text-white" : "text-black"
                 }`}
               >
                 {t("navbar.member")}
@@ -172,7 +204,6 @@ export default function Navbar() {
       <AnimatePresence>
         {menuOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               key="backdrop"
               className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px]"
@@ -181,7 +212,6 @@ export default function Navbar() {
               exit={{ opacity: 0 }}
               onClick={() => setMenuOpen(false)}
             />
-            {/* Drawer */}
             <MenuListBox
               key="drawer"
               dir={dir}
