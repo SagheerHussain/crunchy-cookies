@@ -71,10 +71,10 @@ const ProductCard = ({ data, product }) => {
   return (
     <div className="relative bg-primary_light_mode rounded-[35px] border-[1px] border-primary/30 flex flex-col items-center transition-shadow duration-300 p-4">
       {/* NOTE: make sure you consistently use _id vs id everywhere */}
-      <Link to={`/gift-detail/${product._id}`} className="w-full">
+      <Link to={`/gift-detail/${product?._id}`} className="w-full">
         <img
-          src={product.image}
-          alt={product.en_title}
+          src={product?.featuredImage}
+          alt={product?.en_title}
           className="w-full h-[300px] object-cover rounded-[35px] mb-3"
         />
       </Link>
@@ -94,7 +94,7 @@ const ProductCard = ({ data, product }) => {
 
       <div className="card-content w-full">
         <p className="text-primary font-medium text-lg flex items-center">
-          Qar <span className="text-2xl ps-2">{product.price}</span>
+          Qar <span className="text-2xl ps-2">{product?.price}</span>
         </p>
 
         <h5
@@ -102,12 +102,13 @@ const ProductCard = ({ data, product }) => {
             langClass === "ar" ? "text-[18px]" : "text-[14px]"
           }  mt-1`}
         >
-          {langClass === "en"
+          {/* {langClass === "en"
             ? product.en_title.slice(0, 30)
             : product.ar_title.slice(0, 25)}{" "}
           {product.en_title.length > 30 || product.ar_title.length > 30
             ? "..."
-            : ""}
+            : ""} */}
+            {product?.title}
         </h5>
 
         <div className="card-content-btn flex justify-end">

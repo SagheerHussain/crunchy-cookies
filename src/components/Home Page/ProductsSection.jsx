@@ -9,6 +9,8 @@ const ProductsSection = ({ en_title, ar_title, products }) => {
   const { i18n } = useTranslation();
   const isAr = i18n.language === "ar";
 
+  console.log("products", en_title, "=>", products)
+
   return (
     <section className="py-10">
       <div className="custom-container">

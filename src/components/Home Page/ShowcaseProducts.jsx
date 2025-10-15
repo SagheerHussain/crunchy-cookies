@@ -30,7 +30,7 @@ const ShowcaseProducts = ({ products, en_title, ar_title }) => {
                     {products.map((product, id) => (
                         <div key={product.id} className="relative">
                             <img
-                                src={product.image}
+                                src={product?.featuredImage}
                                 alt={langClass === "en" ? product.en_title : product.ar_title}
                                 className="w-full object-cover lg:h-[325px] 2xl:h-[400px] rounded-[35px]"
                             />
@@ -42,7 +42,7 @@ const ShowcaseProducts = ({ products, en_title, ar_title }) => {
                             </div>
                             <div className="absolute bottom-0 w-full p-4 flex items-center justify-between">
                                 <div>
-                                    <h5 className="text-lg text-white font-medium">{langClass === "en" ? product.en_title : product.ar_title}</h5>
+                                    <h5 className="text-lg text-white font-medium">{product?.title} {langClass === "en" ? product.en_title : product.ar_title}</h5>
                                     <h6 className="text-lg text-white font-medium">{langClass === "en" ? product.en_count : product.ar_count}</h6>
                                 </div>
                                 <div className="flex justify-between items-center mt-4">
