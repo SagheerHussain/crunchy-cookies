@@ -102,13 +102,13 @@ const ProductCard = ({ data, product }) => {
             langClass === "ar" ? "text-[18px]" : "text-[14px]"
           }  mt-1`}
         >
-          {/* {langClass === "en"
-            ? product.en_title.slice(0, 30)
+          {langClass === "en"
+            ? product.title.slice(0, 30)
             : product.ar_title.slice(0, 25)}{" "}
-          {product.en_title.length > 30 || product.ar_title.length > 30
+          {product.title.length > 30 || product.ar_title.length > 30
             ? "..."
-            : ""} */}
-            {product?.title}
+            : ""}
+            {/* {product?.title} */}
         </h5>
 
         <div className="card-content-btn flex justify-end">

@@ -8,6 +8,7 @@ import {
   getProductsInPerfumes,
   getProductsInPreservedFlowers,
   getFeaturedProducts,
+  getGiftDetail,
 } from "../../api/products";
 
 const THIRTY_MIN = 30 * 60 * 1000;
@@ -27,9 +28,8 @@ const qk = {
   inPerfumes: (params) => ["products", "inPerfumes", params || {}],
   inPreservedFlowers: (params) => ["products", "inPreservedFlowers", params || {}],
   featured: (params) => ["products", "featured", params || {}],
+  giftDetail: (id) => ["products", "giftDetail", id],
 };
-
-// All hooks now take { page, limit } uniformly
 
 export function useProductsInFlowerInVases(params) {
   return useQuery({
@@ -85,5 +85,15 @@ export function useFeaturedProducts(params) {
     queryKey: qk.featured(params),
     queryFn: () => getFeaturedProducts(params),
     ...defaultQueryOpts,
+  });
+}
+
+// 👉 returns the product object directly (not the whole API envelope)
+export function useGiftDetail(id) {
+  return useQuery({
+    queryKey: qk.giftDetail(id),
+    queryFn: () => getGiftDetail(id),
+    ...defaultQueryOpts,
+    enabled: !!id,
   });
 }

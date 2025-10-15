@@ -34,7 +34,7 @@ h4 {
   font-family: "Audiowide", sans-serif;
   font-weight: 400;
   font-style: bold;
-  color: #11e7ff3b;
+  /* color: #11e7ff3b; */
 }
 
 @media (min-width: 1539px) {

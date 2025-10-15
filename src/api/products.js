@@ -66,3 +66,9 @@ export const getProductsInPreservedFlowers = async ({ page = 1, limit = 4 } = {}
   );
   return res.data;
 };
+
+// 8) Gift Detail  👉 return the *product object* (res.data.data)
+export const getGiftDetail = async (id) => {
+  const res = await axios.get(`${BASE_URL}/product/lists/${id}`);
+  return res?.data?.data; // { ...product }
+};
