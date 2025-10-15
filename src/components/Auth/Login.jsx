@@ -4,7 +4,7 @@ import { FiMail } from "react-icons/fi";
 import { CiLock } from "react-icons/ci";
 import { Link } from "react-router-dom"
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://crunchy-cookies-server.onrender.com/api/v1";
 
 export default function Login() {
   const navigate = useNavigate();
