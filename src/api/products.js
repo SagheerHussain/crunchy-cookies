@@ -1,52 +1,68 @@
 // client/src/api/products.js
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || "https://crunchy-cookies-server.onrender.com/api/v1"
+const BASE_URL =
+  import.meta.env.VITE_BASE_URL || "https://crunchy-cookies-server.onrender.com/api/v1";
 
-// 1) SubCategory: Flower in vases
-export const getProductsInFlowerInVases = async () => {
-  const res = await axios.get(`${BASE_URL}/product/lists/inFlowerInVases`);
-  console.log(res.data)
+// helper to build query string
+const qs = (obj = {}) =>
+  Object.entries(obj)
+    .filter(([, v]) => v !== undefined && v !== null)
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join("&");
+
+// 1) SubCategory: Flower in vases (paginated)
+export const getProductsInFlowerInVases = async ({ page = 1, limit = 4 } = {}) => {
+  const res = await axios.get(
+    `${BASE_URL}/product/lists/inFlowerInVases?${qs({ page, limit })}`
+  );
   return res.data;
 };
 
-// 2) Top sold (optional ?limit=n)
-export const getTopSoldProducts = async (limit = 1) => {
-  const res = await axios.get(`${BASE_URL}/product/lists/inTopSold`);
-  console.log(res.data)
+// 2) Top sold (now paginated too)
+export const getTopSoldProducts = async ({ page = 1, limit = 4 } = {}) => {
+  const res = await axios.get(
+    `${BASE_URL}/product/lists/inTopSold?${qs({ page, limit })}`
+  );
   return res.data;
 };
 
-// 3) SubCategory: chocolates OR hand bouquets
-export const getProductsInChocolatesOrHandBouquets = async () => {
-  const res = await axios.get(`${BASE_URL}/product/lists/inChocolatesOrHandBouquets`);
-  console.log(res.data)
+// 3) Chocolates OR Hand Bouquets (paginated)
+export const getProductsInChocolatesOrHandBouquets = async ({ page = 1, limit = 4 } = {}) => {
+  const res = await axios.get(
+    `${BASE_URL}/product/lists/inChocolatesOrHandBouquets?${qs({ page, limit })}`
+  );
   return res.data;
 };
 
-export const getProductsForFriendsOccasion = async () => {
-  const res = await axios.get(`${BASE_URL}/product/lists/inFriendsOccasion`);
-  console.log(res.data)
+// 4) Friends occasion (paginated)
+export const getProductsForFriendsOccasion = async ({ page = 1, limit = 4 } = {}) => {
+  const res = await axios.get(
+    `${BASE_URL}/product/lists/inFriendsOccasion?${qs({ page, limit })}`
+  );
   return res.data;
 };
 
-// 5) Featured
-export const getFeaturedProducts = async () => {
-  const res = await axios.get(`${BASE_URL}/product/lists/inFeatured`);
-  console.log(res.data)
+// 5) Featured (paginated)
+export const getFeaturedProducts = async ({ page = 1, limit = 4 } = {}) => {
+  const res = await axios.get(
+    `${BASE_URL}/product/lists/inFeatured?${qs({ page, limit })}`
+  );
   return res.data;
 };
 
-// 6) SubCategory: perfumes
-export const getProductsInPerfumes = async () => {
-  const res = await axios.get(`${BASE_URL}/product/lists/inPerfumes`);
-  console.log(res.data)
+// 6) Perfumes (paginated)
+export const getProductsInPerfumes = async ({ page = 1, limit = 4 } = {}) => {
+  const res = await axios.get(
+    `${BASE_URL}/product/lists/inPerfumes?${qs({ page, limit })}`
+  );
   return res.data;
 };
 
-// 7) SubCategory: preserved flowers
-export const getProductsInPreservedFlowers = async () => {
-  const res = await axios.get(`${BASE_URL}/product/lists/inPreservedFlowers`);
-  console.log(res.data)
+// 7) Preserved flowers (paginated)
+export const getProductsInPreservedFlowers = async ({ page = 1, limit = 4 } = {}) => {
+  const res = await axios.get(
+    `${BASE_URL}/product/lists/inPreservedFlowers?${qs({ page, limit })}`
+  );
   return res.data;
 };

@@ -1,36 +1,37 @@
+// client/src/components/Button.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 
 const Button = ({
   children,
-  className,
+  className = "",
   label,
   href,
   onClick,
   bgColor,
   isBgColor = false,
+  disabled = false,
 }) => {
-  return (
-    <>
-      {href ? (
-        <Link to={href}>
-          <button
-            className={`mt-3 bg-primary hover:bg-primary/80 text-white px-4 py-2 rounded-lg text-sm font-medium`}
-          >
-            {label}
-          </button>
-        </Link>
-      ) : (
-        <button
-          onClick={onClick}
-          className={`mt-3 ${
-            isBgColor ? bgColor : "bg-primary hover:bg-primary/80"
-          } text-white px-4 py-2 rounded-lg text-sm font-medium`}
-        >
-          {label}
+  const base =
+    `${isBgColor ? bgColor : "bg-primary hover:bg-primary/80"} ` +
+    `text-white px-4 py-2 rounded-lg text-sm font-medium ` +
+    `${disabled ? "opacity-60 cursor-not-allowed hover:bg-primary" : ""} ` +
+    `${className}`;
+
+  if (href) {
+    return (
+      <Link to={href}>
+        <button className={`mt-3 ${base}`} disabled={disabled}>
+          {label || children}
         </button>
-      )}
-    </>
+      </Link>
+    );
+  }
+
+  return (
+    <button onClick={onClick} className={`mt-3 ${base}`} disabled={disabled}>
+      {label || children}
+    </button>
   );
 };
 

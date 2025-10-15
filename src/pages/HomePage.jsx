@@ -1,3 +1,267 @@
+// // client/src/pages/HomePage.jsx
+// import React from "react";
+// import Topbar from "../components/Topbar";
+// import Navbar from "../components/Navbar";
+// import FancySlick from "../components/HeroSlider";
+
+// import ProductsSection from "../components/Home Page/ProductsSection";
+// import GiftIdeasSection from "../components/Home Page/CategoriesSection";
+// import CategoriesSlider from "../components/Home Page/CategoriesSlider";
+// import ShowcaseProducts from "../components/Home Page/ShowcaseProducts";
+// import LatestCollection from "../components/Home Page/LatestCollection";
+// import Footer from "../components/Footer";
+// import ScrollToTopButton from "../components/ScrollToTop";
+
+// import {
+//   giftIdeas,
+//   giftMoments,
+//   collections,
+//   brands as staticBrands,
+//   recipients as staticRecipients,
+// } from "../lib/homepageData";
+
+// // hooks
+// import {
+//   useProductsInFlowerInVases,
+//   useTopSoldProducts,
+//   useProductsInChocolatesOrHandBouquets,
+//   useFeaturedProducts,
+//   useProductsInPerfumes,
+//   useProductsInPreservedFlowers,
+//   useProductsForFriendsOccasion,
+// } from "../hooks/products/useProducts";
+// import { useSubCategories } from "../hooks/categories/useSubCategories";
+// import { useOccasions } from "../hooks/occasions/useOccasions";
+// import { useBrands } from "../hooks/brands/useBrands";
+// import { useRecipeints } from "../hooks/resipeints/useRecipeint";
+
+// // 🔄 react-spinners
+// import ClipLoader from "react-spinners/ClipLoader";
+
+// // safe extractor
+// const asList = (resp, fallback = []) =>
+//   Array.isArray(resp?.data) ? resp.data : fallback;
+
+// // 🔁 centered section loader (height adjustable per section)
+// const SectionLoader = ({ height = 360, size = 44 }) => (
+//   <div
+//     style={{
+//       minHeight: height,
+//       display: "grid",
+//       placeItems: "center",
+//       padding: "24px",
+//     }}
+//   >
+//     <ClipLoader size={size} />
+//   </div>
+// );
+
+// const HomePage = () => {
+//   // 1) Flowers Beyond Ordinary -> SubCategory: Flower in vases
+//   const flowerInVasesQ = useProductsInFlowerInVases({ page: 1, limit: 12 });
+
+//   // 2) Best Sellers -> Top sold (get top 12)
+//   const topSoldQ = useTopSoldProducts(12);
+
+//   // 3) House Of Delights -> Chocolates OR Hand Bouquets
+//   const chocoOrBouquetQ = useProductsInChocolatesOrHandBouquets({
+//     page: 1,
+//     limit: 12,
+//   });
+
+//   // 4) Simply Timeless -> Featured
+//   const featuredQ = useFeaturedProducts({ page: 1, limit: 12 });
+
+//   // 5) Friends -> Friends Occasion
+//   const friendsQ = useProductsForFriendsOccasion({ page: 1, limit: 12 });
+
+//   // 6) Perfumes For Every Personality
+//   const perfumesQ = useProductsInPerfumes({ page: 1, limit: 12 });
+
+//   // 7) Forever Beautiful -> preserved flowers
+//   const preservedQ = useProductsInPreservedFlowers({ page: 1, limit: 12 });
+
+//   // Meta lists
+//   const {
+//     data: subCategories,
+//     isLoading: subCatsLoading,
+//     isFetching: subCatsFetching,
+//   } = useSubCategories();
+
+//   const {
+//     data: occasions,
+//     isLoading: occasionsLoading,
+//     isFetching: occasionsFetching,
+//   } = useOccasions();
+
+//   const {
+//     data: brandsData,
+//     isLoading: brandsLoading,
+//     isFetching: brandsFetching,
+//   } = useBrands();
+
+//   const {
+//     data: recipientsData,
+//     isLoading: recipientsLoading,
+//     isFetching: recipientsFetching,
+//   } = useRecipeints();
+
+//   const isLoadingOrFetching = (q) => q?.isLoading || q?.isFetching;
+
+//   return (
+//     <>
+//       <header id="header">
+//         <Topbar />
+//         <Navbar />
+//       </header>
+
+//       <main id="main">
+//         <FancySlick />
+
+//         {/* Flowers Beyond Ordinary */}
+//         {isLoadingOrFetching(flowerInVasesQ) ? (
+//           <SectionLoader />
+//         ) : (
+//           <ProductsSection
+//             en_title="Flowers Beyond Ordinary"
+//             ar_title="زهور تتجاوز العادي"
+//             products={asList(flowerInVasesQ.data)}
+//           />
+//         )}
+
+//         {/* Explore Unique Gift Ideas (sub-categories) */}
+//         {subCatsLoading || subCatsFetching ? (
+//           <SectionLoader height={280} />
+//         ) : (
+//           <GiftIdeasSection
+//             en_title="Explore Unique Gift Ideas"
+//             ar_title="استكشف أفكار هدايا فريدة"
+//             items={subCategories?.rows?.slice(0, 12)}
+//           />
+//         )}
+
+//         {/* Gifts For Every Moment (occasions slider) */}
+//         {occasionsLoading || occasionsFetching ? (
+//           <SectionLoader height={320} />
+//         ) : (
+//           <CategoriesSlider
+//             en_title="Gifts For Every Moment"
+//             ar_title="هدايا لكل لحظة"
+//             items={occasions?.rows}
+//             onItemClick={(item) => console.log("clicked:", item.id)}
+//           />
+//         )}
+
+//         {/* Best Sellers -> Top sold */}
+//         {isLoadingOrFetching(topSoldQ) ? (
+//           <SectionLoader />
+//         ) : (
+//           <ShowcaseProducts
+//             products={asList(topSoldQ.data)}
+//             en_title="Best Sellers"
+//             ar_title="الأكثر مبيعًا"
+//           />
+//         )}
+
+//         {/* House Of Delights -> chocolates OR hand bouquets */}
+//         {isLoadingOrFetching(chocoOrBouquetQ) ? (
+//           <SectionLoader />
+//         ) : (
+//           <ProductsSection
+//             en_title="House Of Delights"
+//             ar_title="بيت المسرات"
+//             products={asList(chocoOrBouquetQ.data)}
+//           />
+//         )}
+
+//         {/* Simply Timeless -> featured */}
+//         {isLoadingOrFetching(featuredQ) ? (
+//           <SectionLoader />
+//         ) : (
+//           <ProductsSection
+//             en_title="Simply Timeless"
+//             ar_title="ببساطة خالد"
+//             // NOTE: you had friendsQ here; keeping your original mapping if intentional
+//             products={asList(friendsQ.data)}
+//           />
+//         )}
+
+//         {/* Latest & Loveliest */}
+//         {isLoadingOrFetching(friendsQ) ? (
+//           <SectionLoader />
+//         ) : (
+//           <ProductsSection
+//             en_title="Latest & Loveliest"
+//             ar_title="الأحدث والأجمل"
+//             // NOTE: you had featuredQ here; keeping as-is
+//             products={asList(featuredQ.data)}
+//           />
+//         )}
+
+//         {/* Perfumes For Every Personality */}
+//         {isLoadingOrFetching(perfumesQ) ? (
+//           <SectionLoader />
+//         ) : (
+//           <ProductsSection
+//             en_title="Perfumes For Every Personality"
+//             ar_title="عطور لكل شخصية"
+//             products={asList(perfumesQ.data)}
+//           />
+//         )}
+
+//         {/* Forever Beautiful -> preserved flowers */}
+//         {isLoadingOrFetching(preservedQ) ? (
+//           <SectionLoader />
+//         ) : (
+//           <ProductsSection
+//             en_title="Forever Beautiful"
+//             ar_title="جميلة إلى الأبد"
+//             products={asList(preservedQ.data)}
+//           />
+//         )}
+
+//         {/* Discover New Ideas (static collections) */}
+//         <LatestCollection
+//           collections={collections}
+//           en_title="Discover New Ideas"
+//           ar_title="اكتشف أفكارًا جديدة"
+//         />
+
+//         {/* Brands You'll Love */}
+//         {brandsLoading || brandsFetching ? (
+//           <SectionLoader height={280} />
+//         ) : (
+//           <GiftIdeasSection
+//             en_title="Brands You'll Love"
+//             ar_title="ماركات ستعجبك"
+//             items={brandsData?.rows}
+//           />
+//         )}
+
+//         {/* Gifts For Everyone (recipients) */}
+//         {recipientsLoading || recipientsFetching ? (
+//           <SectionLoader height={320} />
+//         ) : (
+//           <CategoriesSlider
+//             className="bg-[#F0E9E0] scale-[.95]"
+//             en_title="Gifts For Everyone"
+//             ar_title="هدايا للجميع"
+//             items={recipientsData?.rows}
+//             onItemClick={(item) => console.log("clicked:", item.id)}
+//           />
+//         )}
+//       </main>
+
+//       <Footer />
+//       <ScrollToTopButton />
+//     </>
+//   );
+// };
+
+// export default HomePage;
+
+
+
 // client/src/pages/HomePage.jsx
 import React from "react";
 import Topbar from "../components/Topbar";
@@ -12,16 +276,9 @@ import LatestCollection from "../components/Home Page/LatestCollection";
 import Footer from "../components/Footer";
 import ScrollToTopButton from "../components/ScrollToTop";
 
-// static-only sections (categories/brands/recipients etc.)
-import {
-  giftIdeas,
-  giftMoments,
-  collections,
-  brands,
-  recipients,
-} from "../lib/homepageData";
+import { collections } from "../lib/homepageData";
 
-// ✅ hooks (30-min cache) — we created these earlier
+// product hooks
 import {
   useProductsInFlowerInVases,
   useTopSoldProducts,
@@ -31,56 +288,41 @@ import {
   useProductsInPreservedFlowers,
   useProductsForFriendsOccasion,
 } from "../hooks/products/useProducts";
+import { useSubCategories } from "../hooks/categories/useSubCategories";
+import { useOccasions } from "../hooks/occasions/useOccasions";
+import { useBrands } from "../hooks/brands/useBrands";
+import { useRecipeints } from "../hooks/resipeints/useRecipeint";
 
-// small helper to extract array safely
-const asList = (resp, fallback = []) =>
-  Array.isArray(resp?.data) ? resp.data : fallback;
+// spinner
+import ClipLoader from "react-spinners/ClipLoader";
 
-// optional simple loader
-const GridLoader = () => (
-  <div style={{ padding: "24px", textAlign: "center" }}>Loading…</div>
+// 👇 our generic pagination wrapper
+import usePaginatedSection from "../hooks/pagination/usePaginatedSelection";
+
+// helpers
+const SectionLoader = ({ height = 360, size = 44 }) => (
+  <div style={{ minHeight: height, display: "grid", placeItems: "center", padding: 24 }}>
+    <ClipLoader size={size} />
+  </div>
 );
 
 const HomePage = () => {
-  // 1) Flowers Beyond Ordinary -> SubCategory: Flower in vases
-  const flowerInVasesQ = useProductsInFlowerInVases({ page: 1, limit: 12 });
+  // ----- Paginated product sections (4 at a time) -----
+  const flowerVases = usePaginatedSection(useProductsInFlowerInVases);
+  const chocoOrBouq = usePaginatedSection(useProductsInChocolatesOrHandBouquets);
+  const featured    = usePaginatedSection(useFeaturedProducts);
+  const friendsOcc  = usePaginatedSection(useProductsForFriendsOccasion);
+  const perfumes    = usePaginatedSection(useProductsInPerfumes);
+  const preserved   = usePaginatedSection(useProductsInPreservedFlowers);
 
-  // 2) Best Sellers -> Top sold (get top 12)
-  const topSoldQ = useTopSoldProducts(2);
+  // ----- Non-paginated bits (lists/metadata) -----
+  const { data: subCategories, isLoading: subCatsLoading, isFetching: subCatsFetching } = useSubCategories();
+  const { data: occasions,     isLoading: occLoading,    isFetching: occFetching }      = useOccasions();
+  const { data: brandsData,    isLoading: brandsLoading, isFetching: brandsFetching }   = useBrands();
+  const { data: recipientsData,isLoading: recLoading,    isFetching: recFetching }      = useRecipeints();
 
-  // 3) House Of Delights -> Chocolates OR Hand Bouquets
-  const chocoOrBouquetQ = useProductsInChocolatesOrHandBouquets({
-    page: 1,
-    limit: 12,
-  });
-
-  // 4) Simply Timeless -> Featured
-  const featuredQ = useFeaturedProducts({ page: 1, limit: 12 });
-
-  // 5) Friends -> Friends Occasion
-  const friendsQ = useProductsForFriendsOccasion({ page: 1, limit: 12 });
-
-  // 6) Perfumes For Every Personality -> SubCategory: perfumes
-  const perfumesQ = useProductsInPerfumes({ page: 1, limit: 12 });
-
-  // 7) Forever Beautiful -> SubCategory: preserved flowers
-  const preservedQ = useProductsInPreservedFlowers({ page: 1, limit: 12 });
-
-  console.log("Flowers In Vases", flowerInVasesQ?.data);
-  console.log("Chocolates", chocoOrBouquetQ?.data);
-  console.log("Top Sold", topSoldQ?.data);
-  console.log("Featured", featuredQ?.data);
-  console.log("Friends", friendsQ?.data);
-  console.log("Perfumes", perfumesQ?.data);
-  console.log("Preserved", preservedQ?.data);
-
-  // console.log("flowerInVasesQ", preservedQ?.data);
-  // console.log("topSoldQ", topSoldQ?.data);
-  // console.log("chocoOrBouquetQ", chocoOrBouquetQ?.data);
-  // console.log("featuredQ", featuredQ?.data);
-  // console.log("latestQ", latestQ?.data);
-  // console.log("perfumesQ", perfumesQ?.data);
-  // console.log("preservedQ", preservedQ?.data);
+  // Top sold as a showcase (paginate if you want; here we keep 4)
+  const topSold = usePaginatedSection(useTopSoldProducts);
 
   return (
     <>
@@ -93,119 +335,176 @@ const HomePage = () => {
         <FancySlick />
 
         {/* Flowers Beyond Ordinary */}
-        {flowerInVasesQ.isLoading ? (
-          <GridLoader />
+        {flowerVases.isInitialLoading ? (
+          <SectionLoader />
         ) : (
           <ProductsSection
             en_title="Flowers Beyond Ordinary"
             ar_title="زهور تتجاوز العادي"
-            products={asList(flowerInVasesQ.data)}
+            products={flowerVases.items}
+            footerButton={{
+              visible: flowerVases.hasNext,
+              loading: flowerVases.isFetching,
+              onClick: flowerVases.loadMore,
+              label: "Load more",
+            }}
           />
         )}
 
-        {/* Explore Unique Gift Ideas (static categories) */}
-        <GiftIdeasSection
-          en_title="Explore Unique Gift Ideas"
-          ar_title="استكشف أفكار هدايا فريدة"
-          items={giftIdeas}
-        />
+        {/* Explore Unique Gift Ideas (sub-categories) */}
+        {subCatsLoading || subCatsFetching ? (
+          <SectionLoader height={280} />
+        ) : (
+          <GiftIdeasSection
+            en_title="Explore Unique Gift Ideas"
+            ar_title="استكشف أفكار هدايا فريدة"
+            items={subCategories?.rows?.slice(0, 12)}
+          />
+        )}
 
-        {/* Gifts For Every Moment (static slider) */}
-        <CategoriesSlider
-          en_title="Gifts For Every Moment"
-          ar_title="هدايا لكل لحظة"
-          items={giftMoments}
-          onItemClick={(item) => console.log("clicked:", item.id)}
-        />
+        {/* Gifts For Every Moment (occasions slider) */}
+        {occLoading || occFetching ? (
+          <SectionLoader height={320} />
+        ) : (
+          <CategoriesSlider
+            en_title="Gifts For Every Moment"
+            ar_title="هدايا لكل لحظة"
+            items={occasions?.rows}
+          />
+        )}
 
-        {/* Best Sellers -> Top sold */}
-        {topSoldQ.isLoading ? (
-          <GridLoader />
+        {/* Best Sellers (Top sold) */}
+        {topSold.isInitialLoading ? (
+          <SectionLoader />
         ) : (
           <ShowcaseProducts
-            products={asList(topSoldQ.data)}
+            products={topSold.items}
             en_title="Best Sellers"
             ar_title="الأكثر مبيعًا"
+            // optional load more for showcase
+            footerButton={{
+              visible: topSold.hasNext,
+              loading: topSold.isFetching,
+              onClick: topSold.loadMore,
+              label: "Load more",
+            }}
           />
         )}
 
-        {/* House Of Delights -> chocolates OR hand bouquets */}
-        {chocoOrBouquetQ.isLoading ? (
-          <GridLoader />
+        {/* House Of Delights */}
+        {chocoOrBouq.isInitialLoading ? (
+          <SectionLoader />
         ) : (
           <ProductsSection
             en_title="House Of Delights"
             ar_title="بيت المسرات"
-            products={asList(chocoOrBouquetQ.data)}
+            products={chocoOrBouq.items}
+            footerButton={{
+              visible: chocoOrBouq.hasNext,
+              loading: chocoOrBouq.isFetching,
+              onClick: chocoOrBouq.loadMore,
+              label: "Load more",
+            }}
           />
         )}
 
-        {/* Simply Timeless -> featured */}
-        {featuredQ.isLoading ? (
-          <GridLoader />
+        {/* Simply Timeless (featured) */}
+        {featured.isInitialLoading ? (
+          <SectionLoader />
         ) : (
           <ProductsSection
             en_title="Simply Timeless"
             ar_title="ببساطة خالد"
-            products={asList(friendsQ.data)}
+            products={featured.items}
+            footerButton={{
+              visible: featured.hasNext,
+              loading: featured.isFetching,
+              onClick: featured.loadMore,
+              label: "Load more",
+            }}
           />
         )}
 
-        {/* Latest & Loveliest -> newest */}
-        {friendsQ.isLoading ? (
-          <GridLoader />
+        {/* Latest & Loveliest (friends) */}
+        {friendsOcc.isInitialLoading ? (
+          <SectionLoader />
         ) : (
           <ProductsSection
             en_title="Latest & Loveliest"
             ar_title="الأحدث والأجمل"
-            products={asList(featuredQ.data)}
+            products={friendsOcc.items}
+            footerButton={{
+              visible: friendsOcc.hasNext,
+              loading: friendsOcc.isFetching,
+              onClick: friendsOcc.loadMore,
+              label: "Load more",
+            }}
           />
         )}
 
-        {/* Perfumes For Every Personality */}
-        {perfumesQ.isLoading ? (
-          <GridLoader />
+        {/* Perfumes */}
+        {perfumes.isInitialLoading ? (
+          <SectionLoader />
         ) : (
           <ProductsSection
             en_title="Perfumes For Every Personality"
             ar_title="عطور لكل شخصية"
-            products={asList(perfumesQ.data)}
+            products={perfumes.items}
+            footerButton={{
+              visible: perfumes.hasNext,
+              loading: perfumes.isFetching,
+              onClick: perfumes.loadMore,
+              label: "Load more",
+            }}
           />
         )}
 
-        {/* Forever Beautiful -> preserved flowers */}
-        {preservedQ.isLoading ? (
-          <GridLoader />
+        {/* Preserved Flowers */}
+        {preserved.isInitialLoading ? (
+          <SectionLoader />
         ) : (
           <ProductsSection
             en_title="Forever Beautiful"
             ar_title="جميلة إلى الأبد"
-            products={asList(preservedQ.data)}
+            products={preserved.items}
+            footerButton={{
+              visible: preserved.hasNext,
+              loading: preserved.isFetching,
+              onClick: preserved.loadMore,
+              label: "Load more",
+            }}
           />
         )}
 
-        {/* Discover New Ideas (static) */}
+        {/* Static collections */}
         <LatestCollection
           collections={collections}
           en_title="Discover New Ideas"
           ar_title="اكتشف أفكارًا جديدة"
         />
 
-        {/* Brands You'll Love (static) */}
-        <GiftIdeasSection
-          en_title="Brands You'll Love"
-          ar_title="ماركات ستعجبك"
-          items={brands}
-        />
+        {/* Brands (static section style) */}
+        {brandsLoading || brandsFetching ? (
+          <SectionLoader height={280} />
+        ) : (
+          <GiftIdeasSection
+            en_title="Brands You'll Love"
+            ar_title="ماركات ستعجبك"
+            items={brandsData?.rows}
+          />
+        )}
 
-        {/* Gifts For Everyone (static recipients) */}
-        <CategoriesSlider
-          className="bg-[#F0E9E0] scale-[.95]"
-          en_title="Gifts For Everyone"
-          ar_title="هدايا للجميع"
-          items={recipients}
-          onItemClick={(item) => console.log("clicked:", item.id)}
-        />
+        {/* Recipients */}
+        {recLoading || recFetching ? (
+          <SectionLoader height={320} />
+        ) : (
+          <CategoriesSlider
+            className="bg-[#F0E9E0] scale-[.95]"
+            en_title="Gifts For Everyone"
+            ar_title="هدايا للجميع"
+            items={recipientsData?.rows}
+          />
+        )}
       </main>
 
       <Footer />

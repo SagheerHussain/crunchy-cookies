@@ -9,7 +9,7 @@ import { Link } from "react-router-dom"
 import "swiper/css";
 import "swiper/css/navigation";
 
-export default function GiftMomentsCarousel({ className = "", en_title, ar_title, items = [], onItemClick }) {
+export default function GiftMomentsCarousel({ className = "", ar_title, en_title, items = [], onItemClick }) {
   const { i18n } = useTranslation(); 
   const isAr = i18n.language === "ar";
 
@@ -19,7 +19,7 @@ export default function GiftMomentsCarousel({ className = "", en_title, ar_title
   const cardBg =
     "linear-gradient(90deg, #11e7ff1f 0%, #e59eff1f 50%, #f6b4001f 100%)";
 
-  const label = (it) => (isAr ? it.ar_title : it.en_title);
+  const label = (it) => (isAr ? it.ar_name : it.name);
 
   return (
     <section className="py-10" dir={isAr ? "rtl" : "ltr"}>

@@ -1,5 +1,5 @@
 // client/src/hooks/products/useProducts.js
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   getProductsInFlowerInVases,
   getTopSoldProducts,
@@ -10,28 +10,18 @@ import {
   getFeaturedProducts,
 } from "../../api/products";
 
-// ---------- 30 minutes (ms) ----------
 const THIRTY_MIN = 30 * 60 * 1000;
 
-// Default options for product queries
 const defaultQueryOpts = {
-  staleTime: THIRTY_MIN, // data fresh for 30 mins (no auto refetch)
-  cacheTime: THIRTY_MIN, // GC after 30 mins of inactivity
+  staleTime: THIRTY_MIN,
+  cacheTime: THIRTY_MIN,
   refetchOnWindowFocus: false,
-  keepPreviousData: true, // good for pagination
+  keepPreviousData: true,
 };
 
-// --------- query key helpers (to keep keys stable) ----------
 const qk = {
-  all: ["products"],
-  lists: (params) => ["products", "list", params || {}],
-  filtered: (params) => ["products", "filtered", params || {}],
-  names: ["products", "names"],
-  detail: (id) => ["products", "detail", id],
-
-  // custom lists
   inFlowerInVases: (params) => ["products", "inFlowerInVases", params || {}],
-  topSold: (limit = 1) => ["products", "topSold", { limit }],
+  topSold: (params) => ["products", "topSold", params || {}],
   inChocolatesOrHandBouquets: (params) => ["products", "inChocOrBouquets", params || {}],
   friendsOccasion: (params) => ["products", "friendsOccasion", params || {}],
   inPerfumes: (params) => ["products", "inPerfumes", params || {}],
@@ -39,10 +29,8 @@ const qk = {
   featured: (params) => ["products", "featured", params || {}],
 };
 
-/* ============================= QUERIES ============================= */
+// All hooks now take { page, limit } uniformly
 
-
-// ----------- custom lists -----------
 export function useProductsInFlowerInVases(params) {
   return useQuery({
     queryKey: qk.inFlowerInVases(params),
@@ -51,10 +39,10 @@ export function useProductsInFlowerInVases(params) {
   });
 }
 
-export function useTopSoldProducts(limit = 1, { enabled = true } = {}) {
+export function useTopSoldProducts(params, { enabled = true } = {}) {
   return useQuery({
-    queryKey: qk.topSold(limit),
-    queryFn: () => getTopSoldProducts(limit),
+    queryKey: qk.topSold(params),
+    queryFn: () => getTopSoldProducts(params),
     enabled,
     ...defaultQueryOpts,
   });
@@ -99,5 +87,3 @@ export function useFeaturedProducts(params) {
     ...defaultQueryOpts,
   });
 }
-
-

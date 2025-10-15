@@ -7,8 +7,6 @@ export default function GiftIdeasSection({ en_title, ar_title, items = [], class
   const { i18n } = useTranslation();
   const isAr = i18n.language === "ar";
 
-  console.log("items", items)
-
   return (
     <section className={`py-10 ${className}`}>
       <div className="custom-container">
@@ -37,8 +35,8 @@ export default function GiftIdeasSection({ en_title, ar_title, items = [], class
                   {/* circular badge behind image */}
                   <div className="h-[150px] w-[150px] bg-[#f0e9df] rounded-full flex items-center justify-center">
                     <img
-                      src={it.image}
-                      alt={isAr ? it.ar_title : it.en_title}
+                      src={it.image || it.logo}
+                      alt={isAr ? it.ar_name : it.name}
                       className="transition-transform duration-200 rounded-full"
                       loading="lazy"
                     />
@@ -46,7 +44,7 @@ export default function GiftIdeasSection({ en_title, ar_title, items = [], class
 
                   {/* caption */}
                   <p className={`font-medium text-primary text-center mt-4 ${isAr ? "text-[24px]" : "text-[20px] "}`}>
-                    {isAr ? it.ar_title : it.en_title}
+                    {isAr ? it.ar_name : it.name}
                   </p>
                 </Link>
               ))}
