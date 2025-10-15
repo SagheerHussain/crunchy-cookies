@@ -43,7 +43,7 @@ export default function Register() {
         dob: form.dob ? new Date(form.dob).toISOString() : undefined,
       };
 
-      const res = await fetch(`${API_BASE}/api/v1/auth/register`, {
+      const res = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
