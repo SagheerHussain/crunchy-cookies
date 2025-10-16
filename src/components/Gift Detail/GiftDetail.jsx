@@ -261,16 +261,22 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        <div className="mt-20">
-          <h3 className="text-3xl text-primary">
-            {isAr
-              ? "المنتجات الأكثر شراءًا معاً"
-              : "Frequently Bought Together"}
-          </h3>
-          <div className="mt-4 border border-primary rounded-3xl">
-            <FrequentlyBuyGifts />
+        {product?.suggestedProducts?.length > 0 && (
+          <div className="mt-20">
+            <h3 className="text-3xl text-primary">
+              {isAr
+                ? "المنتجات الأكثر شراءًا معاً"
+                : "Frequently Bought Together"}
+            </h3>
+            <div className="mt-4 border border-primary rounded-3xl">
+              <FrequentlyBuyGifts
+                data={product}
+                product={product?.suggestedProducts}
+              />
+            </div>
           </div>
-        </div>
+        )}
+        
       </div>
     </section>
   );

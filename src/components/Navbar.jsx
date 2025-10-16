@@ -14,6 +14,8 @@ export default function Navbar() {
   const dir = t("dir") || "ltr";
   const location = useLocation();
 
+  const {user} = JSON.parse(localStorage.getItem("user")) || {};
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
 
@@ -156,7 +158,7 @@ export default function Navbar() {
             </Link>
 
             <Link
-              to={`/wishlist/29421784161`}
+              to={`/wishlist/${user?._id}`}
               className={`${
                 isWishlist ? "bg-primary" : "bg-transparent"
               } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
