@@ -1,5 +1,5 @@
 // client/src/pages/GiftDetail/GiftDetail.jsx
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { CiDeliveryTruck } from "react-icons/ci";
 import { IoLocationOutline } from "react-icons/io5";
 import { MdOutlineWorkspacePremium } from "react-icons/md";
@@ -10,23 +10,90 @@ import { useTranslation } from "react-i18next";
 import { useGiftDetail } from "../../hooks/products/useProducts";
 import { useParams } from "react-router-dom";
 import ClipLoader from "react-spinners/ClipLoader";
+import { useCartFlag } from "../../context/CartContext";
+
+// cart hooks
+import { useCartByUser } from "../../hooks/cart/useCart";
+import {
+  useAddItemToCart,
+  useRemoveItemFromCart,
+} from "../../hooks/cart/useCartMutation";
 
 const ProductDetail = () => {
   const { i18n } = useTranslation();
   const isAr = i18n.language === "ar";
   const { id } = useParams();
 
-  // ✅ All hooks are called unconditionally and before any early returns
+  const { setUpdate } = useCartFlag();
+
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const imgWrapRef = useRef(null);
   const [isMagnifying, setIsMagnifying] = useState(false);
   const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
+  const [toast, setToast] = useState("");      // message text
+  const [toastShow, setToastShow] = useState(false);
+  const toastInRef = useRef(null);
+  const toastOutRef = useRef(null);
+
   const LENS_SIZE = 160;
   const ZOOM = 2.2;
 
   const { data: product, isLoading } = useGiftDetail(id);
 
-  // Early returns are fine AFTER all hooks
+  // --- user from localStorage
+  const [userId, setUserId] = useState(null);
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("user"));
+      if (stored?.user?._id) setUserId(stored.user._id);
+    } catch { }
+  }, []);
+
+  // --- cart state
+  const { data: cartRes, isLoading: cartLoading, isFetching: cartFetching } =
+    useCartByUser(userId);
+
+  const cartItems = useMemo(
+    () =>
+      cartRes?.data?.items && Array.isArray(cartRes.data.items)
+        ? cartRes.data.items
+        : [],
+    [cartRes]
+  );
+
+  const inCart = useMemo(() => {
+    const pid = String(product?._id || "");
+    return cartItems.some(
+      (it) => String(it?.product?._id ?? it?.product) === pid
+    );
+  }, [cartItems, product?._id]);
+
+  const { mutateAsync: addItemToCart, isPending: addPending } =
+    useAddItemToCart();
+  const { mutateAsync: removeItemFromCart, isPending: removePending } =
+    useRemoveItemFromCart();
+
+  const resolvingCart = cartLoading || cartFetching;
+  const mainBtnDisabled = resolvingCart || addPending || removePending;
+
+  const showToast = (msg) => {
+    // clear any running timers
+    if (toastInRef.current) clearTimeout(toastInRef.current);
+    if (toastOutRef.current) clearTimeout(toastOutRef.current);
+
+    setToast(msg);
+    // slide in immediately
+    setToastShow(true);
+
+    // stay visible for 3s
+    toastInRef.current = setTimeout(() => {
+      setToastShow(false); // slide out
+      // after animation (300ms), clear text
+      toastOutRef.current = setTimeout(() => setToast(""), 350);
+    }, 3000);
+  };
+
+  // --- early returns after hooks
   if (isLoading) {
     return (
       <section className="py-10">
@@ -51,29 +118,22 @@ const ProductDetail = () => {
   // ------- Derived fields from API -------
   const title = isAr ? product?.ar_title || product?.title : product?.title;
   const priceNumber = Number(product?.price || 0);
-  const priceText = `${
-    product?.currency || ""
-  } ${priceNumber.toLocaleString()}`;
-
+  const priceText = `${product?.currency || ""} ${priceNumber.toLocaleString()}`;
   const imageUrls =
     Array.isArray(product?.images) && product.images.length > 0
       ? product.images.map((img) => img?.url).filter(Boolean)
       : product?.featuredImage
-      ? [product.featuredImage]
-      : [];
-
+        ? [product.featuredImage]
+        : [];
   const htmlDescription = isAr
     ? product?.ar_description || product?.description || ""
     : product?.description || product?.ar_description || "";
-
-  const stockText = `${product?.remainingStocks ?? 0} ${
-    isAr ? "متوفر" : "in stock"
-  }`;
+  const stockText = `${product?.remainingStocks ?? 0} ${isAr ? "متوفر" : "in stock"
+    }`;
   const categoryText =
     product?.categories?.[0]?.[isAr ? "ar_name" : "name"] ||
     product?.type?.[isAr ? "ar_name" : "name"] ||
     (isAr ? "فئة" : "Category");
-
   const conditionText = product?.condition || (isAr ? "جديد" : "new");
   const arrangements = Array.isArray(product?.arrangements)
     ? product.arrangements
@@ -103,8 +163,42 @@ const ProductDetail = () => {
     LENS_SIZE / 2
   )}px`;
 
+  // --- main add/remove handlers
+  const handleAddToCart = async () => {
+    if (!userId) return;
+    await addItemToCart({ user: userId, product: product._id, qty: 1 });
+    setUpdate((u) => !u);
+    showToast(isAr ? "أُضيفت إلى السلة" : "Added to cart");
+  };
+
+  const handleRemoveFromCart = async () => {
+    if (!userId) return;
+    await removeItemFromCart({ user: userId, productId: product._id });
+    setUpdate((u) => !u);
+    showToast(isAr ? "أُزيلت من السلة" : "Removed from cart");
+  };
+
   return (
     <section className="py-10">
+      {/* ✅ toast */}
+      {/* toast with slide from bottom */}
+      {toast && (
+        <div
+          className={[
+            "fixed left-1/2 bottom-0 -translate-x-1/2 z-50 transition-all duration-300 ease-out",
+            // when showing -> a bit higher & opaque, else -> near bottom & hidden
+            toastShow
+              ? "bottom-8 translate-y-0 opacity-100"
+              : "bottom-0 translate-y-6 opacity-0",
+          ].join(" ")}
+        >
+          <div className="bg-green-600 text-white text-sm px-4 py-2 rounded-full shadow-lg">
+            {toast}
+          </div>
+        </div>
+      )}
+
+
       <div className="custom-container">
         <div className="flex flex-col md:flex-row items-start gap-8">
           {/* Images */}
@@ -158,17 +252,15 @@ const ProductDetail = () => {
                       <img
                         src={image}
                         alt={`Additional Product ${index + 1}`}
-                        className={`${
-                          activeImgIndex === index
-                            ? "border-2 border-primary"
-                            : ""
-                        } rounded-lg object-cover lg:w-[80px] lg:h-[80px] h-[60px] cursor-pointer w-[60px]`}
+                        className={`${activeImgIndex === index
+                          ? "border-2 border-primary"
+                          : ""
+                          } rounded-lg object-cover lg:w-[80px] lg:h-[80px] h-[60px] cursor-pointer w-[60px]`}
                         onClick={() => setActiveImgIndex(index)}
                       />
                       <div
-                        className={`absolute top-0 left-0 w-full h-full bg-black/50 rounded-lg ${
-                          activeImgIndex === index ? "" : "hidden"
-                        }`}
+                        className={`absolute top-0 left-0 w-full h-full bg-black/50 rounded-lg ${activeImgIndex === index ? "" : "hidden"
+                          }`}
                       />
                     </div>
                   ))}
@@ -224,10 +316,7 @@ const ProductDetail = () => {
 
             {arrangements.length > 0 && (
               <div className="mt-4 text-gray-600">
-                <h6
-                  className="font-medium text-xl mb-4"
-                  style={{ color: "#000 !important" }}
-                >
+                <h6 className="font-medium text-xl mb-4" style={{ color: "#000 !important" }}>
                   {isAr ? "يتضمن الترتيب:" : "Arrangement Includes:"}
                 </h6>
                 <ul className="list-disc pl-5">
@@ -249,14 +338,41 @@ const ProductDetail = () => {
             )}
 
             <div className="flex xl:w-1/2 items-center justify-center gap-4 mt-4">
-              <button className="bg-primary border border-primary hover:border-primary/80 hover:bg-primary/80 text-center w-1/2 font-medium text-white py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2">
-                <BsBagCheck size={20} />
+              <button
+                className="bg-primary border border-primary hover:border-primary/80 hover:bg-primary/80 text-center w-1/2 font-medium text-white py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2"
+                disabled={mainBtnDisabled}
+              >
+                {/* {addPending ? <ClipLoader size={18} color="#fff" /> : <BsBagCheck size={20} />} */}
                 {isAr ? "شراء الآن" : "Buy Now"}
               </button>
-              <button className="border border-primary bg-primary_light_mode hover:bg-primary_light_mode/10 text-center w-1/2 font-medium text-primary py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2">
-                <TbShoppingCart size={20} />
-                {isAr ? "إضافة إلى السلة" : "Add to Cart"}
-              </button>
+
+              {resolvingCart ? (
+                <button
+                  className="border border-primary bg-primary_light_mode text-center w-1/2 font-medium text-primary py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2 opacity-60"
+                  disabled
+                >
+                  <ClipLoader size={18} color="#0fb4bb" />
+                  {isAr ? "جاري التحقق..." : "Checking..."}
+                </button>
+              ) : inCart ? (
+                <button
+                  onClick={handleRemoveFromCart}
+                  disabled={mainBtnDisabled}
+                  className="border text-white bg-red-500 hover:bg-red-600 border-red-500 text-center w-1/2 font-medium py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2"
+                >
+                  {removePending ? <ClipLoader size={18} color="#fff" /> : <TbShoppingCart size={20} />}
+                  {isAr ? "إزالة من السلة" : "Remove From Cart"}
+                </button>
+              ) : (
+                <button
+                  onClick={handleAddToCart}
+                  disabled={mainBtnDisabled}
+                  className="border border-primary bg-primary_light_mode hover:bg-primary_light_mode/10 text-center w-1/2 font-medium text-primary py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2"
+                >
+                  {addPending ? <ClipLoader size={18} color="#0fb4bb" /> : <TbShoppingCart size={20} />}
+                  {isAr ? "إضافة إلى السلة" : "Add to Cart"}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -264,19 +380,18 @@ const ProductDetail = () => {
         {product?.suggestedProducts?.length > 0 && (
           <div className="mt-20">
             <h3 className="text-3xl text-primary">
-              {isAr
-                ? "المنتجات الأكثر شراءًا معاً"
-                : "Frequently Bought Together"}
+              {isAr ? "المنتجات الأكثر شراءًا معاً" : "Frequently Bought Together"}
             </h3>
             <div className="mt-4 border border-primary rounded-3xl">
               <FrequentlyBuyGifts
                 data={product}
                 product={product?.suggestedProducts}
+                userId={userId}
+                onToast={showToast}              // ✅ runs slide-in/out timer + animation
               />
             </div>
           </div>
         )}
-        
       </div>
     </section>
   );

@@ -5,13 +5,16 @@ import App from "./App.jsx";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./config/queryClient";
+import { CartProvider } from "./context/CartContext";
 import "./i18n";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <App />
+        <CartProvider>
+          <App />
+        </CartProvider>
       </QueryClientProvider>
     </BrowserRouter>
   </StrictMode>

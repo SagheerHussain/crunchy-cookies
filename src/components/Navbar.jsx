@@ -6,6 +6,8 @@ import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import MenuListBox from "./MenuListBox";
 import BottomNavigation from "./BottomNavigation";
+import { getCartLength } from "../api/cart";
+import { useCartFlag } from "../context/CartContext";
 
 const CART_KEY = "cart";
 
@@ -14,10 +16,20 @@ export default function Navbar() {
   const dir = t("dir") || "ltr";
   const location = useLocation();
 
-  const {user} = JSON.parse(localStorage.getItem("user")) || {};
+  const { update } = useCartFlag();
+
+  const { user } = JSON.parse(localStorage.getItem("user")) || {};
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+
+  // Cart Length
+  useEffect(() => {
+    (async () => {
+      const res = await getCartLength(user?._id);
+      setCartCount(res?.data?.distinct || 0)
+    })()
+  }, [location.pathname, update])
 
   /* ---------- helpers ---------- */
   const readCartCount = () => {
@@ -119,10 +131,9 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             {/* CART with square badge (always when count > 0) */}
             <Link
-              to={`/cart/29421784161`}
-              className={`${
-                isCart ? "bg-primary" : "bg-transparent"
-              } relative overflow-visible border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
+              to={`/cart/${user?._id}`}
+              className={`${isCart ? "bg-primary" : "bg-transparent"
+                } relative overflow-visible border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.cart")}
             >
               {/* Badge */}
@@ -131,10 +142,10 @@ export default function Navbar() {
                   className={[
                     "absolute",
                     dir === "rtl" ? "-top-2 -left-2" : "-top-2 -right-2",
-                    "min-w-[18px] h-[18px] px-[3px]",
-                    "rounded-md text-[10px] leading-[18px] font-semibold",
+                    "min-w-[18px] h-[18px] px-[4px]",
+                    "rounded-full text-[10px] leading-[18px] font-semibold",
                     // keep badge visible regardless of active route
-                    "bg-primary text-white border border-white/70 shadow-sm",
+                    "bg-black text-white border border-white/70 shadow-sm",
                     "text-center pointer-events-none z-10",
                   ].join(" ")}
                   aria-label={`${cartCount} ${t("navbar.items") || "items"}`}
@@ -144,14 +155,12 @@ export default function Navbar() {
               )}
 
               <PiShoppingCartSimpleLight
-                className={`text-[20px] ${
-                  isCart ? "text-white" : "text-primary"
-                }`}
+                className={`text-[20px] ${isCart ? "text-white" : "text-primary"
+                  }`}
               />
               <span
-                className={`font-medium ${
-                  isCart ? "text-white" : "text-black"
-                }`}
+                className={`font-medium ${isCart ? "text-white" : "text-black"
+                  }`}
               >
                 {t("navbar.cart")}
               </span>
@@ -159,41 +168,35 @@ export default function Navbar() {
 
             <Link
               to={`/wishlist/${user?._id}`}
-              className={`${
-                isWishlist ? "bg-primary" : "bg-transparent"
-              } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
+              className={`${isWishlist ? "bg-primary" : "bg-transparent"
+                } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.favorite")}
             >
               <FiHeart
-                className={`text-[18px] ${
-                  isWishlist ? "text-white" : "text-primary"
-                }`}
+                className={`text-[18px] ${isWishlist ? "text-white" : "text-primary"
+                  }`}
               />
               <span
-                className={`font-medium ${
-                  isWishlist ? "text-white" : "text-black"
-                }`}
+                className={`font-medium ${isWishlist ? "text-white" : "text-black"
+                  }`}
               >
                 {t("navbar.favorite")}
               </span>
             </Link>
 
             <Link
-              to={`/member/29421784161`}
-              className={`${
-                isMember ? "bg-primary" : "bg-transparent"
-              } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
+              to={`/member/${user?._id}`}
+              className={`${isMember ? "bg-primary" : "bg-transparent"
+                } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.member")}
             >
               <FiUser
-                className={`text-[18px] ${
-                  isMember ? "text-white" : "text-primary"
-                }`}
+                className={`text-[18px] ${isMember ? "text-white" : "text-primary"
+                  }`}
               />
               <span
-                className={`font-medium ${
-                  isMember ? "text-white" : "text-black"
-                }`}
+                className={`font-medium ${isMember ? "text-white" : "text-black"
+                  }`}
               >
                 {t("navbar.member")}
               </span>
