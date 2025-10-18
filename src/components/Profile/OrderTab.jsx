@@ -12,14 +12,6 @@ export default function OrdersTab({ className = "", active, onClick, label, coun
       ].join(" ")}
     >
       <span>{label}</span>
-      <span
-        className={[
-          "inline-flex h-6 min-w-[24px] items-center justify-center rounded-full px-2 ms-3 md:ms-0 text-xs",
-          active ? "bg-white text-primary" : "bg-primary text-white",
-        ].join(" ")}
-      >
-        {count}
-      </span>
     </button>
   );
 }

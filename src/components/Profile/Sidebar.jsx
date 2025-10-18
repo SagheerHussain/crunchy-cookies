@@ -14,8 +14,8 @@ export default function Sidebar({ tab, setTab }) {
       <nav className="space-y-3">
         <SideItem active={tab === "profile"} onClick={() => setTab("profile")} icon={<FiUser />} label={`${langClass ? "حساب تعريفي" : "Profile"}`} />
         <SideItem active={tab === "orders"} onClick={() => setTab("orders")} icon={<CiDeliveryTruck />} label={`${langClass ? "طلباتي" : "My Orders"}`} />
-        <SideItem active={tab === "invoices"} onClick={() => setTab("invoices")} icon={<FiFileText />} label={`${langClass ? "فواتيري" : "My Invoices"}`} />
-        <SideItem active={tab === "addresses"} onClick={() => setTab("addresses")} icon={<FiMapPin />} label={`${langClass ? "عناويني" : "My Addresses"}`} />
+        {/* <SideItem active={tab === "invoices"} onClick={() => setTab("invoices")} icon={<FiFileText />} label={`${langClass ? "فواتيري" : "My Invoices"}`} />
+        <SideItem active={tab === "addresses"} onClick={() => setTab("addresses")} icon={<FiMapPin />} label={`${langClass ? "عناويني" : "My Addresses"}`} /> */}
       </nav>
 
       <button className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-3 font-semibold text-white shadow-[0_8px_20px_rgba(239,68,68,0.3)]">
