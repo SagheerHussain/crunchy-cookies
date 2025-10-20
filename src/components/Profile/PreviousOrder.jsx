@@ -86,7 +86,7 @@ export default function PreviousOrdersTable() {
   const isAr = false;
 
   // userId (supports multiple shapes)
-  const { user } = JSON.parse(localStorage.getItem("user") || "{}");
+  const { user } = JSON.parse(sessionStorage.getItem("user") || "{}");
 
   const [loading, setLoading] = useState(true);
   const [errMsg, setErrMsg] = useState("");

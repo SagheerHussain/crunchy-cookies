@@ -46,10 +46,10 @@ const ProductCard = ({ data, product }) => {
     }, 3000);
   };
 
-  // Load logged-in user from localStorage
+  // Load logged-in user from sessionStorage
   useEffect(() => {
     try {
-      const stored = JSON.parse(localStorage.getItem("user"));
+      const stored = JSON.parse(sessionStorage.getItem("user"));
       if (stored?.user) setUser(stored.user);
     } catch {}
   }, []);

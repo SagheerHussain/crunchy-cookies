@@ -52,9 +52,9 @@ export default function OngoingOrdersCard() {
       try {
         setLoading(true);
         setError("");
-        const { user } = JSON.parse(localStorage.getItem("user") || "{}");
+        const { user } = JSON.parse(sessionStorage.getItem("user") || "{}");
         const userId = user?._id || user?.id;
-        if (!userId) throw new Error("No user found in localStorage.");
+        if (!userId) throw new Error("No user found in sessionStorage.");
 
         const res = await getOnGoingOrderByUser(userId);
         const raw = Array.isArray(res?.data) ? res.data : [];

@@ -21,7 +21,7 @@ export default function EditProfile({ tab, setTab }) {
     phone: "",
   });
 
-  const { user } = JSON.parse(localStorage.getItem("user"));
+  const { user } = JSON.parse(sessionStorage.getItem("user"));
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -38,7 +38,7 @@ export default function EditProfile({ tab, setTab }) {
       if (response?.success) {
         setLoading(false);
         // ✅ 1. Get old data (so we keep the token)
-        const oldData = JSON.parse(localStorage.getItem("user"));
+        const oldData = JSON.parse(sessionStorage.getItem("user"));
 
         // ✅ 2. Replace only the "user" part with fresh data
         const newData = {
@@ -46,8 +46,8 @@ export default function EditProfile({ tab, setTab }) {
           user: response.data, // this contains updated user info
         };
 
-        // ✅ 3. Save back to localStorage
-        localStorage.setItem("user", JSON.stringify(newData));
+        // ✅ 3. Save back to sessionStorage
+        sessionStorage.setItem("user", JSON.stringify(newData));
 
         // ✅ 4. Switch tab or refresh UI
         setTab("profile");

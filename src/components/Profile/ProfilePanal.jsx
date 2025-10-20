@@ -9,7 +9,7 @@ export default function ProfilePanel({ tab, setTab }) {
   const { i18n } = useTranslation();
   const langClass = i18n.language === "ar";
 
-  const { user } = JSON.parse(localStorage.getItem("user"));
+  const { user } = JSON.parse(sessionStorage.getItem("user"));
 
   return (
     <Card>

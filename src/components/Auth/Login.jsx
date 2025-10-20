@@ -36,8 +36,8 @@ export default function Login() {
         throw new Error(data?.message || "Login failed");
       }
 
-      // Save to localStorage
-      localStorage.setItem(
+      // Save to sessionStorage
+      sessionStorage.setItem(
         "user",
         JSON.stringify({
           token: data?.token || "",

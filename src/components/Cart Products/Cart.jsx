@@ -34,7 +34,7 @@ const ORDER_CODE_KEY = "last_order_code";
 const round2 = (n) =>
   Math.max(0, Math.round((Number(n || 0) + Number.EPSILON) * 100) / 100);
 
-/** Generates a code like SA-2025-000121 and persists last used in localStorage. */
+/** Generates a code like SA-2025-000121 and persists last used in sessionStorage. */
 function nextOrderCode(prefix = "SA") {
   const year = new Date().getFullYear();
   const last =
@@ -645,7 +645,7 @@ function Row({ label, value }) {
     <div className="flex items-center justify-between text-[#333]">
       <span className="font-medium">{label}</span>
       {label === "Coupon Discount" || label === "خصم القسيمة" ? (
-        <span className="text-[#111] text-sm font-medium text-green-500">
+        <span className="text-sm font-medium text-green-500">
           {value}%
         </span>
       ) : (

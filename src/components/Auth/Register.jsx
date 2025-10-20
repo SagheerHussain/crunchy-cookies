@@ -56,7 +56,7 @@ export default function Register() {
         throw new Error(data?.message || "Registration failed");
       }
 
-      localStorage.setItem(
+      sessionStorage.setItem(
         "user",
         JSON.stringify({
           token: data?.token || "",
