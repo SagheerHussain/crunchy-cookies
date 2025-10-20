@@ -1,27 +1,50 @@
-import React, { useEffect, useMemo, useState } from "react";
+// ProductCard.jsx
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Button from "./Button";
 import { FiHeart } from "react-icons/fi";
 import { FaHeart } from "react-icons/fa6";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { useWishlist } from "../hooks/wishlist/useWishlistQuery";
-import {
-  useAddWishlist,
-  useDeleteWishlist,
-} from "../hooks/wishlist/useWishlistMutation";
+import { useCartFlag } from "../context/CartContext";
 
-const CART_KEY = "cart";
+// wishlist hooks (unchanged)
+import { useWishlist } from "../hooks/wishlist/useWishlistQuery";
+import { useAddWishlist, useDeleteWishlist } from "../hooks/wishlist/useWishlistMutation";
+
+// cart hooks (NEW)
+import { useCartByUser } from "../hooks/cart/useCart";
+import {
+  useAddItemToCart,
+  useRemoveItemFromCart,
+} from "../hooks/cart/useCartMutation";
 
 const ProductCard = ({ data, product }) => {
-
-  console.log("wishlist", product);
-
   const { i18n } = useTranslation();
   const langClass = i18n.language === "ar" ? "ar" : "en";
 
+  const { setUpdate } = useCartFlag();
+
   const [user, setUser] = useState(null);
-  const [cart, setCart] = useState([]);
+
+  // ---- animated toast state ----
   const [toastMsg, setToastMsg] = useState("");
+  const [toastShow, setToastShow] = useState(false);
+  const toastInRef = useRef(null);
+  const toastOutRef = useRef(null);
+
+  const showToast = (msg) => {
+    if (toastInRef.current) clearTimeout(toastInRef.current);
+    if (toastOutRef.current) clearTimeout(toastOutRef.current);
+
+    setToastMsg(msg);
+    setToastShow(true); // slide in
+
+    // stay 3s, then slide out; clear text after animation
+    toastInRef.current = setTimeout(() => {
+      setToastShow(false);
+      toastOutRef.current = setTimeout(() => setToastMsg(""), 350);
+    }, 3000);
+  };
 
   // Load logged-in user from localStorage
   useEffect(() => {
@@ -31,121 +54,102 @@ const ProductCard = ({ data, product }) => {
     } catch {}
   }, []);
 
-  // Cart hydrate/persist
-  useEffect(() => {
-    try {
-      const initial = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
-      setCart(Array.isArray(initial) ? initial : []);
-    } catch {
-      setCart([]);
-    }
-  }, []);
-  useEffect(() => {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-  }, [cart]);
-  useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === CART_KEY) {
-        try {
-          const next = JSON.parse(e.newValue || "[]");
-          setCart(Array.isArray(next) ? next : []);
-        } catch {}
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-
   const userId = user?._id;
 
-  // Fetch wishlist for current user
+  /* --------------------------- Wishlist logic --------------------------- */
   const { data: wishlistRes } = useWishlist(userId);
   const wishlistItems = wishlistRes?.data || [];
-
-  // Is this product liked?
   const isLiked = useMemo(
-    () =>
-      wishlistItems.some(
-        (w) => String(w?.product?._id) === String(product?._id)
-      ),
+    () => wishlistItems.some((w) => String(w?.product?._id) === String(product?._id)),
     [wishlistItems, product?._id]
   );
-
-  // Mutations
-  const { mutateAsync: addWishlist, isPending: addPending } =
-    useAddWishlist(userId);
-  const { mutateAsync: deleteWishlist, isPending: delPending } =
-    useDeleteWishlist(userId);
-
-  // toast helper
-  const showToast = (msg) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(""), 1800);
-  };
+  const { mutateAsync: addWishlist, isPending: addPending } = useAddWishlist(userId);
+  const { mutateAsync: deleteWishlist, isPending: delPending } = useDeleteWishlist(userId);
 
   const handleToggleWishlist = async () => {
     if (!userId) {
-      showToast(
-        langClass === "ar"
-          ? "الرجاء تسجيل الدخول لقائمة الرغبات"
-          : "Please login to use wishlist"
-      );
+      showToast(langClass === "ar" ? "الرجاء تسجيل الدخول لقائمة الرغبات" : "Please login to use wishlist");
       return;
     }
     try {
       if (isLiked) {
-        await deleteWishlist({ user: userId, product: product?._id }); // body
-        showToast(
-          langClass === "ar"
-            ? "تمت الإزالة من المفضلة"
-            : "Removed from wishlist"
-        );
+        await deleteWishlist({ user: userId, product: product?._id });
+        setUpdate((u) => !u); 
+        showToast(langClass === "ar" ? "تمت الإزالة من المفضلة" : "Removed from wishlist");
       } else {
         await addWishlist({ user: userId, product: product?._id });
-        showToast(
-          langClass === "ar" ? "أضيفت إلى المفضلة" : "Added to wishlist"
-        );
+        setUpdate((u) => !u); 
+        showToast(langClass === "ar" ? "أضيفت إلى المفضلة" : "Added to wishlist");
       }
     } catch {
-      showToast(
-        langClass === "ar" ? "حدث خطأ، حاول مجددًا" : "Something went wrong"
-      );
+      showToast(langClass === "ar" ? "حدث خطأ، حاول مجددًا" : "Something went wrong");
     }
   };
 
-  const inCart = cart.some((p) => String(p._id) === String(product._id));
+  /* ----------------------------- Cart logic ---------------------------- */
+  const {
+    data: cartRes,
+    isLoading: cartLoading,
+    isFetching: cartFetching,
+  } = useCartByUser(userId);
 
-  const handleAddToCart = (id) => {
-    const item =
-      product && String(product._id) === String(id)
-        ? product
-        : data?.find((p) => String(p._id) === String(id));
-    if (!item) return;
+  const cartItems = useMemo(
+    () => (cartRes?.data?.items && Array.isArray(cartRes.data.items) ? cartRes.data.items : []),
+    [cartRes]
+  );
 
-    setCart((prev) => {
-      const idx = prev.findIndex((p) => String(p._id) === String(id));
-      if (idx > -1) {
-        const next = [...prev];
-        next[idx] = { ...next[idx], qty: (next[idx].qty ?? 1) + 1 };
-        return next;
-      }
-      return [...prev, { ...item, qty: 1 }];
-    });
+  const inCart = useMemo(() => {
+    const id = String(product?._id);
+    return cartItems.some((it) => String(it?.product?._id ?? it?.product) === id);
+  }, [cartItems, product?._id]);
+
+  const { mutateAsync: addItemToCart, isPending: addItemPending } = useAddItemToCart();
+  const { mutateAsync: removeItemFromCart, isPending: removeItemPending } = useRemoveItemFromCart();
+
+  const handleAddToCart = async () => {
+    if (!userId) {
+      showToast(langClass === "ar" ? "الرجاء تسجيل الدخول لإضافة إلى السلة" : "Please login to add to cart");
+      return;
+    }
+    try {
+      await addItemToCart({ user: userId, product: product._id, qty: 1 });
+      setUpdate((u) => !u); 
+      showToast(langClass === "ar" ? "أُضيفت إلى السلة" : "Added to cart");
+    } catch {
+      showToast(langClass === "ar" ? "تعذر الإضافة، حاول مرة أخرى" : "Could not add, try again");
+    }
   };
 
-  const handleRemoveFromCart = (id) => {
-    setCart((prev) => prev.filter((p) => String(p._id) !== String(id)));
+  const handleRemoveFromCart = async () => {
+    if (!userId) return;
+    try {
+      await removeItemFromCart({ user: userId, productId: product._id });
+      setUpdate((u) => !u); 
+      showToast(langClass === "ar" ? "أُزيلت من السلة" : "Removed from cart");
+    } catch {
+      showToast(langClass === "ar" ? "تعذر الإزالة، حاول مرة أخرى" : "Could not remove, try again");
+    }
   };
+
+  const resolvingCart = cartLoading || cartFetching;
+  const btnDisabled = resolvingCart || addItemPending || removeItemPending;
 
   const safeTitleEn = product?.title || "";
   const safeTitleAr = product?.ar_title || "";
 
   return (
     <div className="relative bg-primary_light_mode rounded-[35px] border-[1px] border-primary/30 flex flex-col items-center transition-shadow duration-300 p-4">
-      {/* toast */}
+      {/* animated toast */}
       {toastMsg && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-black text-white text-sm px-4 py-2 rounded-full shadow-lg z-50">
-          {toastMsg}
+        <div
+          className={[
+            "fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-out",
+            toastShow ? "bottom-8 translate-y-0 opacity-100" : "bottom-0 translate-y-6 opacity-0",
+          ].join(" ")}
+        >
+          <div className="bg-green-600 text-white text-sm px-4 py-2 rounded-full shadow-lg">
+            {toastMsg}
+          </div>
         </div>
       )}
 
@@ -164,11 +168,7 @@ const ProductCard = ({ data, product }) => {
           disabled={addPending || delPending}
           aria-label={isLiked ? "Remove from wishlist" : "Add to wishlist"}
         >
-          {isLiked ? (
-            <FaHeart size={20} className="text-primary" />
-          ) : (
-            <FiHeart size={20} className="text-primary" />
-          )}
+          {isLiked ? <FaHeart size={20} className="text-primary" /> : <FiHeart size={20} className="text-primary" />}
         </button>
       </div>
 
@@ -177,31 +177,27 @@ const ProductCard = ({ data, product }) => {
           Qar <span className="text-2xl ps-2">{product?.price}</span>
         </p>
 
-        <h5
-          className={`text-black ${
-            langClass === "ar" ? "text-[18px]" : "text-[14px]"
-          } mt-1`}
-        >
-          {langClass === "en"
-            ? safeTitleEn.slice(0, 30)
-            : safeTitleAr.slice(0, 25)}{" "}
+        <h5 className={`text-black ${langClass === "ar" ? "text-[18px]" : "text-[14px]"} mt-1`}>
+          {langClass === "en" ? safeTitleEn.slice(0, 30) : safeTitleAr.slice(0, 25)}{" "}
           {safeTitleEn.length > 30 || safeTitleAr.length > 30 ? "..." : ""}
         </h5>
 
         <div className="card-content-btn flex justify-end">
-          {inCart ? (
+          {resolvingCart ? (
+            <Button disabled label={langClass === "ar" ? "جاري التحقق..." : "Checking..."} isBgColor={true} />
+          ) : inCart ? (
             <Button
-              onClick={() => handleRemoveFromCart(product._id)}
-              label={`${
-                langClass === "ar" ? "إزالة من السلة" : "Remove From Cart"
-              }`}
+              onClick={handleRemoveFromCart}
+              disabled={btnDisabled}
+              label={langClass === "ar" ? "إزالة من السلة" : "Remove From Cart"}
               bgColor="bg-red-500 hover:bg-red-600"
               isBgColor={true}
             />
           ) : (
             <Button
-              onClick={() => handleAddToCart(product._id)}
-              label={`${langClass === "ar" ? "أضف إلى السلة" : "Add to cart"}`}
+              onClick={handleAddToCart}
+              disabled={btnDisabled}
+              label={langClass === "ar" ? "أضف إلى السلة" : "Add to cart"}
             />
           )}
         </div>

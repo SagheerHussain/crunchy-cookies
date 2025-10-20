@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+// client/src/pages/Cart/Cart.jsx
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   FiTrash2,
   FiMinus,
@@ -10,51 +11,291 @@ import {
 } from "react-icons/fi";
 import previewCard from "/images/preview-card.png";
 import PaymentMethod from "../PaymentMethod";
+import { useCartFlag } from "../../context/CartContext";
 
-const CURRENCY = (n) => `QAR ${n.toLocaleString()}`;
+const CURRENCY = (n) => `QAR ${Number(n || 0).toLocaleString()}`;
 const PANEL_RING = "ring-1 ring-primary/10";
-import { initialItems } from "../../lib/cartItems";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { MdArrowForwardIos, MdOutlineArrowBackIos } from "react-icons/md";
 import { useTranslation } from "react-i18next";
+
+// hooks to fetch/mutate cart
+import { useCartByUser } from "../../hooks/cart/useCart";
+import {
+  useSetItemQty,
+  useRemoveItemFromCart,
+} from "../../hooks/cart/useCartMutation";
+import { checkCoupon } from "../../api/coupon";
+import { ClipLoader } from "react-spinners";
+import { createOrder } from "../../api/order";
+
+/* ===================== Order code helpers ===================== */
+const ORDER_CODE_KEY = "last_order_code";
+const round2 = (n) =>
+  Math.max(0, Math.round((Number(n || 0) + Number.EPSILON) * 100) / 100);
+
+/** Generates a code like SA-2025-000121 and persists last used in localStorage. */
+function nextOrderCode(prefix = "SA") {
+  const year = new Date().getFullYear();
+  const last =
+    localStorage.getItem(ORDER_CODE_KEY) || `${prefix}-${year}-000120`;
+  const m = last.match(/^([A-Z]+)-(\d{4})-(\d{6})$/);
+  const lastNum = m ? parseInt(m[3], 10) : 120;
+  const newNum = lastNum + 1;
+  const code = `${prefix}-${year}-${String(newNum).padStart(6, "0")}`;
+  localStorage.setItem(ORDER_CODE_KEY, code);
+  return code;
+}
+/* =============================================================== */
 
 export default function Cart() {
   const { i18n } = useTranslation();
   const langClass = i18n.language === "ar";
 
-  const [items, setItems] = useState(initialItems);
+  const { setUpdate } = useCartFlag();
+
+  // get userId from route params
+  const { id } = useParams();
+
+  // toast state (slide-in/out)
+  const [toast, setToast] = useState("");
+  const [toastShow, setToastShow] = useState(false);
+  const toastInRef = useRef(null);
+  const toastOutRef = useRef(null);
+  const [loading, setLoading] = useState(false);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [orderMessage, setorderMessage] = useState("");
+
+  const showToast = (msg) => {
+    if (toastInRef.current) clearTimeout(toastInRef.current);
+    if (toastOutRef.current) clearTimeout(toastOutRef.current);
+
+    setToast(msg);
+    setToastShow(true); // slide in
+
+    // stay visible 3s then slide out
+    toastInRef.current = setTimeout(() => {
+      setToastShow(false);
+      // wait for animation to finish (300ms) then clear text
+      toastOutRef.current = setTimeout(() => setToast(""), 350);
+    }, 3000);
+  };
+
+  // local editable copy of items for UI (selection, optimistic qty)
+  const [items, setItems] = useState([]);
   const [phones, setPhones] = useState({ sender: "", receiver: "" });
   const [cardMsg, setCardMsg] = useState("");
   const [voucher, setVoucher] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [coupon, setCoupon] = useState(null);
+  const [couponMessage, setCouponMessage] = useState("");
 
-  const selectedItems = useMemo(() => items.filter((i) => i.selected), [items]);
+  // fetch user cart
+  const { data: cartRes, isLoading: cartLoading } = useCartByUser(id);
+
+  // map API items -> UI items
+  useEffect(() => {
+    const apiItems = cartRes?.data?.items || [];
+    const mapped = apiItems.map((it) => {
+      const p = it?.product || {};
+      return {
+        id: String(p?._id || it?.product), // UI key
+        selected: true,
+        qty: Number(it?.qty || 1),
+        price: Number(p?.price || 0),
+        image: p?.images?.[0]?.url || p?.featuredImage,
+        en_title: p?.title || p?.name || "—",
+        ar_title: p?.ar_title || p?.title || p?.name || "—",
+        productId: String(p?._id || it?.product), // for API
+      };
+    });
+    setItems(mapped);
+  }, [cartRes]);
+
+  const selectedItems = useMemo(
+    () => items.filter((i) => i.selected),
+    [items]
+  );
   const subtotal = useMemo(
-    () => selectedItems.reduce((sum, i) => sum + i.price * i.qty, 0),
+    () =>
+      selectedItems.reduce(
+        (sum, i) => sum + Number(i.price) * Number(i.qty),
+        0
+      ),
     [selectedItems]
   );
-  const delivery = selectedItems.length ? 15 : 0;
-  const total = subtotal + delivery;
 
-  const toggleSelect = (id) =>
-    setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, selected: !i.selected } : i))
-    );
+  // mutations
+  const { mutateAsync: setQtyMut, isPending: qtyUpdating } = useSetItemQty();
+  const { mutateAsync: removeItemMut, isPending: removing } =
+    useRemoveItemFromCart();
 
-  const changeQty = (id, delta) =>
+  const toggleSelect = (productId) =>
     setItems((prev) =>
       prev.map((i) =>
-        i.id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i
+        i.id === productId ? { ...i, selected: !i.selected } : i
       )
     );
 
-  const removeItem = (id) =>
-    setItems((prev) => prev.filter((i) => i.id !== id));
+  // qty change (optimistic UI + server update)
+  const changeQty = async (productId, delta) => {
+    const item = items.find((i) => i.id === productId);
+    if (!item) return;
+
+    const prevQty = Number(item.qty);
+    const newQty = Math.max(1, prevQty + delta);
+
+    // optimistic update
+    setItems((prev) =>
+      prev.map((i) => (i.id === productId ? { ...i, qty: newQty } : i))
+    );
+
+    try {
+      await setQtyMut({ user: id, productId: item.productId, qty: newQty });
+    } catch {
+      // revert on error
+      setItems((prev) =>
+        prev.map((i) => (i.id === productId ? { ...i, qty: prevQty } : i))
+      );
+    }
+  };
+
+  // remove item (with toast)
+  const removeItem = async (productId) => {
+    const item = items.find((i) => i.id === productId);
+    if (!item) return;
+
+    const prev = items;
+    // optimistic remove
+    setItems((p) => p.filter((i) => i.id !== productId));
+
+    try {
+      await removeItemMut({ user: id, productId: item.productId });
+      setUpdate((u) => !u);
+      // success toast
+      showToast(langClass ? "أُزيل من السلة" : "Removed from cart");
+    } catch {
+      // revert on error
+      setItems(prev);
+    }
+  };
+
+  // Apply Coupon
+  const applyCoupon = async (code) => {
+    try {
+      const payload = { code };
+      setLoading(true);
+      console.log(payload);
+      const res = await checkCoupon(payload);
+
+      if (res.success) {
+        setCouponMessage(res.message);
+        setLoading(false);
+        setCoupon(res.coupon);
+        console.log("res.data", res);
+      } else {
+        throw new Error("Something went wrong");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const delivery = selectedItems.length ? 200 : 0;
+
+  const total = () => {
+    const total = subtotal + delivery;
+    if (couponMessage) {
+      if (coupon?.type === "percentage") {
+        return total - (total * coupon.value) / 100;
+      } else {
+        return total - coupon.value;
+      }
+    }
+    return total;
+  };
+
+  /* ===================== Order Payload builder (items shape fixed) ===================== */
+  const handleOrderPayload = async () => {
+    try {
+      setOrderLoading(true);
+
+      if (!selectedItems.length) {
+        showToast(langClass ? "الرجاء تحديد عناصر" : "Please select items");
+        setOrderLoading(false);
+        return;
+      }
+
+      const code = nextOrderCode("SA"); // e.g., SA-2025-000121
+
+      // ✅ Items array in required format: [{ product, quantity }]
+      const itemsPayload = selectedItems.map((i) => ({
+        product: i.productId,
+        quantity: Number(i.qty || 1),
+      }));
+
+      // Numbers (you can adjust tax or totals as needed)
+      const taxAmount = delivery; // you were using delivery as tax in previous snippet
+      const grandTotal = round2(total());
+
+      // Shipping address object
+      const addressObj = {
+        senderPhone: String(phones.sender || "").trim(),
+        receiverPhone: String(phones.receiver || "").trim(),
+      };
+
+      // Coupon code (string) if applied
+      const couponCode =
+        couponMessage && (voucher || coupon?.code)
+          ? String(voucher || coupon?.code)
+          : undefined;
+
+      const orderPayload = {
+        code,
+        user: id,
+        items: itemsPayload,
+        shippingAddress: addressObj,
+        taxAmount,
+        cardMessage: cardMsg || "",
+        cardImage: "", // put URL if you have one
+        couponCode,    // omit if undefined
+        grandTotal,
+      };
+
+      // If you only want to log (no request), comment out the next two lines:
+      const res = await createOrder(orderPayload);
+      setorderMessage(res.mesage)
+
+      if (res?.success) showToast(res?.message);
+
+      setOrderLoading(false);
+    } catch (error) {
+      console.error("Failed to build order payload:", error);
+      setOrderLoading(false);
+      showToast(langClass ? "فشل إنشاء الحمولة" : "Failed to build payload");
+    }
+  };
+  /* ===================================================================================== */
 
   return (
     <section id="cart" className="pt-4 pb-10">
-      <div
-        className="custom-container pb-10">
+      {/* ✅ Bottom Toast with slide animation */}
+      {toast && (
+        <div
+          className={[
+            "fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-out",
+            toastShow
+              ? "bottom-8 translate-y-0 opacity-100"
+              : "bottom-0 translate-y-6 opacity-0",
+          ].join(" ")}
+        >
+          <div className="bg-green-600 text-white text-sm px-4 py-2 rounded-full shadow-lg">
+            {toast}
+          </div>
+        </div>
+      )}
+
+      <div className="custom-container pb-10">
         <Link to={"/"} className="px-4">
           <div className="bg-[#0fb5bb25] p-2 inline-block rounded-full">
             {langClass ? (
@@ -86,7 +327,7 @@ export default function Cart() {
                 {langClass ? "إجمالي العناصر" : "Total Items"}
               </h5>
               <div className="text-2xl font-semibold text-primary">
-                {items.length}
+                {cartLoading ? "…" : items.length}
               </div>
             </div>
 
@@ -98,6 +339,20 @@ export default function Cart() {
 
             {/* Items list */}
             <div className="pt-4 pb-5 space-y-4 overflow-y-auto max-h-[900px]">
+              {cartLoading && (
+                <p className="text-sm text-slate-500 px-2">
+                  {langClass ? "جارِ تحميل سلة التسوق…" : "Loading your cart…"}
+                </p>
+              )}
+
+              {!cartLoading && items.length === 0 && (
+                <p className="text-sm text-slate-500 px-2">
+                  {langClass
+                    ? "لا توجد عناصر في سلتك."
+                    : "There are no items in your cart."}
+                </p>
+              )}
+
               {items.map((i) => (
                 <article
                   key={i.id}
@@ -114,9 +369,7 @@ export default function Cart() {
                     style={{ direction: langClass ? "rtl" : "ltr" }}
                     className={`
                       absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 rounded
-                      border-2 ${
-                        i.selected ? "border-primary" : "border-primary/30"
-                      }
+                      border-2 ${i.selected ? "border-primary" : "border-primary/30"}
                       grid place-items-center bg-white transition
                       focus:outline-none
                     `}
@@ -130,8 +383,8 @@ export default function Cart() {
 
                   {/* Image */}
                   <img
-                    src={i.image}
-                    alt={i.title}
+                    src={i?.image}
+                    alt={langClass ? i.ar_title : i.en_title}
                     className="h-16 w-20 object-cover rounded-xl ring-1 ring-primary/10"
                   />
 
@@ -154,16 +407,18 @@ export default function Cart() {
                     <div className="flex md:flex-row flex-col jsutify-center items-center">
                       <button
                         onClick={() => changeQty(i.id, -1)}
-                        className="h-6 w-6 md:h-8 md:w-8 rounded-full bg-[#ddd] border border-slate-200 grid place-items-center hover:bg-slate-50"
+                        disabled={qtyUpdating}
+                        className="h-6 w-6 md:h-8 md:w-8 rounded-full bg-[#ddd] border border-slate-200 grid place-items-center hover:bg-slate-50 disabled:opacity-60"
                       >
                         <FiMinus className="text-black" />
                       </button>
-                      <div className="md:w-10 font-semibold text-slate-700">
+                      <div className="md:w-10 font-semibold text-slate-700 text-center">
                         {i.qty}
                       </div>
                       <button
                         onClick={() => changeQty(i.id, +1)}
-                        className="h-6 w-6 md:h-8 md:w-8 rounded-full bg-[#ddd] border border-slate-200 grid place-items-center hover:bg-slate-50"
+                        disabled={qtyUpdating}
+                        className="h-6 w-6 md:h-8 md:w-8 rounded-full bg-[#ddd] border border-slate-200 grid place-items-center hover:bg-slate-50 disabled:opacity-60"
                       >
                         <FiPlus className="text-primary" />
                       </button>
@@ -172,7 +427,8 @@ export default function Cart() {
                     {/* Delete */}
                     <button
                       onClick={() => removeItem(i.id)}
-                      className="text-rose-400 hover:text-rose-500 p-2"
+                      disabled={removing}
+                      className="text-rose-400 hover:text-rose-500 p-2 disabled:opacity-60"
                       aria-label="remove"
                     >
                       <FiTrash2 />
@@ -186,7 +442,6 @@ export default function Cart() {
           {/* RIGHT: Details + Summary */}
           <div className="space-y-6">
             {/* Details */}
-
             <div
               className={`bg-primary_light_mode border mx-4 px-4 border-primary/20 rounded-2xl ${PANEL_RING}`}
             >
@@ -211,7 +466,10 @@ export default function Cart() {
                         placeholder="+974 2345 456"
                         value={phones.sender}
                         onChange={(e) =>
-                          setPhones((p) => ({ ...p, sender: e.target.value }))
+                          setPhones((p) => ({
+                            ...p,
+                            sender: e.target.value,
+                          }))
                         }
                         className="w-full pl-10 pr-3 py-2.5 rounded-xl border-2 border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20"
                       />
@@ -229,7 +487,10 @@ export default function Cart() {
                         placeholder="+974 0000 576"
                         value={phones.receiver}
                         onChange={(e) =>
-                          setPhones((p) => ({ ...p, receiver: e.target.value }))
+                          setPhones((p) => ({
+                            ...p,
+                            receiver: e.target.value,
+                          }))
                         }
                         className="w-full pl-10 pr-3 py-2.5 rounded-xl border-2 border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20"
                       />
@@ -265,6 +526,7 @@ export default function Cart() {
                 </div>
               </div>
             </div>
+
             {/* Order Summary */}
             <div
               className={`bg-primary_light_mode mx-4 px-4 border-primary/20 rounded-2xl ${PANEL_RING}`}
@@ -291,6 +553,12 @@ export default function Cart() {
                     : "Please note that specific regions and express delivery may incur extra delivery fees"}
                 </p>
                 <hr className="border-primary/20" />
+                {couponMessage && (
+                  <Row
+                    label={`${langClass ? "خصم القسيمة" : "Coupon Discount"}`}
+                    value={10}
+                  />
+                )}
                 <Row
                   label={
                     <span className="font-semibold text-lg">
@@ -299,22 +567,28 @@ export default function Cart() {
                   }
                   value={
                     <span className="font-semibold text-lg text-primary">
-                      {CURRENCY(total)}
+                      {CURRENCY(total())}
                     </span>
                   }
                 />
 
-                <PaymentMethod />
+                {/* <PaymentMethod /> */}
 
                 <button
-                  disabled={!selectedItems.length}
-                  className={`mt-2 w-full py-3 rounded-xl text-white font-medium ${
-                    selectedItems.length
-                      ? "bg-primary hover:opacity-90"
-                      : "bg-primary/50 cursor-not-allowed"
-                  }`}
+                  disabled={!selectedItems.length || orderLoading}
+                  onClick={handleOrderPayload}
+                  className={`${orderLoading ? "opacity-50" : "opacity-100"
+                    }  mt-2 w-full py-3 rounded-xl text-white font-medium ${
+                      selectedItems.length
+                        ? "bg-primary hover:opacity-90"
+                        : "bg-primary/50 cursor-not-allowed"
+                    }`}
                 >
-                  {langClass ? "الدفع" : "Check out"}
+                  {!orderLoading ? (
+                    <>{langClass ? "الدفع" : "Check out"}</>
+                  ) : (
+                    <ClipLoader color="#fff" size={20} />
+                  )}
                 </button>
 
                 <hr className="border-primary/20" />
@@ -326,21 +600,30 @@ export default function Cart() {
                   <div className="flex md:flex-row flex-col gap-3">
                     <input
                       value={voucher}
+                      disabled={couponMessage}
                       onChange={(e) => setVoucher(e.target.value)}
                       placeholder={
                         langClass ? "أدخل كود القسيمة" : "Enter Voucher Code"
                       }
                       className="flex-1 rounded-xl border-2 border-primary/20 p-3 focus:outline-none"
                     />
-                    <button className="px-6 py-2 md:py-0 rounded-xl bg-primary text-white font-medium hover:bg-primary/70">
-                      {langClass ? "يتقدم" : "Apply"}
+                    <button
+                      onClick={() => applyCoupon(voucher)}
+                      disabled={loading || couponMessage}
+                      className={`${
+                        loading || couponMessage ? "opacity-50" : "opacity-100"
+                      } px-6 py-2 md:py-0 rounded-xl bg-primary text-white font-medium hover:bg-primary/70`}
+                    >
+                      {!loading ? (
+                        <>{langClass ? "يتقدم" : "Apply"}</>
+                      ) : (
+                        <ClipLoader color="#fff" size={20} />
+                      )}
                     </button>
                   </div>
                 </div>
-
               </div>
             </div>
-            
           </div>
         </div>
       </div>
@@ -361,7 +644,13 @@ function Row({ label, value }) {
   return (
     <div className="flex items-center justify-between text-[#333]">
       <span className="font-medium">{label}</span>
-      <span className="text-[#111] font-medium">{value}</span>
+      {label === "Coupon Discount" || label === "خصم القسيمة" ? (
+        <span className="text-[#111] text-sm font-medium text-green-500">
+          {value}%
+        </span>
+      ) : (
+        <span className="text-[#111] font-medium">{value}</span>
+      )}
     </div>
   );
 }
@@ -379,10 +668,7 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
       onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       {/* Panel */}
       <div className="relative z-10 mx-auto w-[860px] max-w-[60vw] max-h-[90vh] overflow-y-auto">
         <div
@@ -456,7 +742,6 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
                   {langClass ? "بطاقة :" : "Card :"}
                 </span>
                 <div className="mt-2 lg:h-[300px] xl:h-[350px] rounded-2xl overflow-hidden ring-1 ring-primary/20">
-                  {/* Replace with your card image */}
                   <img
                     src={previewCard}
                     alt="card"
@@ -524,9 +809,7 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
 
                 {items.length === 0 && (
                   <p className="text-sm text-slate-500">
-                    {langClass
-                      ? "لم يتم تحديد أي عناصر."
-                      : "No items selected."}
+                    {langClass ? "لا توجد عناصر محددة." : "No items selected."}
                   </p>
                 )}
               </div>
