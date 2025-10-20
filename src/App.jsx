@@ -31,7 +31,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/filters/:category" element={<FilterGiftPage />} />
+      <Route path="/filters/:type/:name" element={<FilterGiftPage />} />
       <Route path="/order-history/:id" element={<OrderHistoryPage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/contact" element={<ContactPage />} />

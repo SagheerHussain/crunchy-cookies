@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RxCross1 } from "react-icons/rx";
 import { IoFilter } from "react-icons/io5";
@@ -14,93 +14,245 @@ import "swiper/css/navigation";
 
 import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 
-import { products, allOccasions } from "../../lib/filterpageData";
+/* ==================== CONFIG ==================== */
+const API_BASE = "http://localhost:5000/api/v1"; // change for prod
+const PAGE_SIZE = 15;
 
-const uniq = (arr) => Array.from(new Set(arr));
+/* ==================== HELPERS ==================== */
+const uniq = (arr) => Array.from(new Set((arr || []).filter(Boolean)));
+const toSlug = (s) => (s || "").toString().trim().toLowerCase();
 
+const qstr = (obj) =>
+  Object.entries(obj)
+    .filter(([, v]) => v !== undefined && v !== null && `${v}`.trim() !== "")
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join("&");
+
+async function getFilterProducts(params, signal) {
+  const qs = qstr(params);
+  const name = qs?.split("&")[0].split("=")[0];
+  const type = qs?.split("&")[0].split("=")[1];
+  const res = await fetch(`${API_BASE}/product/lists/filters?${name}=${type}`, { signal });
+  console.log(res)
+  if (!res.ok) throw new Error(`Failed ${res.status}`);
+  const json = await res.json();
+  const items = json?.data?.docs ?? [];
+  const total = json?.data?.totalDocs ?? 0;
+  const totalPages =
+    json?.data?.totalPages ?? Math.max(1, Math.ceil(total / (params.limit || PAGE_SIZE)));
+  const page = json?.data?.page ?? params.page ?? 1;
+  return { items, total, totalPages, page };
+}
+
+/* Map :type segment -> backend query key */
+function normalizeType(type) {
+  switch (String(type || "").toLowerCase()) {
+    case "occasion":
+    case "occasions":
+      return "occasion";
+    case "subcategory":
+      return "subCategory";
+    case "brand":
+    case "brands":
+      return "brand";
+    case "recipient":
+    case "recipients":
+      return "recipient";
+    default:
+      return ""; // unknown
+  }
+}
+
+/* ==================== COMPONENT ==================== */
 export default function FilterableFlowerGrid() {
   const { i18n } = useTranslation();
-  const langClass = i18n.language === "ar" ? "ar" : "en";
-  const isAr = langClass === "ar";
+  const isAr = (i18n.language === "ar");
 
+  const navigate = useNavigate();
+  const { type, name } = useParams();               // <-- /filters/:type/:name
+  const [sp] = useSearchParams();                   // optional fallback (supports /filters?occasion=friends)
+
+  /* ----- Build BASE (server) from pathname first, then query params fallback ----- */
+  const tKey = normalizeType(type);
+  const baseFromPath = {
+    occasion: tKey === "occasion" ? (name || "") : "",
+    subCategory: tKey === "subCategory" ? (name || "") : "",
+    brand: tKey === "brand" ? (name || "") : "",
+    recipient: tKey === "recipient" ? (name || "") : "",
+  };
+
+  const baseFromQuery = {
+    occasion: sp.get("occasion") || "",
+    subCategory: sp.get("subCategory") || "",
+    brand: sp.get("brand") || "",
+    recipient: sp.get("recipient") || "",
+  };
+
+  // pathname has priority; if empty, use query
+  const baseFilter = {
+    occasion: baseFromPath.occasion || baseFromQuery.occasion,
+    subCategory: baseFromPath.subCategory || baseFromQuery.subCategory,
+    brand: baseFromPath.brand || baseFromQuery.brand,
+    recipient: baseFromPath.recipient || baseFromQuery.recipient,
+  };
+
+  // server pagination (kept in component state; not in URL for this scheme)
+  const [page, setPage] = useState(1);
+
+  // ===== Open/Close sidebar
   const [open, setOpen] = useState(false);
-  const [selectedOccasion, setSelectedOccasion] = useState(null);
 
-  // filters
+  // ===== Client-side filters (NO refetch)
   const [categorySet, setCategorySet] = useState(new Set());
-  const [type, setType] = useState("");
-  const [colors, setColors] = useState(new Set());
-  const [packaging, setPackaging] = useState(new Set());
-  const [priceSort, setPriceSort] = useState("");
+  const [recipientsSet, setRecipientsSet] = useState(new Set());
+  const [brandsSet, setBrandsSet] = useState(new Set());
+  const [colorsSet, setColorsSet] = useState(new Set());
+  const [priceSort, setPriceSort] = useState(""); // "hl" | "lh" | ""
 
-  // ----- derive filter options from data -----
+  const clearClientFilters = () => {
+    setCategorySet(new Set());
+    setRecipientsSet(new Set());
+    setBrandsSet(new Set());
+    setColorsSet(new Set());
+    setPriceSort("");
+  };
+
+  const toggleSet = (setObj, value) => {
+    const next = new Set(setObj);
+    next.has(value) ? next.delete(value) : next.add(value);
+    return next;
+  };
+
+  // ===== Server fetch (base dataset + pagination)
+  const [serverPage, setServerPage] = useState({ items: [], total: 0, totalPages: 1 });
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+    (async () => {
+      try {
+        setLoading(true);
+        setErr("");
+        const payload = await getFilterProducts(
+          {
+            subCategory: baseFilter.subCategory,
+            occasion: baseFilter.occasion,
+            brand: baseFilter.brand,
+            recipient: baseFilter.recipient,
+            page,
+            limit: PAGE_SIZE,
+          },
+          controller.signal
+        );
+        setServerPage({ items: payload.items, total: payload.total, totalPages: payload.totalPages });
+      } catch (e) {
+        if (e.name !== "AbortError") setErr(e.message || "Failed to load");
+      } finally {
+        setLoading(false);
+      }
+    })();
+    return () => controller.abort();
+  }, [baseFilter.subCategory, baseFilter.occasion, baseFilter.brand, baseFilter.recipient, page]);
+
+  // Reset page + clear local filters whenever the base route target changes
+  useEffect(() => {
+    setPage(1);
+    clearClientFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, name]);
+
+  const pageItems = serverPage.items;
+
+  /* ===== Derive filter options FROM CURRENT PAGE ONLY ===== */
   const categoryOptions = useMemo(() => {
-    const slugs = uniq(products.flatMap((p) => p.categories.map((c) => c.slug)));
+    const slugs = uniq(
+      pageItems.flatMap((p) =>
+        Array.isArray(p.categories) ? p.categories.map((c) => toSlug(c?.slug || c?.name)) : []
+      )
+    );
     return slugs.map((slug) => {
-      const prod = products.find((p) => p.categories.some((c) => c.slug === slug));
-      const cat = prod?.categories.find((c) => c.slug === slug);
-      return { slug, en_name: cat?.en_name ?? slug, ar_name: cat?.ar_name ?? "" };
+      const sample = pageItems.find((p) => p.categories?.some((c) => toSlug(c?.slug || c?.name) === slug));
+      const found = sample?.categories?.find((c) => toSlug(c?.slug || c?.name) === slug);
+      return { slug, en_name: found?.name || slug, ar_name: found?.ar_name || "" };
     });
-  }, []);
+  }, [pageItems]);
 
-  const typeOptions = useMemo(
-    () => uniq(products.map((p) => (isAr ? p.type?.ar_name : p.type?.en_name)).filter(Boolean)),
-    [isAr]
-  );
-
-  const colorOptions = useMemo(
-    () =>
-      uniq(
-        products.flatMap((p) => {
-          if (!p.colors) return [];
-          return p.colors.map((c) => (typeof c === "string" ? c : isAr ? c.ar_name : c.en_name));
-        })
-      ),
-    [isAr]
-  );
-
-  const packagingOptions = useMemo(() => {
-    return uniq(products.map((p) => p.packaging?.en_name).filter(Boolean)).map((en) => {
-      const prod = products.find((p) => p.packaging?.en_name === en);
-      return { en_name: en, ar_name: prod?.packaging?.ar_name ?? "" };
+  const recipientOptions = useMemo(() => {
+    const slugs = uniq(pageItems.flatMap((p) => p.recipients?.map((r) => toSlug(r?.slug || r?.name)) || []));
+    return slugs.map((slug) => {
+      const sample = pageItems.find((p) => p.recipients?.some((r) => toSlug(r?.slug || r?.name) === slug));
+      const found = sample?.recipients?.find((r) => toSlug(r?.slug || r?.name) === slug);
+      return { slug, en_name: found?.name || slug, ar_name: found?.ar_name || "" };
     });
-  }, []);
+  }, [pageItems]);
 
-  // ----- filtering -----
+  const brandOptions = useMemo(() => {
+    const slugs = uniq(pageItems.map((p) => toSlug(p?.brand?.slug || p?.brand?.name)).filter(Boolean));
+    return slugs.map((slug) => {
+      const sample = pageItems.find((p) => toSlug(p?.brand?.slug || p?.brand?.name) === slug);
+      return { slug, en_name: sample?.brand?.name || slug, ar_name: sample?.brand?.ar_name || "" };
+    });
+  }, [pageItems]);
+
+  const colorOptions = useMemo(() => {
+    const labels = uniq(
+      pageItems.flatMap((p) =>
+        (p.colors || []).map((c) =>
+          typeof c === "string" ? c : c?.name || c?.slug || c?.ar_name || c?._id || ""
+        )
+      )
+    );
+    return labels.map((label) => ({ slug: toSlug(label), en_name: label, ar_name: label }));
+  }, [pageItems]);
+
+  const occasionChips = useMemo(() => {
+    const slugs = uniq(pageItems.flatMap((p) => p.occasions?.map((o) => toSlug(o?.slug || o?.name)) || []));
+    return slugs.map((slug) => {
+      const sample = pageItems.find((p) => p.occasions?.some((o) => toSlug(o?.slug || o?.name) === slug));
+      const found = sample?.occasions?.find((o) => toSlug(o?.slug || o?.name) === slug);
+      return { slug, en_name: found?.name || slug, ar_name: found?.ar_name || "" };
+    });
+  }, [pageItems]);
+
+  /* ===== Apply CLIENT-SIDE filters & sort (CURRENT PAGE ONLY) ===== */
   const filtered = useMemo(() => {
-    let list = [...products];
+    let list = [...pageItems];
 
-    if (selectedOccasion) {
-      list = list.filter((p) => p.occasions?.some((o) => o.slug === selectedOccasion));
-    }
     if (categorySet.size) {
-      list = list.filter((p) => p.categories.some((c) => categorySet.has(c.slug)));
-    }
-    if (type) {
-      list = list.filter((p) => p.type?.en_name === type);
-    }
-    if (colors.size) {
       list = list.filter((p) =>
-        p.colors?.some((clr) => {
-          const label = typeof clr === "string" ? clr : isAr ? clr.ar_name : clr.en_name;
-          return colors.has(label);
+        p.categories?.some((c) => categorySet.has(toSlug(c?.slug || c?.name)))
+      );
+    }
+    if (recipientsSet.size) {
+      list = list.filter((p) =>
+        p.recipients?.some((r) => recipientsSet.has(toSlug(r?.slug || r?.name)))
+      );
+    }
+    if (brandsSet.size) {
+      list = list.filter((p) => brandsSet.has(toSlug(p?.brand?.slug || p?.brand?.name)));
+    }
+    if (colorsSet.size) {
+      list = list.filter((p) =>
+        (p.colors || []).some((c) => {
+          const label = typeof c === "string" ? c : c?.name || c?.slug || c?.ar_name || c?._id || "";
+          return colorsSet.has(toSlug(label));
         })
       );
     }
-    if (packaging.size) {
-      list = list.filter((p) => packaging.has(p.packaging?.en_name));
-    }
-    if (priceSort === "hl") list.sort((a, b) => b.price - a.price);
-    if (priceSort === "lh") list.sort((a, b) => a.price - b.price);
+
+    if (priceSort === "hl") list.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+    if (priceSort === "lh") list.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
 
     return list;
-  }, [selectedOccasion, categorySet, type, colors, packaging, priceSort, isAr]);
+  }, [pageItems, categorySet, recipientsSet, brandsSet, colorsSet, priceSort]);
 
-  const toggleSet = (set, value) => {
-    const next = new Set(set);
-    next.has(value) ? next.delete(value) : next.add(value);
-    return next;
+  /* ===== Handlers to navigate by pathname for top chips ===== */
+  const gotoOccasion = (slug) => {
+    if (!slug) navigate("/filters"); // "All" -> base path
+    else navigate(`/filters/occasions/${slug}`);
   };
 
   return (
@@ -114,7 +266,7 @@ export default function FilterableFlowerGrid() {
             </h1>
           </div>
 
-          {/* Occasions chips with custom nav */}
+        {/* Occasions chips with custom nav (drive PATH) */}
           <div className="w-full md:w-[50%] lg:w-[60%] mt-4 relative">
             <Swiper
               modules={[Navigation, A11y]}
@@ -133,9 +285,7 @@ export default function FilterableFlowerGrid() {
               grabCursor
               watchOverflow
               loop={true}
-              // 👉 Use class selectors so Swiper khud query kare:
               navigation={{ prevEl: ".oc-prev", nextEl: ".oc-next" }}
-              // Small fallback: ensure after mount it binds again
               onSwiper={(swiper) => {
                 setTimeout(() => {
                   try {
@@ -148,36 +298,45 @@ export default function FilterableFlowerGrid() {
               }}
               className="mySwiper overflow-hidden"
             >
-              {allOccasions.map((o) => (
+              {/* All */}
+              <SwiperSlide key="__all">
+                <button
+                  onClick={() => gotoOccasion("")}
+                  className={`group border-primary/30 ${
+                    isAr ? "lg:text-sm 2xl:text-[1rem]" : "lg:text-xs 2xl:text-[.8rem]"
+                  } flex items-center justify-between gap-2 rounded-[8px] font-medium border px-4 py-3 transition text-black w-full ${
+                    !baseFilter.occasion ? "bg-primary text-white" : ""
+                  }`}
+                >
+                  <span>{isAr ? "الكل" : "All"}</span>
+                  {isAr ? <IoIosArrowBack size={16} color="#0FB4BB" /> : <IoIosArrowForward size={16} color="#0FB4BB" />}
+                </button>
+              </SwiperSlide>
+
+              {occasionChips.map((o) => (
                 <SwiperSlide key={o.slug}>
                   <button
+                    onClick={() => gotoOccasion(baseFilter.occasion === o.slug ? "" : o.slug)}
                     className={`group border-primary/30 ${
                       isAr ? "lg:text-sm 2xl:text-[1rem]" : "lg:text-xs 2xl:text-[.8rem]"
-                    } flex items-center justify-between gap-2 rounded-[8px] font-medium border px-4 py-3 transition text-black w-full`}
+                    } flex items-center justify-between gap-2 rounded-[8px] font-medium border px-4 py-3 transition text-black w-full ${
+                      baseFilter.occasion === o.slug ? "bg-primary text-white" : ""
+                    }`}
+                    title={isAr ? o.ar_name : o.en_name}
                   >
                     <span>{isAr ? o.ar_name : o.en_name}</span>
-                    {isAr ? (
-                      <IoIosArrowBack size={16} color="#0FB4BB" />
-                    ) : (
-                      <IoIosArrowForward size={16} color="#0FB4BB" />
-                    )}
+                    {isAr ? <IoIosArrowBack size={16} color="#0FB4BB" /> : <IoIosArrowForward size={16} color="#0FB4BB" />}
                   </button>
                 </SwiperSlide>
               ))}
             </Swiper>
 
-            {/* Custom nav buttons — exact placement jahan chahiye */}
+            {/* Custom nav buttons — keep positions */}
             <div className={`absolute -bottom-12 ${isAr ? "left-0" : "left-full -translate-x-full"} flex items-center gap-3`}>
-              <button
-                className="oc-prev grid place-items-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary hover:bg-primary/70 text-white shadow"
-                aria-label="Previous"
-              >
+              <button className="oc-prev grid place-items-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary hover:bg-primary/70 text-white shadow" aria-label="Previous">
                 {isAr ? <FiChevronRight size={22} /> : <FiChevronLeft size={22} />}
               </button>
-              <button
-                className="oc-next grid place-items-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary hover:bg-primary/70 text-white shadow"
-                aria-label="Next"
-              >
+              <button className="oc-next grid place-items-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary hover:bg-primary/70 text-white shadow" aria-label="Next">
                 {isAr ? <FiChevronLeft size={22} /> : <FiChevronRight size={22} />}
               </button>
             </div>
@@ -188,9 +347,7 @@ export default function FilterableFlowerGrid() {
         <div className="select-filter-btn mb-10 mt-4">
           <button
             onClick={() => setOpen((s) => !s)}
-            className={`${
-              open ? "bg-primary text-white" : "bg-transparent text-primary"
-            } transition-all duration-300 inline-flex items-center gap-2 rounded-[5px] border border-[#BFE8E7] px-4 py-2`}
+            className={`${open ? "bg-primary text-white" : "bg-transparent text-primary"} transition-all duration-300 inline-flex items-center gap-2 rounded-[5px] border border-[#BFE8E7] px-4 py-2`}
           >
             <IoFilter className="text-lg" />
             <span className="font-medium">{isAr ? "حدد عوامل التصفية" : "Select Filters"}</span>
@@ -209,6 +366,7 @@ export default function FilterableFlowerGrid() {
                 className="overflow-hidden"
               >
                 <div className="rounded-[5px] p-6 border border-primary/40 bg-transparent shadow-sm">
+                  {/* Categories */}
                   <FilterSection title={isAr ? "فئات" : "Categories"}>
                     {categoryOptions.map((opt) => (
                       <label key={opt.slug} className="FilterItem">
@@ -221,42 +379,46 @@ export default function FilterableFlowerGrid() {
                     ))}
                   </FilterSection>
 
-                  <FilterSection title={isAr ? "نوع الزهرة" : "Flower Type"}>
-                    {typeOptions.map((t) => (
-                      <label key={t} className="FilterItem">
+                  {/* Recipients */}
+                  <FilterSection title={isAr ? "المستلمون" : "Recipients"}>
+                    {recipientOptions.map((opt) => (
+                      <label key={opt.slug} className="FilterItem">
                         <RoundCheck
-                          checked={type === t}
-                          onChange={() => setType((v) => (v === t ? "" : t))}
+                          checked={recipientsSet.has(opt.slug)}
+                          onChange={() => setRecipientsSet((s) => toggleSet(s, opt.slug))}
                         />
-                        <span className="grow">{t}</span>
+                        <span className="grow">{isAr ? opt.ar_name : opt.en_name}</span>
                       </label>
                     ))}
                   </FilterSection>
 
+                  {/* Colors */}
                   <FilterSection title={isAr ? "الألوان" : "Colors"}>
                     {colorOptions.map((c) => (
-                      <label key={c} className="FilterItem">
+                      <label key={c.slug} className="FilterItem">
                         <RoundCheck
-                          checked={colors.has(c)}
-                          onChange={() => setColors((s) => toggleSet(s, c))}
+                          checked={colorsSet.has(c.slug)}
+                          onChange={() => setColorsSet((s) => toggleSet(s, c.slug))}
                         />
-                          <span className="grow">{c}</span>
+                        <span className="grow">{isAr ? c.ar_name : c.en_name}</span>
                       </label>
                     ))}
                   </FilterSection>
 
-                  <FilterSection title={isAr ? "التعبئة والتغليف" : "Packaging"}>
-                    {packagingOptions.map((p) => (
-                      <label key={p.en_name} className="FilterItem">
+                  {/* Brands */}
+                  <FilterSection title={isAr ? "العلامات التجارية" : "Brands"}>
+                    {brandOptions.map((b) => (
+                      <label key={b.slug} className="FilterItem">
                         <RoundCheck
-                          checked={packaging.has(p.en_name)}
-                          onChange={() => setPackaging((s) => toggleSet(s, p.en_name))}
+                          checked={brandsSet.has(b.slug)}
+                          onChange={() => setBrandsSet((s) => toggleSet(s, b.slug))}
                         />
-                        <span className="grow">{isAr ? p.ar_name : p.en_name}</span>
+                        <span className="grow">{isAr ? b.ar_name : b.en_name}</span>
                       </label>
                     ))}
                   </FilterSection>
 
+                  {/* Price (two static options) */}
                   <FilterSection title={isAr ? "السعر" : "Price"}>
                     <label className="FilterItem">
                       <RoundRadio
@@ -284,32 +446,40 @@ export default function FilterableFlowerGrid() {
           <section>
             {open && (
               <button
-                onClick={() => {
-                  setCategorySet(new Set());
-                  setType("");
-                  setColors(new Set());
-                  setPackaging(new Set());
-                  setPriceSort("");
-                  setSelectedOccasion(null);
-                }}
+                onClick={clearClientFilters}
                 className="border-primary/30 mb-4 border-[1px] rounded-[5px] py-2 px-4 text-black flex items-center gap-2"
               >
                 <RxCross1 size={16} color="#0FB4BB" /> {isAr ? "مسح المرشحات" : "Clear Filters"}
               </button>
             )}
-            <div
-              className={`grid gap-6 sm:grid-cols-2 md:grid-cols-2 ${
-                open ? "lg:grid-cols-2 xl:grid-cols-3" : "lg:grid-cols-3 xl:grid-cols-4"
-              }`}
-            >
-              {filtered.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
 
-            <Stack spacing={2} style={{ direction: "ltr" }} className="mt-20 flex items-center justify-center">
-              <Pagination count={10} color="primary" />
-            </Stack>
+            {loading ? (
+              <div className={`grid gap-6 sm:grid-cols-2 md:grid-cols-2 ${open ? "lg:grid-cols-2 xl:grid-cols-3" : "lg:grid-cols-3 xl:grid-cols-4"}`}>
+                {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                  <div key={i} className="animate-pulse rounded-xl border p-4 h-64 bg-gray-50" />
+                ))}
+              </div>
+            ) : err ? (
+              <div className="text-red-600">{err}</div>
+            ) : (
+              <>
+                <div className={`grid gap-6 sm:grid-cols-2 md:grid-cols-2 ${open ? "lg:grid-cols-2 xl:grid-cols-3" : "lg:grid-cols-3 xl:grid-cols-4"}`}>
+                  {filtered.map((p) => (
+                    <ProductCard key={p._id} product={p} />
+                  ))}
+                </div>
+
+                {/* Pagination (server) */}
+                <Stack spacing={2} style={{ direction: "ltr" }} className="mt-20 flex items-center justify-center">
+                  <Pagination
+                    count={serverPage.totalPages || 1}
+                    page={page}
+                    onChange={(_, p) => setPage(p)}
+                    color="primary"
+                  />
+                </Stack>
+              </>
+            )}
           </section>
         </div>
       </div>
@@ -317,7 +487,7 @@ export default function FilterableFlowerGrid() {
   );
 }
 
-/* ---------- Small Components ---------- */
+/* ---------- Small Components (same design) ---------- */
 function FilterSection({ title, children }) {
   return (
     <div className="mb-8">
@@ -362,6 +532,7 @@ function RoundRadio({ name, checked, onChange }) {
   );
 }
 
+/* Inline styles (unchanged) */
 const styles = `
   .FilterItem{display:flex;align-items:center;gap:.6rem;padding:.6rem .8rem;border:1px solid #BFE8E7;border-radius:12px;background:#fff}
   .FilterItem:hover{border-color:#18B2AF}
