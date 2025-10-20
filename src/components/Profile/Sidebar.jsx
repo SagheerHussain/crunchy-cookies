@@ -1,25 +1,54 @@
-import React from "react";
-import { FiUser, FiFileText, FiMapPin, FiShoppingBag, FiLogOut } from "react-icons/fi";
+import React, { useState } from "react";
+import { FiUser, FiLogOut } from "react-icons/fi";
 import SideItem from "./SideItem";
 import { CiDeliveryTruck } from "react-icons/ci";
 import { useTranslation } from "react-i18next";
 
-export default function Sidebar({ tab, setTab }) {
+import { useNavigate } from "react-router-dom";
 
+export default function Sidebar({ tab, setTab }) {
   const { i18n } = useTranslation();
   const langClass = i18n.language === "ar";
+
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setLoading(true);
+    localStorage.removeItem("user");
+    setTimeout(() => {
+      setLoading(false);
+      navigate("/login");
+    }, 1000);
+  };
 
   return (
     <aside className="rounded-2xl border border-primary/30 bg-white p-4 shadow-sm">
       <nav className="space-y-3">
-        <SideItem active={tab === "profile"} onClick={() => setTab("profile")} icon={<FiUser />} label={`${langClass ? "حساب تعريفي" : "Profile"}`} />
-        <SideItem active={tab === "orders"} onClick={() => setTab("orders")} icon={<CiDeliveryTruck />} label={`${langClass ? "طلباتي" : "My Orders"}`} />
+        <SideItem
+          active={tab === "profile"}
+          onClick={() => setTab("profile")}
+          icon={<FiUser />}
+          label={`${langClass ? "حساب تعريفي" : "Profile"}`}
+        />
+        <SideItem
+          active={tab === "orders"}
+          onClick={() => setTab("orders")}
+          icon={<CiDeliveryTruck />}
+          label={`${langClass ? "طلباتي" : "My Orders"}`}
+        />
         {/* <SideItem active={tab === "invoices"} onClick={() => setTab("invoices")} icon={<FiFileText />} label={`${langClass ? "فواتيري" : "My Invoices"}`} />
         <SideItem active={tab === "addresses"} onClick={() => setTab("addresses")} icon={<FiMapPin />} label={`${langClass ? "عناويني" : "My Addresses"}`} /> */}
       </nav>
 
-      <button className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-3 font-semibold text-white shadow-[0_8px_20px_rgba(239,68,68,0.3)]">
-        <FiLogOut className="h-4 w-4" /> {langClass ? "تسجيل الخروج" : "Log out"}
+      <button
+        onClick={handleLogout}
+        disabled={loading}
+        className={`${loading ? "opacity-50" : "opacity-100"} mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-3 font-semibold text-white shadow-[0_8px_20px_rgba(239,68,68,0.3)]`}
+      >
+        <FiLogOut className="h-4 w-4" />{" "}
+        {langClass ? "تسجيل الخروج" : "Log out"}
       </button>
     </aside>
   );

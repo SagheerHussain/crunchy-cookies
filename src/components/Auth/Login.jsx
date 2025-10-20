@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiMail } from "react-icons/fi";
 import { CiLock } from "react-icons/ci";
-import { Link } from "react-router-dom"
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { Link } from "react-router-dom";
 
 const API_BASE = "https://crunchy-cookies-server.onrender.com/api/v1";
 
@@ -10,6 +11,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
@@ -34,12 +36,12 @@ export default function Login() {
         throw new Error(data?.message || "Login failed");
       }
 
-      // Save to localStorage with key "user"
+      // Save to localStorage
       localStorage.setItem(
         "user",
         JSON.stringify({
           token: data?.token || "",
-          user: data?.data || null, // your backend returns user in "data"
+          user: data?.data || null,
         })
       );
 
@@ -98,14 +100,26 @@ export default function Login() {
                 <CiLock className="text-lg" />
               </span>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your Password"
-                className="w-full rounded-lg border border-gray-300 pl-10 pr-3 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-teal-600 transition"
+                className="w-full rounded-lg border border-gray-300 pl-10 pr-10 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-teal-600 transition"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 required
               />
+
+              {/* Eye Icon */}
+              <span
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 cursor-pointer"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <AiOutlineEyeInvisible className="text-xl" />
+                ) : (
+                  <AiOutlineEye className="text-xl" />
+                )}
+              </span>
             </div>
 
             {/* Continue button */}

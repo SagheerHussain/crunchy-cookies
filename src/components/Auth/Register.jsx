@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiMail } from "react-icons/fi";
 import { CiLock } from "react-icons/ci";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 const API_BASE = "https://crunchy-cookies-server.onrender.com/api/v1";
 
@@ -14,9 +15,10 @@ export default function Register() {
     email: "",
     phone: "",
     password: "",
-    dob: "", // yyyy-mm-dd from <input type="date">
+    dob: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
@@ -37,7 +39,6 @@ export default function Register() {
 
     setLoading(true);
     try {
-      // Convert dob (yyyy-mm-dd) -> ISO if provided
       const payload = {
         ...form,
         dob: form.dob ? new Date(form.dob).toISOString() : undefined,
@@ -78,9 +79,7 @@ export default function Register() {
           <h1 className="text-center text-3xl sm:text-[34px] leading-tight font-serif text-[#0a4c4f]">
             Create your account
           </h1>
-          <p className="mt-2 text-center text-gray-600">
-            Sign up with your details
-          </p>
+          <p className="mt-2 text-center text-gray-600">Sign up with your details</p>
 
           {err && (
             <div className="mt-4 mb-2 rounded-md bg-red-50 text-red-700 text-sm p-3">
@@ -92,9 +91,7 @@ export default function Register() {
             {/* First / Last Name */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  First Name
-                </label>
+                <label className="block text-sm font-medium text-gray-700">First Name</label>
                 <input
                   name="firstName"
                   type="text"
@@ -106,9 +103,7 @@ export default function Register() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Last Name
-                </label>
+                <label className="block text-sm font-medium text-gray-700">Last Name</label>
                 <input
                   name="lastName"
                   type="text"
@@ -122,9 +117,7 @@ export default function Register() {
             </div>
 
             {/* Email */}
-            <label className="block mt-6 text-sm font-medium text-gray-700">
-              Email Address
-            </label>
+            <label className="block mt-6 text-sm font-medium text-gray-700">Email Address</label>
             <div className="mt-2 relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                 <FiMail className="text-lg" />
@@ -142,9 +135,7 @@ export default function Register() {
             </div>
 
             {/* Phone */}
-            <label className="block mt-6 text-sm font-medium text-gray-700">
-              Phone
-            </label>
+            <label className="block mt-6 text-sm font-medium text-gray-700">Phone</label>
             <input
               name="phone"
               type="tel"
@@ -155,9 +146,7 @@ export default function Register() {
             />
 
             {/* DOB */}
-            <label className="block mt-6 text-sm font-medium text-gray-700">
-              Date of Birth
-            </label>
+            <label className="block mt-6 text-sm font-medium text-gray-700">Date of Birth</label>
             <input
               name="dob"
               type="date"
@@ -166,24 +155,33 @@ export default function Register() {
               onChange={onChange}
             />
 
-            {/* Password */}
-            <label className="block mt-6 text-sm font-medium text-gray-700">
-              Password
-            </label>
+            {/* Password with Eye Toggle */}
+            <label className="block mt-6 text-sm font-medium text-gray-700">Password</label>
             <div className="mt-2 relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                 <CiLock className="text-lg" />
               </span>
               <input
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
-                className="w-full rounded-lg border border-gray-300 pl-10 pr-3 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-teal-600 transition"
+                className="w-full rounded-lg border border-gray-300 pl-10 pr-10 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-teal-600 transition"
                 value={form.password}
                 onChange={onChange}
                 autoComplete="new-password"
                 required
               />
+              <span
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 cursor-pointer"
+                onClick={() => setShowPassword((s) => !s)}
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <AiOutlineEyeInvisible className="text-xl" />
+                ) : (
+                  <AiOutlineEye className="text-xl" />
+                )}
+              </span>
             </div>
 
             {/* Submit */}
