@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FiMenu, FiSearch, FiHeart, FiUser } from "react-icons/fi";
 import { PiShoppingCartSimpleLight } from "react-icons/pi";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import MenuListBox from "./MenuListBox";
 import BottomNavigation from "./BottomNavigation";
 import { getCartLength } from "../api/cart";
 import { useCartFlag } from "../context/CartContext";
+import { searchProducts } from "../api/products"; // ✅ NEW
 
 const CART_KEY = "cart";
 
@@ -15,21 +16,31 @@ export default function Navbar() {
   const { t } = useTranslation("translation");
   const dir = t("dir") || "ltr";
   const location = useLocation();
+  const navigate = useNavigate();
 
   const { update } = useCartFlag();
-
   const { user } = JSON.parse(sessionStorage.getItem("user")) || {};
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
 
-  // Cart Length
+  // ✅ Search state
+  const [q, setQ] = useState("");
+  const [openSearchPanel, setOpenSearchPanel] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchError, setSearchError] = useState("");
+  const abortRef = useRef(null);
+  const inputRef = useRef(null);
+  const panelRef = useRef(null);
+
+  // Cart Length via API (server-side cart)
   useEffect(() => {
     (async () => {
       const res = await getCartLength(user?._id);
-      setCartCount(res?.data?.distinct || 0)
-    })()
-  }, [location.pathname, update])
+      setCartCount(res?.data?.distinct || 0);
+    })();
+  }, [location.pathname, update, user?._id]);
 
   /* ---------- helpers ---------- */
   const readCartCount = () => {
@@ -90,6 +101,69 @@ export default function Navbar() {
   const isWishlist = location.pathname.includes("wishlist");
   const isMember = location.pathname.includes("member");
 
+  /* ---------- Search: click outside to close ---------- */
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (!panelRef.current || !inputRef.current) return;
+      if (
+        panelRef.current.contains(e.target) ||
+        inputRef.current.contains(e.target)
+      )
+        return;
+      setOpenSearchPanel(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  /* ---------- Search: debounced fetch with cancel ---------- */
+  useEffect(() => {
+    setSearchError("");
+
+    if (!q.trim()) {
+      setSearchResults([]);
+      setOpenSearchPanel(false);
+      abortRef.current?.abort?.();
+      return;
+    }
+
+    const t = setTimeout(async () => {
+      abortRef.current?.abort?.();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      setSearchLoading(true);
+      try {
+        const data = await searchProducts(q, { limit: 8, signal: controller.signal });
+        setSearchResults(data?.items || []);
+        setOpenSearchPanel(true);
+      } catch (err) {
+        // ignore aborts
+        if (err?.name !== "CanceledError" && err?.message !== "canceled") {
+          console.error(err);
+          setSearchError("Failed to search. Try again.");
+          setOpenSearchPanel(true);
+        }
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 350); // debounce
+
+    return () => clearTimeout(t);
+  }, [q]);
+
+  /* ---------- Search: keyboard handling ---------- */
+  const onSearchKeyDown = (e) => {
+    if (e.key === "Enter" && q.trim()) {
+      setOpenSearchPanel(false);
+      navigate(`/search?q=${encodeURIComponent(q.trim())}`);
+    }
+    if (e.key === "Escape") {
+      setOpenSearchPanel(false);
+      inputRef.current?.blur();
+    }
+  };
+
   return (
     <nav className="navbar py-4 relative">
       <div className="custom-container px-4">
@@ -108,15 +182,115 @@ export default function Navbar() {
               </span>
             </button>
 
-            {/* Search pill */}
-            <div className="border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-neutral-700 shadow-sm ring-1 ring-[#0FB4BB1A] w-[200px] xl:w-[320px]">
-              <FiSearch className="text-[18px] text-primary" />
-              <input
-                type="text"
-                placeholder={t("navbar.search")}
-                className="w-full bg-transparent outline-none placeholder:text-black placeholder:font-medium"
-                aria-label={t("navbar.search")}
-              />
+            {/* Search pill + Dropdown */}
+            <div className="relative w-[200px] xl:w-[320px]">
+              <div className="border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-neutral-700 shadow-sm ring-1 ring-[#0FB4BB1A]">
+                <FiSearch className="text-[18px] text-primary" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder={t("navbar.search")}
+                  className="w-full bg-transparent outline-none placeholder:text-black placeholder:font-medium"
+                  aria-label={t("navbar.search")}
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  onKeyDown={onSearchKeyDown}
+                  onFocus={() => q.trim() && setOpenSearchPanel(true)}
+                />
+              </div>
+
+              {/* Results dropdown */}
+              <AnimatePresence>
+                {openSearchPanel && (
+                  <motion.div
+                    ref={panelRef}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute z-50 mt-2 w-full hidden lg:block"
+                  >
+                    <div className="rounded-xl border border-neutral-200 bg-white shadow-lg ring-1 ring-black/5 overflow-hidden">
+                      {/* Loading */}
+                      {searchLoading && (
+                        <div className="px-4 py-3 text-sm text-neutral-500">
+                          {t("search.loading") || "Searching…"}
+                        </div>
+                      )}
+
+                      {/* Error */}
+                      {!searchLoading && searchError && (
+                        <div className="px-4 py-3 text-sm text-red-600">
+                          {searchError}
+                        </div>
+                      )}
+
+                      {/* Results */}
+                      {!searchLoading && !searchError && (
+                        <>
+                          {searchResults.length === 0 ? (
+                            <div className="px-4 py-3 text-sm text-neutral-600">
+                              {"No items found"}
+                            </div>
+                          ) : (
+                            <ul className="max-h-[360px] overflow-auto divide-y divide-neutral-100">
+                              {searchResults.map((p) => (
+                                <li key={p._id}>
+                                  <Link
+                                    to={`/gift-detail/${p._id}`}
+                                    className="flex items-center gap-3 px-4 py-3 hover:bg-neutral-50"
+                                    onClick={() => setOpenSearchPanel(false)}
+                                  >
+                                    {/* thumbnail */}
+                                    <div className="w-10 h-10 shrink-0 rounded-md overflow-hidden bg-neutral-100 border border-neutral-200">
+                                      {p?.featuredImage ? (
+                                        <img
+                                          src={p.featuredImage}
+                                          alt={p.title}
+                                          className="w-full h-full object-cover"
+                                          loading="lazy"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-[10px] text-neutral-400">
+                                          IMG
+                                        </div>
+                                      )}
+                                    </div>
+                                    {/* text */}
+                                    <div className="min-w-0">
+                                      <div className="truncate font-medium text-sm text-neutral-900">
+                                        {p.title}
+                                      </div>
+                                      <div className="truncate text-xs text-neutral-500">
+                                        {(p?.currency || "QAR") + " " + Number(p?.price || 0).toLocaleString()}
+                                      </div>
+                                    </div>
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+
+                          {/* Footer: view all */}
+                          {searchResults.length > 0 && (
+                            <div className="px-4 py-2 bg-neutral-50 text-right">
+                              <button
+                                onClick={() => {
+                                  setOpenSearchPanel(false);
+                                  navigate(`/search?q=${encodeURIComponent(q.trim())}`);
+                                }}
+                                className="text-sm font-medium text-primary hover:underline"
+                              >
+                                {"View all results"}
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
@@ -129,14 +303,14 @@ export default function Navbar() {
 
           {/* Right cluster */}
           <div className="flex items-center gap-3">
-            {/* CART with square badge (always when count > 0) */}
+            {/* CART */}
             <Link
               to={`/cart/${user?._id}`}
-              className={`${isCart ? "bg-primary" : "bg-transparent"
-                } relative overflow-visible border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
+              className={`${
+                isCart ? "bg-primary" : "bg-transparent"
+              } relative overflow-visible border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.cart")}
             >
-              {/* Badge */}
               {cartCount > 0 && (
                 <span
                   className={[
@@ -144,7 +318,6 @@ export default function Navbar() {
                     dir === "rtl" ? "-top-2 -left-2" : "-top-2 -right-2",
                     "min-w-[18px] h-[18px] px-[4px]",
                     "rounded-full text-[10px] leading-[18px] font-semibold",
-                    // keep badge visible regardless of active route
                     "bg-black text-white border border-white/70 shadow-sm",
                     "text-center pointer-events-none z-10",
                   ].join(" ")}
@@ -155,49 +328,35 @@ export default function Navbar() {
               )}
 
               <PiShoppingCartSimpleLight
-                className={`text-[20px] ${isCart ? "text-white" : "text-primary"
-                  }`}
+                className={`text-[20px] ${isCart ? "text-white" : "text-primary"}`}
               />
-              <span
-                className={`font-medium ${isCart ? "text-white" : "text-black"
-                  }`}
-              >
+              <span className={`font-medium ${isCart ? "text-white" : "text-black"}`}>
                 {t("navbar.cart")}
               </span>
             </Link>
 
             <Link
               to={`/wishlist/${user?._id}`}
-              className={`${isWishlist ? "bg-primary" : "bg-transparent"
-                } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
+              className={`${
+                isWishlist ? "bg-primary" : "bg-transparent"
+              } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.favorite")}
             >
-              <FiHeart
-                className={`text-[18px] ${isWishlist ? "text-white" : "text-primary"
-                  }`}
-              />
-              <span
-                className={`font-medium ${isWishlist ? "text-white" : "text-black"
-                  }`}
-              >
+              <FiHeart className={`text-[18px] ${isWishlist ? "text-white" : "text-primary"}`} />
+              <span className={`font-medium ${isWishlist ? "text-white" : "text-black"}`}>
                 {t("navbar.favorite")}
               </span>
             </Link>
 
             <Link
               to={`/member/${user?._id}`}
-              className={`${isMember ? "bg-primary" : "bg-transparent"
-                } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
+              className={`${
+                isMember ? "bg-primary" : "bg-transparent"
+              } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.member")}
             >
-              <FiUser
-                className={`text-[18px] ${isMember ? "text-white" : "text-primary"
-                  }`}
-              />
-              <span
-                className={`font-medium ${isMember ? "text-white" : "text-black"
-                  }`}
-              >
+              <FiUser className={`text-[18px] ${isMember ? "text-white" : "text-primary"}`} />
+              <span className={`font-medium ${isMember ? "text-white" : "text-black"}`}>
                 {t("navbar.member")}
               </span>
             </Link>

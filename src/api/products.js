@@ -72,3 +72,14 @@ export const getGiftDetail = async (id) => {
   const res = await axios.get(`${BASE_URL}/product/lists/${id}`);
   return res?.data?.data; // { ...product }
 };
+
+// 9) Search
+export const searchProducts = async (q, { limit = 8, signal } = {}) => {
+  if (!q?.trim()) return { total: 0, items: [] };
+  const res = await axios.get(`${BASE_URL}/product/search`, {
+    params: { q },
+    signal,
+  });
+  return res.data;
+};
+
