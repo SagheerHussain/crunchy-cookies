@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import { ClipLoader } from "react-spinners";
 import { getPreviousOrder } from "../../api/order";
+import { useTranslation } from "react-i18next";
 
 const PRIMARY = "#0FB4BB";
 const BORDER = "#BFE8E7";
@@ -83,7 +84,9 @@ function renderOrderChip(status) {
 }
 
 export default function PreviousOrdersTable() {
+  const { i18n } = useTranslation();
   const isAr = false;
+  const isArabic = i18n.language === "ar";
 
   // userId (supports multiple shapes)
   const { user } = JSON.parse(sessionStorage.getItem("user") || "{}");
@@ -215,14 +218,14 @@ export default function PreviousOrdersTable() {
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ fontSize: "1rem", width: 80 }}>S.No</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>Sender Number</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>Receiver Number</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>Price</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>Total Items</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>Placed At</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>Delivered At</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>Payment</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>Status</TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "رقم المرسل" : "Sender Number"}</TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "رقم المتلقي" : "Receiver Number"}</TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "السعر" : "Price"}</TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "العدد الكلي" : "Total Items"}</TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "تم الطلب في" : "Placed At"}</TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "تم التسليم في" : "Delivered At"}</TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "الدفع" : "Payment"}</TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "الحالة" : "Status"}</TableCell>
                   <TableCell align="right" sx={{ width: 220 }} />
                 </TableRow>
               </TableHead>
@@ -298,7 +301,7 @@ export default function PreviousOrdersTable() {
                             minWidth: 90,
                           }}
                         >
-                          {isAr ? "عرض العناصر" : "View items"}
+                          {isArabic ? "عرض العناصر" : "View items"}
                         </Button>
                       </Box>
                     </TableCell>
@@ -315,7 +318,7 @@ export default function PreviousOrdersTable() {
         itemsOpen={itemsOpen}
         closeItems={closeItems}
         activeOrder={activeOrder}
-        isAr={isAr}
+        isAr={isArabic}
       />
     </Card>
   );

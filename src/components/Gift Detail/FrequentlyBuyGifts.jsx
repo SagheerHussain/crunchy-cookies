@@ -115,7 +115,7 @@ const FrequentlyBuyGifts = ({ data, product, userId, onToast }) => {
                   className="w-full 2xl:h-32 lg:h-28 md:h-24 h-28 object-cover rounded-lg"
                 />
                 <h5 className={`text-black font-medium mt-3 ${langAr ? "text-[.8rem]" : "text-[.65rem]"}`}>
-                  {(data?.title || "").slice(0, 30)}...
+                  {langAr ? (data?.ar_title || "").slice(0, 30) : (data?.title || "").slice(0, 30)}...
                 </h5>
               </div>
               <div className="w-[10%] grid place-items-center">
@@ -128,7 +128,7 @@ const FrequentlyBuyGifts = ({ data, product, userId, onToast }) => {
                   className="w-full 2xl:h-32 lg:h-28 md:h-24 h-28 object-cover rounded-lg"
                 />
                 <h5 className={`text-black font-medium mt-3 ${langAr ? "text-[.8rem]" : "text-[.65rem]"}`}>
-                  {(p?.title || "").slice(0, 30)}...
+                  {langAr ? (p?.ar_title || "").slice(0, 30) : (p?.title || "").slice(0, 30)}...
                 </h5>
               </div>
             </div>

@@ -14,6 +14,10 @@ const CART_KEY = "cart";
 
 export default function Navbar() {
   const { t } = useTranslation("translation");
+  const { i18n } = useTranslation();
+
+  const isArabic = i18n.language === "ar"
+
   const dir = t("dir") || "ltr";
   const location = useLocation();
   const navigate = useNavigate();
@@ -134,7 +138,10 @@ export default function Navbar() {
 
       setSearchLoading(true);
       try {
-        const data = await searchProducts(q, { limit: 8, signal: controller.signal });
+        const data = await searchProducts(q, {
+          limit: 8,
+          signal: controller.signal,
+        });
         setSearchResults(data?.items || []);
         setOpenSearchPanel(true);
       } catch (err) {
@@ -259,10 +266,14 @@ export default function Navbar() {
                                     {/* text */}
                                     <div className="min-w-0">
                                       <div className="truncate font-medium text-sm text-neutral-900">
-                                        {p.title}
+                                        {isArabic ? p.ar_title : p.title}
                                       </div>
                                       <div className="truncate text-xs text-neutral-500">
-                                        {(p?.currency || "QAR") + " " + Number(p?.price || 0).toLocaleString()}
+                                        {(p?.currency || "QAR") +
+                                          " " +
+                                          Number(
+                                            p?.price || 0
+                                          ).toLocaleString()}
                                       </div>
                                     </div>
                                   </Link>
@@ -274,15 +285,15 @@ export default function Navbar() {
                           {/* Footer: view all */}
                           {searchResults.length > 0 && (
                             <div className="px-4 py-2 bg-neutral-50 text-right">
-                              <button
-                                onClick={() => {
-                                  setOpenSearchPanel(false);
-                                  navigate(`/search?q=${encodeURIComponent(q.trim())}`);
-                                }}
+                              <Link
+                                to={`/filters/q/${encodeURIComponent(
+                                  q.trim()
+                                )}`}
+                                onClick={() => setOpenSearchPanel(false)}
                                 className="text-sm font-medium text-primary hover:underline"
                               >
                                 {"View all results"}
-                              </button>
+                              </Link>
                             </div>
                           )}
                         </>
@@ -328,9 +339,15 @@ export default function Navbar() {
               )}
 
               <PiShoppingCartSimpleLight
-                className={`text-[20px] ${isCart ? "text-white" : "text-primary"}`}
+                className={`text-[20px] ${
+                  isCart ? "text-white" : "text-primary"
+                }`}
               />
-              <span className={`font-medium ${isCart ? "text-white" : "text-black"}`}>
+              <span
+                className={`font-medium ${
+                  isCart ? "text-white" : "text-black"
+                }`}
+              >
                 {t("navbar.cart")}
               </span>
             </Link>
@@ -342,8 +359,16 @@ export default function Navbar() {
               } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.favorite")}
             >
-              <FiHeart className={`text-[18px] ${isWishlist ? "text-white" : "text-primary"}`} />
-              <span className={`font-medium ${isWishlist ? "text-white" : "text-black"}`}>
+              <FiHeart
+                className={`text-[18px] ${
+                  isWishlist ? "text-white" : "text-primary"
+                }`}
+              />
+              <span
+                className={`font-medium ${
+                  isWishlist ? "text-white" : "text-black"
+                }`}
+              >
                 {t("navbar.favorite")}
               </span>
             </Link>
@@ -355,8 +380,16 @@ export default function Navbar() {
               } border-b border-primary_light_mode hidden lg:flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-black shadow-sm ring-1 ring-[#0FB4BB1A]`}
               aria-label={t("navbar.member")}
             >
-              <FiUser className={`text-[18px] ${isMember ? "text-white" : "text-primary"}`} />
-              <span className={`font-medium ${isMember ? "text-white" : "text-black"}`}>
+              <FiUser
+                className={`text-[18px] ${
+                  isMember ? "text-white" : "text-primary"
+                }`}
+              />
+              <span
+                className={`font-medium ${
+                  isMember ? "text-white" : "text-black"
+                }`}
+              >
                 {t("navbar.member")}
               </span>
             </Link>
