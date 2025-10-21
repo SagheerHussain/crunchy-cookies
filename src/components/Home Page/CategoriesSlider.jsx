@@ -9,7 +9,7 @@ import { Link } from "react-router-dom"
 import "swiper/css";
 import "swiper/css/navigation";
 
-export default function GiftMomentsCarousel({ className = "", ar_title, en_title, items = [], onItemClick }) {
+export default function GiftMomentsCarousel({ isOccation = false, className = "", ar_title, en_title, items = [], onItemClick }) {
   const { i18n } = useTranslation(); 
   const isAr = i18n.language === "ar";
 
@@ -82,7 +82,7 @@ export default function GiftMomentsCarousel({ className = "", ar_title, en_title
           {items.map((it) => (
             <SwiperSlide key={it.id}>
               <Link
-                to={``}
+                to={`/filters/${isOccation ? "occasion" : "recipient"}/${it?.slug}`}
                 className="block w-full"
               >
                 <div

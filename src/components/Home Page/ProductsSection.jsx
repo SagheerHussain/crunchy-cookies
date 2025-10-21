@@ -1,12 +1,20 @@
 // client/src/components/Home Page/ProductsSection.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ProductCard from "../ProductCard";
 import Button from "../Button";
 import { useTranslation } from "react-i18next";
 
-const ProductsSection = ({ en_title, ar_title, products, footerButton }) => {
+const ProductsSection = ({ isRecipient = false, en_title, ar_title, products, footerButton }) => {
   const { i18n } = useTranslation();
   const isAr = i18n.language === "ar";
+
+  const [categories, setCategories] = useState('');
+
+  useEffect(()=> {
+    const categories = products[0]?.categories;
+    const map = isRecipient ? 'friends' : categories?.map((category) => category?.slug).join(",");
+    setCategories(map)
+  }, [products])
 
   return (
     <section className="py-10">
@@ -17,7 +25,7 @@ const ProductsSection = ({ en_title, ar_title, products, footerButton }) => {
             {isAr ? ar_title : en_title}
           </h2>
           {/* optional “See more” link (kept as your original) */}
-          <Button href="/filters/chocolates" label={isAr ? "شاهد المزيد" : "See more"} />
+          <Button href={`/filters/${isRecipient ? "recipient" : "subCategory"}/${categories}`} label={isAr ? "شاهد المزيد" : "See more"} />
         </div>
 
         {/* Grid */}

@@ -18,6 +18,7 @@ export function useSubCategories(params = {}) {
         name: it.name || "",
         ar_name: it.ar_name || "",
         image: it.image || it.imageUrl || "",
+        slug: it.slug || "",
         parent: it?.parent?.name || "",
       }));
 

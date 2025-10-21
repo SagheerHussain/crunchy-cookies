@@ -17,6 +17,7 @@ export function useRecipeints(params = {}) {
         id: it._id || it.id || idx,
         name: it.name || "",
         ar_name: it.ar_name || "",
+        slug: it.slug || "",
         image: it.image || "",
       }));
 

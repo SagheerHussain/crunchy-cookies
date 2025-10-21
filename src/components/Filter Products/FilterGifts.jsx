@@ -1,3 +1,4 @@
+// FilterGifts.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RxCross1 } from "react-icons/rx";
@@ -15,9 +16,12 @@ import "swiper/css/navigation";
 import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { ClipLoader } from "react-spinners";
 
 /* ==================== CONFIG ==================== */
-const API_BASE = "http://localhost:5000/api/v1"; // change for prod
+const API_BASE =
+  import.meta.env.VITE_BASE_URL ||
+  "https://crunchy-cookies-server.onrender.com/api/v1"; // change for prod
 const PAGE_SIZE = 15;
 
 /* ==================== HELPERS ==================== */
@@ -34,14 +38,16 @@ async function getFilterProducts(params, signal) {
   const qs = qstr(params);
   const name = qs?.split("&")[0].split("=")[0];
   const type = qs?.split("&")[0].split("=")[1];
-  const res = await fetch(`${API_BASE}/product/lists/filters?${name}=${type}`, { signal });
-  console.log(res)
+  const res = await fetch(`${API_BASE}/product/lists/filters?${name}=${type}`, {
+    signal,
+  });
   if (!res.ok) throw new Error(`Failed ${res.status}`);
   const json = await res.json();
   const items = json?.data?.docs ?? [];
   const total = json?.data?.totalDocs ?? 0;
   const totalPages =
-    json?.data?.totalPages ?? Math.max(1, Math.ceil(total / (params.limit || PAGE_SIZE)));
+    json?.data?.totalPages ??
+    Math.max(1, Math.ceil(total / (params.limit || PAGE_SIZE)));
   const page = json?.data?.page ?? params.page ?? 1;
   return { items, total, totalPages, page };
 }
@@ -68,19 +74,19 @@ function normalizeType(type) {
 /* ==================== COMPONENT ==================== */
 export default function FilterableFlowerGrid() {
   const { i18n } = useTranslation();
-  const isAr = (i18n.language === "ar");
+  const isAr = i18n.language === "ar";
 
   const navigate = useNavigate();
-  const { type, name } = useParams();               // <-- /filters/:type/:name
-  const [sp] = useSearchParams();                   // optional fallback (supports /filters?occasion=friends)
+  const { type, name } = useParams(); // <-- /filters/:type/:name
+  const [sp] = useSearchParams(); // optional fallback
 
   /* ----- Build BASE (server) from pathname first, then query params fallback ----- */
   const tKey = normalizeType(type);
   const baseFromPath = {
-    occasion: tKey === "occasion" ? (name || "") : "",
-    subCategory: tKey === "subCategory" ? (name || "") : "",
-    brand: tKey === "brand" ? (name || "") : "",
-    recipient: tKey === "recipient" ? (name || "") : "",
+    occasion: tKey === "occasion" ? name || "" : "",
+    subCategory: tKey === "subCategory" ? name || "" : "",
+    brand: tKey === "brand" ? name || "" : "",
+    recipient: tKey === "recipient" ? name || "" : "",
   };
 
   const baseFromQuery = {
@@ -90,7 +96,6 @@ export default function FilterableFlowerGrid() {
     recipient: sp.get("recipient") || "",
   };
 
-  // pathname has priority; if empty, use query
   const baseFilter = {
     occasion: baseFromPath.occasion || baseFromQuery.occasion,
     subCategory: baseFromPath.subCategory || baseFromQuery.subCategory,
@@ -98,17 +103,18 @@ export default function FilterableFlowerGrid() {
     recipient: baseFromPath.recipient || baseFromQuery.recipient,
   };
 
-  // server pagination (kept in component state; not in URL for this scheme)
+  // server pagination
   const [page, setPage] = useState(1);
 
   // ===== Open/Close sidebar
   const [open, setOpen] = useState(false);
 
-  // ===== Client-side filters (NO refetch)
+  // ===== Client-side filters
   const [categorySet, setCategorySet] = useState(new Set());
   const [recipientsSet, setRecipientsSet] = useState(new Set());
   const [brandsSet, setBrandsSet] = useState(new Set());
   const [colorsSet, setColorsSet] = useState(new Set());
+  const [occasionsSet, setOccasionsSet] = useState(new Set());
   const [priceSort, setPriceSort] = useState(""); // "hl" | "lh" | ""
 
   const clearClientFilters = () => {
@@ -116,6 +122,7 @@ export default function FilterableFlowerGrid() {
     setRecipientsSet(new Set());
     setBrandsSet(new Set());
     setColorsSet(new Set());
+    setOccasionsSet(new Set());
     setPriceSort("");
   };
 
@@ -126,16 +133,23 @@ export default function FilterableFlowerGrid() {
   };
 
   // ===== Server fetch (base dataset + pagination)
-  const [serverPage, setServerPage] = useState({ items: [], total: 0, totalPages: 1 });
+  const [serverPage, setServerPage] = useState({
+    items: [],
+    total: 0,
+    totalPages: 1,
+  });
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+
+  // NEW: a strong UI-ready gate for the ClipLoader
+  const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
     (async () => {
       try {
         setLoading(true);
-        setErr("");
+        setShowLoader(true); // show spinner immediately on fetch start
         const payload = await getFilterProducts(
           {
             subCategory: baseFilter.subCategory,
@@ -147,15 +161,36 @@ export default function FilterableFlowerGrid() {
           },
           controller.signal
         );
-        setServerPage({ items: payload.items, total: payload.total, totalPages: payload.totalPages });
+        setServerPage({
+          items: payload.items,
+          total: payload.total,
+          totalPages: payload.totalPages,
+        });
+
+        // Wait for React to commit DOM & derived memos (options), then hide spinner.
+        // Two RAFs = next frame after paint, minimizing flicker.
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => setShowLoader(false));
+        });
       } catch (e) {
-        if (e.name !== "AbortError") setErr(e.message || "Failed to load");
+        if (e.name !== "AbortError") {
+          // still let UI render error state; hide spinner to reveal it
+          setShowLoader(false);
+          setErr(e.message);
+        }
       } finally {
         setLoading(false);
       }
     })();
     return () => controller.abort();
-  }, [baseFilter.subCategory, baseFilter.occasion, baseFilter.brand, baseFilter.recipient, page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    baseFilter.subCategory,
+    baseFilter.occasion,
+    baseFilter.brand,
+    baseFilter.recipient,
+    page,
+  ]);
 
   // Reset page + clear local filters whenever the base route target changes
   useEffect(() => {
@@ -170,30 +205,62 @@ export default function FilterableFlowerGrid() {
   const categoryOptions = useMemo(() => {
     const slugs = uniq(
       pageItems.flatMap((p) =>
-        Array.isArray(p.categories) ? p.categories.map((c) => toSlug(c?.slug || c?.name)) : []
+        Array.isArray(p.categories)
+          ? p.categories.map((c) => toSlug(c?.slug || c?.name))
+          : []
       )
     );
     return slugs.map((slug) => {
-      const sample = pageItems.find((p) => p.categories?.some((c) => toSlug(c?.slug || c?.name) === slug));
-      const found = sample?.categories?.find((c) => toSlug(c?.slug || c?.name) === slug);
-      return { slug, en_name: found?.name || slug, ar_name: found?.ar_name || "" };
+      const sample = pageItems.find((p) =>
+        p.categories?.some((c) => toSlug(c?.slug || c?.name) === slug)
+      );
+      const found = sample?.categories?.find(
+        (c) => toSlug(c?.slug || c?.name) === slug
+      );
+      return {
+        slug,
+        en_name: found?.name || slug,
+        ar_name: found?.ar_name || "",
+      };
     });
   }, [pageItems]);
 
   const recipientOptions = useMemo(() => {
-    const slugs = uniq(pageItems.flatMap((p) => p.recipients?.map((r) => toSlug(r?.slug || r?.name)) || []));
+    const slugs = uniq(
+      pageItems.flatMap(
+        (p) => p.recipients?.map((r) => toSlug(r?.slug || r?.name)) || []
+      )
+    );
     return slugs.map((slug) => {
-      const sample = pageItems.find((p) => p.recipients?.some((r) => toSlug(r?.slug || r?.name) === slug));
-      const found = sample?.recipients?.find((r) => toSlug(r?.slug || r?.name) === slug);
-      return { slug, en_name: found?.name || slug, ar_name: found?.ar_name || "" };
+      const sample = pageItems.find((p) =>
+        p.recipients?.some((r) => toSlug(r?.slug || r?.name) === slug)
+      );
+      const found = sample?.recipients?.find(
+        (r) => toSlug(r?.slug || r?.name) === slug
+      );
+      return {
+        slug,
+        en_name: found?.name || slug,
+        ar_name: found?.ar_name || "",
+      };
     });
   }, [pageItems]);
 
   const brandOptions = useMemo(() => {
-    const slugs = uniq(pageItems.map((p) => toSlug(p?.brand?.slug || p?.brand?.name)).filter(Boolean));
+    const slugs = uniq(
+      pageItems
+        .map((p) => toSlug(p?.brand?.slug || p?.brand?.name))
+        .filter(Boolean)
+    );
     return slugs.map((slug) => {
-      const sample = pageItems.find((p) => toSlug(p?.brand?.slug || p?.brand?.name) === slug);
-      return { slug, en_name: sample?.brand?.name || slug, ar_name: sample?.brand?.ar_name || "" };
+      const sample = pageItems.find(
+        (p) => toSlug(p?.brand?.slug || p?.brand?.name) === slug
+      );
+      return {
+        slug,
+        en_name: sample?.brand?.name || slug,
+        ar_name: sample?.brand?.ar_name || "",
+      };
     });
   }, [pageItems]);
 
@@ -201,19 +268,37 @@ export default function FilterableFlowerGrid() {
     const labels = uniq(
       pageItems.flatMap((p) =>
         (p.colors || []).map((c) =>
-          typeof c === "string" ? c : c?.name || c?.slug || c?.ar_name || c?._id || ""
+          typeof c === "string"
+            ? c
+            : c?.name || c?.slug || c?.ar_name || c?._id || ""
         )
       )
     );
-    return labels.map((label) => ({ slug: toSlug(label), en_name: label, ar_name: label }));
+    return labels.map((label) => ({
+      slug: toSlug(label),
+      en_name: label,
+      ar_name: label,
+    }));
   }, [pageItems]);
 
-  const occasionChips = useMemo(() => {
-    const slugs = uniq(pageItems.flatMap((p) => p.occasions?.map((o) => toSlug(o?.slug || o?.name)) || []));
+  const occasionOptions = useMemo(() => {
+    const slugs = uniq(
+      pageItems.flatMap(
+        (p) => p.occasions?.map((o) => toSlug(o?.slug || o?.name)) || []
+      )
+    );
     return slugs.map((slug) => {
-      const sample = pageItems.find((p) => p.occasions?.some((o) => toSlug(o?.slug || o?.name) === slug));
-      const found = sample?.occasions?.find((o) => toSlug(o?.slug || o?.name) === slug);
-      return { slug, en_name: found?.name || slug, ar_name: found?.ar_name || "" };
+      const sample = pageItems.find((p) =>
+        p.occasions?.some((o) => toSlug(o?.slug || o?.name) === slug)
+      );
+      const found = sample?.occasions?.find(
+        (o) => toSlug(o?.slug || o?.name) === slug
+      );
+      return {
+        slug,
+        en_name: found?.name || slug,
+        ar_name: found?.ar_name || "",
+      };
     });
   }, [pageItems]);
 
@@ -232,32 +317,65 @@ export default function FilterableFlowerGrid() {
       );
     }
     if (brandsSet.size) {
-      list = list.filter((p) => brandsSet.has(toSlug(p?.brand?.slug || p?.brand?.name)));
+      list = list.filter((p) =>
+        brandsSet.has(toSlug(p?.brand?.slug || p?.brand?.name))
+      );
     }
     if (colorsSet.size) {
       list = list.filter((p) =>
         (p.colors || []).some((c) => {
-          const label = typeof c === "string" ? c : c?.name || c?.slug || c?.ar_name || c?._id || "";
+          const label =
+            typeof c === "string"
+              ? c
+              : c?.name || c?.slug || c?.ar_name || c?._id || "";
           return colorsSet.has(toSlug(label));
         })
       );
     }
+    if (occasionsSet.size) {
+      list = list.filter((p) =>
+        p.occasions?.some((o) => occasionsSet.has(toSlug(o?.slug || o?.name)))
+      );
+    }
 
-    if (priceSort === "hl") list.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
-    if (priceSort === "lh") list.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+    if (priceSort === "hl")
+      list.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+    if (priceSort === "lh")
+      list.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
 
     return list;
-  }, [pageItems, categorySet, recipientsSet, brandsSet, colorsSet, priceSort]);
+  }, [
+    pageItems,
+    categorySet,
+    recipientsSet,
+    brandsSet,
+    colorsSet,
+    occasionsSet,
+    priceSort,
+  ]);
 
-  /* ===== Handlers to navigate by pathname for top chips ===== */
   const gotoOccasion = (slug) => {
-    if (!slug) navigate("/filters"); // "All" -> base path
+    if (!slug) navigate("/filters");
     else navigate(`/filters/occasions/${slug}`);
   };
 
   return (
-    <section id="filter_gifts" className="pb-10">
-      <div className="custom-container">
+    <section id="filter_gifts" className="pb-10 relative">
+      {/* GLOBAL OVERLAY LOADER — stays until UI is truly ready */}
+      {showLoader && (
+        <div className="fixed inset-0 z-[9999] bg-white/80 backdrop-blur-[1px] flex items-center justify-center">
+          <ClipLoader size={44} color={"#0FB4BB"} />
+        </div>
+      )}
+
+      <div
+        className={`custom-container transition-opacity duration-150 ${
+          showLoader
+            ? "opacity-0 pointer-events-none select-none"
+            : "opacity-100"
+        }`}
+        aria-busy={showLoader}
+      >
         {/* Header Row */}
         <div className="pt-10 pb-2 flex md:flex-row flex-col items-center justify-between relative">
           <div className="md:w-[50%] lg:w-[60%]">
@@ -266,7 +384,7 @@ export default function FilterableFlowerGrid() {
             </h1>
           </div>
 
-        {/* Occasions chips with custom nav (drive PATH) */}
+          {/* Occasions chips with custom nav (drive PATH) */}
           <div className="w-full md:w-[50%] lg:w-[60%] mt-4 relative">
             <Swiper
               modules={[Navigation, A11y]}
@@ -289,8 +407,10 @@ export default function FilterableFlowerGrid() {
               onSwiper={(swiper) => {
                 setTimeout(() => {
                   try {
-                    swiper.params.navigation.prevEl = document.querySelector(".oc-prev");
-                    swiper.params.navigation.nextEl = document.querySelector(".oc-next");
+                    swiper.params.navigation.prevEl =
+                      document.querySelector(".oc-prev");
+                    swiper.params.navigation.nextEl =
+                      document.querySelector(".oc-next");
                     swiper.navigation.init();
                     swiper.navigation.update();
                   } catch {}
@@ -298,46 +418,53 @@ export default function FilterableFlowerGrid() {
               }}
               className="mySwiper overflow-hidden"
             >
-              {/* All */}
-              <SwiperSlide key="__all">
-                <button
-                  onClick={() => gotoOccasion("")}
-                  className={`group border-primary/30 ${
-                    isAr ? "lg:text-sm 2xl:text-[1rem]" : "lg:text-xs 2xl:text-[.8rem]"
-                  } flex items-center justify-between gap-2 rounded-[8px] font-medium border px-4 py-3 transition text-black w-full ${
-                    !baseFilter.occasion ? "bg-primary text-white" : ""
-                  }`}
-                >
-                  <span>{isAr ? "الكل" : "All"}</span>
-                  {isAr ? <IoIosArrowBack size={16} color="#0FB4BB" /> : <IoIosArrowForward size={16} color="#0FB4BB" />}
-                </button>
-              </SwiperSlide>
-
-              {occasionChips.map((o) => (
+              {occasionOptions.map((o) => (
                 <SwiperSlide key={o.slug}>
                   <button
-                    onClick={() => gotoOccasion(baseFilter.occasion === o.slug ? "" : o.slug)}
+                    onClick={() => navigate(`/filters/occasions/${o.slug}`)}
                     className={`group border-primary/30 ${
-                      isAr ? "lg:text-sm 2xl:text-[1rem]" : "lg:text-xs 2xl:text-[.8rem]"
-                    } flex items-center justify-between gap-2 rounded-[8px] font-medium border px-4 py-3 transition text-black w-full ${
-                      baseFilter.occasion === o.slug ? "bg-primary text-white" : ""
-                    }`}
+                      isAr
+                        ? "lg:text-sm 2xl:text-[1rem]"
+                        : "lg:text-xs 2xl:text-[.8rem]"
+                    } flex items-center justify-between gap-2 rounded-[8px] font-medium border px-4 py-3 transition text-black w-full`}
                     title={isAr ? o.ar_name : o.en_name}
                   >
                     <span>{isAr ? o.ar_name : o.en_name}</span>
-                    {isAr ? <IoIosArrowBack size={16} color="#0FB4BB" /> : <IoIosArrowForward size={16} color="#0FB4BB" />}
+                    {isAr ? (
+                      <IoIosArrowBack size={16} color="#0FB4BB" />
+                    ) : (
+                      <IoIosArrowForward size={16} color="#0FB4BB" />
+                    )}
                   </button>
                 </SwiperSlide>
               ))}
             </Swiper>
 
-            {/* Custom nav buttons — keep positions */}
-            <div className={`absolute -bottom-12 ${isAr ? "left-0" : "left-full -translate-x-full"} flex items-center gap-3`}>
-              <button className="oc-prev grid place-items-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary hover:bg-primary/70 text-white shadow" aria-label="Previous">
-                {isAr ? <FiChevronRight size={22} /> : <FiChevronLeft size={22} />}
+            {/* Custom nav buttons */}
+            <div
+              className={`absolute -bottom-12 ${
+                isAr ? "left-0" : "left-full -translate-x-full"
+              } flex items-center gap-3`}
+            >
+              <button
+                className="oc-prev grid place-items-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary hover:bg-primary/70 text-white shadow"
+                aria-label="Previous"
+              >
+                {isAr ? (
+                  <FiChevronRight size={22} />
+                ) : (
+                  <FiChevronLeft size={22} />
+                )}
               </button>
-              <button className="oc-next grid place-items-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary hover:bg-primary/70 text-white shadow" aria-label="Next">
-                {isAr ? <FiChevronLeft size={22} /> : <FiChevronRight size={22} />}
+              <button
+                className="oc-next grid place-items-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary hover:bg-primary/70 text-white shadow"
+                aria-label="Next"
+              >
+                {isAr ? (
+                  <FiChevronLeft size={22} />
+                ) : (
+                  <FiChevronRight size={22} />
+                )}
               </button>
             </div>
           </div>
@@ -347,15 +474,21 @@ export default function FilterableFlowerGrid() {
         <div className="select-filter-btn mb-10 mt-4">
           <button
             onClick={() => setOpen((s) => !s)}
-            className={`${open ? "bg-primary text-white" : "bg-transparent text-primary"} transition-all duration-300 inline-flex items-center gap-2 rounded-[5px] border border-[#BFE8E7] px-4 py-2`}
+            className={`${
+              open ? "bg-primary text-white" : "bg-transparent text-primary"
+            } transition-all duration-300 inline-flex items-center gap-2 rounded-[5px] border border-[#BFE8E7] px-4 py-2`}
           >
             <IoFilter className="text-lg" />
-            <span className="font-medium">{isAr ? "حدد عوامل التصفية" : "Select Filters"}</span>
+            <span className="font-medium">
+              {isAr ? "حدد عوامل التصفية" : "Select Filters"}
+            </span>
           </button>
         </div>
 
         {/* Content area */}
-        <div className={`grid gap-10 ${open ? "lg:grid-cols-[320px_1fr]" : ""}`}>
+        <div
+          className={`grid gap-10 ${open ? "lg:grid-cols-[320px_1fr]" : ""}`}
+        >
           <AnimatePresence initial={false}>
             {open && (
               <motion.aside
@@ -372,9 +505,13 @@ export default function FilterableFlowerGrid() {
                       <label key={opt.slug} className="FilterItem">
                         <RoundCheck
                           checked={categorySet.has(opt.slug)}
-                          onChange={() => setCategorySet((s) => toggleSet(s, opt.slug))}
+                          onChange={() =>
+                            setCategorySet((s) => toggleSet(s, opt.slug))
+                          }
                         />
-                        <span className="grow">{isAr ? opt.ar_name : opt.en_name}</span>
+                        <span className="grow">
+                          {isAr ? opt.ar_name : opt.en_name}
+                        </span>
                       </label>
                     ))}
                   </FilterSection>
@@ -385,9 +522,13 @@ export default function FilterableFlowerGrid() {
                       <label key={opt.slug} className="FilterItem">
                         <RoundCheck
                           checked={recipientsSet.has(opt.slug)}
-                          onChange={() => setRecipientsSet((s) => toggleSet(s, opt.slug))}
+                          onChange={() =>
+                            setRecipientsSet((s) => toggleSet(s, opt.slug))
+                          }
                         />
-                        <span className="grow">{isAr ? opt.ar_name : opt.en_name}</span>
+                        <span className="grow">
+                          {isAr ? opt.ar_name : opt.en_name}
+                        </span>
                       </label>
                     ))}
                   </FilterSection>
@@ -398,9 +539,13 @@ export default function FilterableFlowerGrid() {
                       <label key={c.slug} className="FilterItem">
                         <RoundCheck
                           checked={colorsSet.has(c.slug)}
-                          onChange={() => setColorsSet((s) => toggleSet(s, c.slug))}
+                          onChange={() =>
+                            setColorsSet((s) => toggleSet(s, c.slug))
+                          }
                         />
-                        <span className="grow">{isAr ? c.ar_name : c.en_name}</span>
+                        <span className="grow">
+                          {isAr ? c.ar_name : c.en_name}
+                        </span>
                       </label>
                     ))}
                   </FilterSection>
@@ -411,30 +556,59 @@ export default function FilterableFlowerGrid() {
                       <label key={b.slug} className="FilterItem">
                         <RoundCheck
                           checked={brandsSet.has(b.slug)}
-                          onChange={() => setBrandsSet((s) => toggleSet(s, b.slug))}
+                          onChange={() =>
+                            setBrandsSet((s) => toggleSet(s, b.slug))
+                          }
                         />
-                        <span className="grow">{isAr ? b.ar_name : b.en_name}</span>
+                        <span className="grow">
+                          {isAr ? b.ar_name : b.en_name}
+                        </span>
                       </label>
                     ))}
                   </FilterSection>
 
-                  {/* Price (two static options) */}
+                  {/* Occasions */}
+                  <FilterSection title={isAr ? "المناسبات" : "Occasions"}>
+                    {occasionOptions.map((o) => (
+                      <label key={o.slug} className="FilterItem">
+                        <RoundCheck
+                          checked={occasionsSet.has(o.slug)}
+                          onChange={() =>
+                            setOccasionsSet((s) => toggleSet(s, o.slug))
+                          }
+                        />
+                        <span className="grow">
+                          {isAr ? o.ar_name : o.en_name}
+                        </span>
+                      </label>
+                    ))}
+                  </FilterSection>
+
+                  {/* Price */}
                   <FilterSection title={isAr ? "السعر" : "Price"}>
                     <label className="FilterItem">
                       <RoundRadio
                         name="price"
                         checked={priceSort === "hl"}
-                        onChange={() => setPriceSort((v) => (v === "hl" ? "" : "hl"))}
+                        onChange={() =>
+                          setPriceSort((v) => (v === "hl" ? "" : "hl"))
+                        }
                       />
-                      <span className="grow">{isAr ? "عالي إلى منخفض" : "High to low"}</span>
+                      <span className="grow">
+                        {isAr ? "عالي إلى منخفض" : "High to low"}
+                      </span>
                     </label>
                     <label className="FilterItem">
                       <RoundRadio
                         name="price"
                         checked={priceSort === "lh"}
-                        onChange={() => setPriceSort((v) => (v === "lh" ? "" : "lh"))}
+                        onChange={() =>
+                          setPriceSort((v) => (v === "lh" ? "" : "lh"))
+                        }
                       />
-                      <span className="grow">{isAr ? "منخفض إلى عالي" : "Low to high"}</span>
+                      <span className="grow">
+                        {isAr ? "منخفض إلى عالي" : "Low to high"}
+                      </span>
                     </label>
                   </FilterSection>
                 </div>
@@ -449,28 +623,51 @@ export default function FilterableFlowerGrid() {
                 onClick={clearClientFilters}
                 className="border-primary/30 mb-4 border-[1px] rounded-[5px] py-2 px-4 text-black flex items-center gap-2"
               >
-                <RxCross1 size={16} color="#0FB4BB" /> {isAr ? "مسح المرشحات" : "Clear Filters"}
+                <RxCross1 size={16} color="#0FB4BB" /> Clear Filters
               </button>
             )}
 
             {loading ? (
-              <div className={`grid gap-6 sm:grid-cols-2 md:grid-cols-2 ${open ? "lg:grid-cols-2 xl:grid-cols-3" : "lg:grid-cols-3 xl:grid-cols-4"}`}>
+              <div
+                className={`grid gap-6 sm:grid-cols-2 md:grid-cols-2 ${
+                  open
+                    ? "lg:grid-cols-2 xl:grid-cols-3"
+                    : "lg:grid-cols-3 xl:grid-cols-4"
+                }`}
+              >
                 {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                  <div key={i} className="animate-pulse rounded-xl border p-4 h-64 bg-gray-50" />
+                  <div
+                    key={i}
+                    className="animate-pulse rounded-xl border p-4 h-64 bg-gray-50"
+                  />
                 ))}
               </div>
             ) : err ? (
               <div className="text-red-600">{err}</div>
+            ) : filtered.length === 0 ? (
+              <div className="py-16 text-center text-gray-500 text-lg">
+                No Products Found.
+              </div>
             ) : (
               <>
-                <div className={`grid gap-6 sm:grid-cols-2 md:grid-cols-2 ${open ? "lg:grid-cols-2 xl:grid-cols-3" : "lg:grid-cols-3 xl:grid-cols-4"}`}>
+                <div
+                  className={`grid gap-6 sm:grid-cols-2 md:grid-cols-2 ${
+                    open
+                      ? "lg:grid-cols-2 xl:grid-cols-3"
+                      : "lg:grid-cols-3 xl:grid-cols-4"
+                  }`}
+                >
                   {filtered.map((p) => (
                     <ProductCard key={p._id} product={p} />
                   ))}
                 </div>
 
                 {/* Pagination (server) */}
-                <Stack spacing={2} style={{ direction: "ltr" }} className="mt-20 flex items-center justify-center">
+                <Stack
+                  spacing={2}
+                  style={{ direction: "ltr" }}
+                  className="mt-20 flex items-center justify-center"
+                >
                   <Pagination
                     count={serverPage.totalPages || 1}
                     page={page}
@@ -487,7 +684,7 @@ export default function FilterableFlowerGrid() {
   );
 }
 
-/* ---------- Small Components (same design) ---------- */
+/* ---------- Small Components ---------- */
 function FilterSection({ title, children }) {
   return (
     <div className="mb-8">
@@ -507,7 +704,10 @@ function RoundCheck({ checked, onChange, readOnly }) {
         readOnly={readOnly}
         className="peer h-5 w-5 appearance-none rounded-full border border-[#BFE8E7] bg-white outline-none cursor-pointer checked:bg-[#18B2AF] transition"
       />
-      <svg viewBox="0 0 24 24" className="pointer-events-none absolute h-3 w-3 text-white opacity-0 peer-checked:opacity-100">
+      <svg
+        viewBox="0 0 24 24"
+        className="pointer-events-none absolute h-3 w-3 text-white opacity-0 peer-checked:opacity-100"
+      >
         <path
           fill="currentColor"
           d="M20.285 6.708a1 1 0 0 1 .007 1.414l-9 9a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414l3.293 3.293 8.293-8.293a1 1 0 0 1 1.407 0z"
@@ -537,7 +737,10 @@ const styles = `
   .FilterItem{display:flex;align-items:center;gap:.6rem;padding:.6rem .8rem;border:1px solid #BFE8E7;border-radius:12px;background:#fff}
   .FilterItem:hover{border-color:#18B2AF}
 `;
-if (typeof document !== "undefined" && !document.getElementById("local-styles")) {
+if (
+  typeof document !== "undefined" &&
+  !document.getElementById("local-styles")
+) {
   const style = document.createElement("style");
   style.id = "local-styles";
   style.innerHTML = styles;

@@ -3,9 +3,11 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import Button from "../Button";
 
-export default function GiftIdeasSection({ en_title, ar_title, items = [], className = "" }) {
+export default function GiftIdeasSection({ en_title, ar_title, items = [], className = "", isCategories = false }) {
   const { i18n } = useTranslation();
   const isAr = i18n.language === "ar";
+
+  console.log("items", items)
 
   return (
     <section className={`py-10 ${className}`}>
@@ -31,7 +33,7 @@ export default function GiftIdeasSection({ en_title, ar_title, items = [], class
             {/* Items row */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-8 place-items-center">
               {items.map((it) => (
-                <Link key={it.id} to={``} className="flex flex-col items-center group">
+                <Link key={it.id} to={`/filters/${isCategories ? "subCategory" : "brand"}/${it?.slug}`} className="flex flex-col items-center group">
                   {/* circular badge behind image */}
                   <div className="h-[150px] w-[150px] bg-[#f0e9df] rounded-full flex items-center justify-center">
                     <img
