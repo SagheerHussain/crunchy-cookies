@@ -23,13 +23,11 @@
     "explore": {
       "title": "Explore Crunchy Cookies",
       "links": [
-        { "label": "Flowers", "href": "/flowers" },
-        { "label": "Cakes", "href": "/cakes" },
-        { "label": "Birthday", "href": "/birthday" },
-        { "label": "Anniversary", "href": "/anniversary" },
+        { "label": "Flowers", "href": "/filters/subCategory/flowers-in-vases" },
+        { "label": "Cakes", "href": "/filters/subCategory/cakes" },
+        { "label": "Birthday", "href": "/filters/occasion/happy-birthday" },
+        { "label": "Anniversary", "href": "/filters/occasion/anniversary" },
         { "label": "Occasions", "href": "/occasions" },
-        { "label": "Bestsellers", "href": "/bestsellers" },
-        { "label": "Premium", "href": "/premium" },
         { "label": "Brands", "href": "/brands" }
       ]
     },

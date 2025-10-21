@@ -120,6 +120,7 @@ const HomePage = () => {
             isCategories={true}
             en_title="Explore Unique Gift Ideas"
             ar_title="استكشف أفكار هدايا فريدة"
+            link="/categories"
             items={subCategories?.rows?.slice(0, 12)}
           />
         )}
@@ -253,6 +254,7 @@ const HomePage = () => {
         ) : (
           <GiftIdeasSection
             en_title="Brands You'll Love"
+            link="/brands"
             ar_title="ماركات ستعجبك"
             items={brandsData?.rows}
           />

@@ -23,13 +23,11 @@
     "explore": {
       "title": "استكشف كرنشي كوكيز",
       "links": [
-        { "label": "زهور", "href": "/flowers" },
-        { "label": "كيك", "href": "/cakes" },
-        { "label": "أعياد الميلاد", "href": "/birthday" },
-        { "label": "ذكرى سنوية", "href": "/anniversary" },
+        { "label": "زهور", "href": "/filters/subCategory/flowers-in-vases" },
+        { "label": "كيك", "href": "/filters/subCategory/cakes" },
+        { "label": "أعياد الميلاد", "href": "/filters/occasion/happy-birthday" },
+        { "label": "ذكرى سنوية", "href": "/filters/occasion/anniversary" },
         { "label": "مناسبات", "href": "/occasions" },
-        { "label": "الأكثر مبيعًا", "href": "/bestsellers" },
-        { "label": "بريميوم", "href": "/premium" },
         { "label": "العلامات التجارية", "href": "/brands" }
       ]
     },

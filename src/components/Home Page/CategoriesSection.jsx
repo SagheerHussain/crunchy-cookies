@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import Button from "../Button";
 
-export default function GiftIdeasSection({ en_title, ar_title, items = [], className = "", isCategories = false }) {
+export default function GiftIdeasSection({ isPage = false, link = "", en_title, ar_title, items = [], className = "", isCategories = false }) {
   const { i18n } = useTranslation();
   const isAr = i18n.language === "ar";
 
@@ -17,7 +17,9 @@ export default function GiftIdeasSection({ en_title, ar_title, items = [], class
           <h2 className="text-center text-[1.3rem] md:text-[1.5rem] lg:text-[1.8rem] xl:text-[2.5rem] tracking-wide text-primary">
             {isAr ? ar_title : en_title}
           </h2>
-          <Button label={`${isAr ? "شاهد المزيد" : "See more"}`} href="/filters/chocolate" />
+          {
+            isPage ? null : <Button label={`${isAr ? "شاهد المزيد" : "See more"}`} href={link} />
+          }
         </div>
 
         {/* Gradient container */}

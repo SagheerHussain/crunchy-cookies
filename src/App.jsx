@@ -9,6 +9,9 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import ProfilePage from "./pages/ProfilePage";
 import GiftDetailPage from "./pages/GiftDetailPage";
+import BrandsPage from "./pages/BrandsPage";
+import CategoriesPage from "./pages/CategoriesPage";
+import OccasionsPage from "./pages/OccasionPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from "./components/ProtectedRoute"
@@ -41,6 +44,9 @@ export default function App() {
         <Route path="/member/:id" element={<ProfilePage />} />
       </Route>
       <Route path="/gift-detail/:id" element={<GiftDetailPage />} />
+      <Route path="/brands" element={<BrandsPage />} />
+      <Route path="/categories" element={<CategoriesPage />} />
+      <Route path="/occasions" element={<OccasionsPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
     </Routes>
