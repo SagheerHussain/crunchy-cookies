@@ -80,10 +80,10 @@ const ShowcaseProducts = ({ products, en_title, ar_title }) => {
           <h2 className="text-center text-[1.3rem] md:text-[1.5rem] lg:text-[1.8rem] xl:text-[2.5rem] tracking-wide text-primary">
             {langClass === "ar" ? ar_title : en_title}
           </h2>
-          <Button
+          {/* <Button
             label={`${langClass === "ar" ? "شاهد المزيد" : "See more"}`}
             href="/filters/chocolate"
-          />
+          /> */}
         </div>
 
         <div className="md:block hidden absolute bottom-[-7%] left-0 w-full bg-[#0fb5bb25] rounded-[25px] md:h-[500px] lg:h-[200px] xl:h-[250px] border-[1px] border-primary"></div>
