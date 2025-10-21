@@ -43,7 +43,7 @@
       "title": "Customer Service",
       "links": [
         { "label": "Contact Us", "href": "/contact" },
-        { "label": "FAQ's", "href": "/faqs" }
+        { "label": "FAQ's", "href": "/faq" }
       ]
     },
     "copyright": "All Rights Reserved © 2025 Crunchy Cookies"

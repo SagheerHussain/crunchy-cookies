@@ -16,6 +16,8 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from "./components/ProtectedRoute"
 import { useLocation } from "react-router-dom";
+import FAQPage from "./pages/FAQPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 
 import "./App.css";
 
@@ -44,6 +46,8 @@ export default function App() {
         <Route path="/member/:id" element={<ProfilePage />} />
       </Route>
       <Route path="/gift-detail/:id" element={<GiftDetailPage />} />
+      <Route path="/faq" element={<FAQPage />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
       <Route path="/brands" element={<BrandsPage />} />
       <Route path="/categories" element={<CategoriesPage />} />
       <Route path="/occasions" element={<OccasionsPage />} />
