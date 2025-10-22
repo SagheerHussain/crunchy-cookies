@@ -31,6 +31,7 @@ import {
 import previewCard from "/images/preview-card.png";
 import { checkCoupon } from "../../api/coupon";
 import { createOrder } from "../../api/order";
+import Button from "../Button";
 
 const CURRENCY = (n) => `QAR ${Number(n || 0).toLocaleString()}`;
 const PANEL_RING = "ring-1 ring-primary/10";
@@ -39,7 +40,8 @@ const round2 = (n) =>
   Math.max(0, Math.round((Number(n || 0) + Number.EPSILON) * 100) / 100);
 function nextOrderCode(prefix = "SA") {
   const year = new Date().getFullYear();
-  const last = localStorage.getItem(ORDER_CODE_KEY) || `${prefix}-${year}-000120`;
+  const last =
+    localStorage.getItem(ORDER_CODE_KEY) || `${prefix}-${year}-000120`;
   const m = last?.match?.(/^([A-Z]+)-(\d{4})-(\d{6})$/);
   const lastNum = m ? parseInt(m[3], 10) : 120;
   const code = `${prefix}-${year}-${String(lastNum + 1).padStart(6, "0")}`;
@@ -58,16 +60,23 @@ function InlinePreviewModal({ open, onClose, phones, cardMsg, item }) {
       className="fixed inset-0 z-[60] flex items-center justify-center"
       onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        onClick={onClose}
+      />
       <div className="relative z-10 mx-auto w-[860px] max-w-[60vw] max-h-[90vh] overflow-y-auto">
-        <div className={`bg-white border border-primary/20 rounded-3xl shadow-2xl ${PANEL_RING}`}>
+        <div
+          className={`bg-white border border-primary/20 rounded-3xl shadow-2xl ${PANEL_RING}`}
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-primary/20 bg-primary/5 rounded-t-3xl">
             <div className="flex items-center gap-3">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <FiGift />
               </span>
-              <h3 className="text-primary text-xl">{isAr ? "تفاصيل" : "Details"}</h3>
+              <h3 className="text-primary text-xl">
+                {isAr ? "تفاصيل" : "Details"}
+              </h3>
             </div>
             <button
               onClick={onClose}
@@ -83,7 +92,9 @@ function InlinePreviewModal({ open, onClose, phones, cardMsg, item }) {
             {/* Phones */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="block">
-                <span className="text-primary font-medium">{isAr ? "هاتف المرسل :" : "Sender Phone :"}</span>
+                <span className="text-primary font-medium">
+                  {isAr ? "هاتف المرسل :" : "Sender Phone :"}
+                </span>
                 <input
                   value={phones.sender}
                   disabled
@@ -93,7 +104,9 @@ function InlinePreviewModal({ open, onClose, phones, cardMsg, item }) {
               </label>
 
               <label className="block">
-                <span className="text-primary font-medium">{isAr ? "هاتف المتلقي :" : "Receiver Phone :"}</span>
+                <span className="text-primary font-medium">
+                  {isAr ? "هاتف المتلقي :" : "Receiver Phone :"}
+                </span>
                 <input
                   value={phones.receiver}
                   disabled
@@ -106,7 +119,9 @@ function InlinePreviewModal({ open, onClose, phones, cardMsg, item }) {
             {/* Message + Card */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="block">
-                <span className="text-primary font-medium">{isAr ? "رسالة البطاقة :" : "Card Message :"}</span>
+                <span className="text-primary font-medium">
+                  {isAr ? "رسالة البطاقة :" : "Card Message :"}
+                </span>
                 <textarea
                   value={cardMsg}
                   disabled
@@ -116,20 +131,31 @@ function InlinePreviewModal({ open, onClose, phones, cardMsg, item }) {
               </label>
 
               <label className="block">
-                <span className="text-primary font-medium">{isAr ? "بطاقة :" : "Card :"}</span>
+                <span className="text-primary font-medium">
+                  {isAr ? "بطاقة :" : "Card :"}
+                </span>
                 <div className="mt-2 lg:h-[300px] xl:h-[350px] rounded-2xl overflow-hidden ring-1 ring-primary/20">
-                  <img src={previewCard} alt="card" className="h-full w-full object-cover" />
+                  <img
+                    src={previewCard}
+                    alt="card"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
               </label>
             </div>
 
             {/* Item (disabled controls, like Cart preview) */}
             <div>
-              <div className="text-primary font-medium mb-2">{isAr ? "أغراض :" : "Items :"}</div>
+              <div className="text-primary font-medium mb-2">
+                {isAr ? "أغراض :" : "Items :"}
+              </div>
               <div className="space-y-3 max-h-[120px] overflow-y-auto">
                 <article
                   className="relative flex items-center gap-4 p-3 pl-4 rounded-2xl border border-primary/20 shadow-sm"
-                  style={{ background: "linear-gradient(90deg, #11e7ff1f 0%, #e59eff1f 55%, #f6b4001f 100%)" }}
+                  style={{
+                    background:
+                      "linear-gradient(90deg, #11e7ff1f 0%, #e59eff1f 55%, #f6b4001f 100%)",
+                  }}
                 >
                   <img
                     src={item.image}
@@ -137,8 +163,12 @@ function InlinePreviewModal({ open, onClose, phones, cardMsg, item }) {
                     className="h-16 w-20 object-cover rounded-xl ring-1 ring-primary/10"
                   />
                   <div className="flex-1">
-                    <h5 className="text-black font-medium">{isAr ? item.ar_title : item.en_title}</h5>
-                    <div className="text-primary font-semibold text-sm mt-2 mb-4">{CURRENCY(item.price)}</div>
+                    <h5 className="text-black font-medium">
+                      {isAr ? item.ar_title : item.en_title}
+                    </h5>
+                    <div className="text-primary font-semibold text-sm mt-2 mb-4">
+                      {CURRENCY(item.price)}
+                    </div>
                     <div className="mt-1 flex items-center gap-2 text-[#333] text-sm">
                       <FiTruck className="text-primary" /> Express Delivery
                     </div>
@@ -148,13 +178,18 @@ function InlinePreviewModal({ open, onClose, phones, cardMsg, item }) {
                     <button className="h-8 w-8 rounded-full bg-[#ddd] border border-slate-200 grid place-items-center">
                       <FiMinus className="text-black" />
                     </button>
-                    <div className="w-10 text-center font-semibold text-slate-700">{item.qty}</div>
+                    <div className="w-10 text-center font-semibold text-slate-700">
+                      {item.qty}
+                    </div>
                     <button className="h-8 w-8 rounded-full bg-[#ddd] border border-slate-200 grid place-items-center">
                       <FiPlus className="text-primary" />
                     </button>
                   </div>
 
-                  <button className="text-rose-400 p-2 opacity-60 pointer-events-none" aria-label="remove">
+                  <button
+                    className="text-rose-400 p-2 opacity-60 pointer-events-none"
+                    aria-label="remove"
+                  >
                     <FiTrash2 />
                   </button>
                 </article>
@@ -291,18 +326,25 @@ function GiftBuyNowModal({
       onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
       {/* Panel */}
       <div className="relative z-10 mx-auto w-[1100px] max-w-[92vw] max-h-[94vh] overflow-y-auto">
-        <div className={`bg-white border border-primary/20 rounded-3xl shadow-2xl ${PANEL_RING}`}>
+        <div
+          className={`bg-white border border-primary/20 rounded-3xl shadow-2xl ${PANEL_RING}`}
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-primary/20 bg-primary/5 rounded-t-3xl">
             <div className="flex items-center gap-3">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <FiGift />
               </span>
-              <h3 className="text-primary text-xl">{isAr ? "شراء الآن" : "Buy Now"}</h3>
+              <h3 className="text-primary text-xl">
+                {isAr ? "شراء الآن" : "Buy Now"}
+              </h3>
             </div>
             <button
               onClick={onClose}
@@ -318,13 +360,18 @@ function GiftBuyNowModal({
             {/* LEFT: Item + Qty */}
             <div className="bg-primary_light_mode border border-primary/20 rounded-2xl p-4">
               <div className="flex items-center justify-between p-3 border-b border-primary/20">
-                <h5 className="text-2xl font-semibold text-primary">{isAr ? "عنصر" : "Item"}</h5>
+                <h5 className="text-2xl font-semibold text-primary">
+                  {isAr ? "عنصر" : "Item"}
+                </h5>
               </div>
 
               <div className="pt-4">
                 <article
                   className="relative flex items-center gap-4 p-3 pl-4 rounded-2xl border border-primary/20 shadow-sm"
-                  style={{ background: "linear-gradient(90deg, #11e7ff1f 0%, #e59eff1f 55%, #f6b4001f 100%)" }}
+                  style={{
+                    background:
+                      "linear-gradient(90deg, #11e7ff1f 0%, #e59eff1f 55%, #f6b4001f 100%)",
+                  }}
                 >
                   <img
                     src={item.image}
@@ -351,7 +398,9 @@ function GiftBuyNowModal({
                     >
                       <FiMinus className="text-black" />
                     </button>
-                    <div className="w-10 font-semibold text-slate-700 text-center">{qty}</div>
+                    <div className="w-10 font-semibold text-slate-700 text-center">
+                      {qty}
+                    </div>
                     <button
                       onClick={() => changeQty(+1)}
                       className="h-8 w-8 rounded-full bg-[#ddd] border border-slate-200 grid place-items-center"
@@ -364,38 +413,50 @@ function GiftBuyNowModal({
             </div>
 
             {/* RIGHT: Details (card info) */}
-            <div className={`bg-primary_light_mode border border-primary/20 rounded-2xl ${PANEL_RING}`}>
+            <div
+              className={`bg-primary_light_mode border border-primary/20 rounded-2xl ${PANEL_RING}`}
+            >
               <div className="flex items-center gap-2 p-5 border-b border-primary/20">
                 <FiGift className="text-primary" />
-                <h5 className="text-primary text-xl font-semibold">{isAr ? "تفاصيل" : "Details"}</h5>
+                <h5 className="text-primary text-xl font-semibold">
+                  {isAr ? "تفاصيل" : "Details"}
+                </h5>
               </div>
 
               <div className="p-4 space-y-5">
                 {/* Phones */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <label className="block">
-                    <span className="text-primary font-medium">{isAr ? "هاتف المرسل" : "Sender Phone"}</span>
+                    <span className="text-primary font-medium">
+                      {isAr ? "هاتف المرسل" : "Sender Phone"}
+                    </span>
                     <div className="mt-2 relative">
                       <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
                         type="tel"
                         placeholder="+974 2345 456"
                         value={phones.sender}
-                        onChange={(e) => setPhones((p) => ({ ...p, sender: e.target.value }))}
+                        onChange={(e) =>
+                          setPhones((p) => ({ ...p, sender: e.target.value }))
+                        }
                         className="w-full pl-10 pr-3 py-2.5 rounded-xl border-2 border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20"
                       />
                     </div>
                   </label>
 
                   <label className="block">
-                    <span className="text-primary font-medium">{isAr ? "هاتف المتلقي" : "Receiver Phone"}</span>
+                    <span className="text-primary font-medium">
+                      {isAr ? "هاتف المتلقي" : "Receiver Phone"}
+                    </span>
                     <div className="mt-2 relative">
                       <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
                         type="tel"
                         placeholder="+974 0000 576"
                         value={phones.receiver}
-                        onChange={(e) => setPhones((p) => ({ ...p, receiver: e.target.value }))}
+                        onChange={(e) =>
+                          setPhones((p) => ({ ...p, receiver: e.target.value }))
+                        }
                         className="w-full pl-10 pr-3 py-2.5 rounded-xl border-2 border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20"
                       />
                     </div>
@@ -404,7 +465,9 @@ function GiftBuyNowModal({
 
                 {/* Card message */}
                 <label className="block">
-                  <span className="text-primary font-medium">{isAr ? "رسالة البطاقة" : "Card Message"}</span>
+                  <span className="text-primary font-medium">
+                    {isAr ? "رسالة البطاقة" : "Card Message"}
+                  </span>
                   <textarea
                     rows={3}
                     value={cardMsg}
@@ -433,20 +496,32 @@ function GiftBuyNowModal({
             </div>
 
             {/* Order Summary */}
-            <div className={`lg:col-span-2 bg-primary_light_mode border border-primary/20 rounded-2xl ${PANEL_RING}`}>
+            <div
+              className={`lg:col-span-2 bg-primary_light_mode border border-primary/20 rounded-2xl ${PANEL_RING}`}
+            >
               <header className="flex items-center gap-2 p-5 border-b border-primary/20">
                 <FiGift className="text-primary" />
-                <h5 className="text-primary text-xl font-semibold">{isAr ? "ملخص الطلب" : "Order Summary"}</h5>
+                <h5 className="text-primary text-xl font-semibold">
+                  {isAr ? "ملخص الطلب" : "Order Summary"}
+                </h5>
               </header>
 
               <div className="p-5 space-y-5">
                 <div className="flex items-center justify-between text-[#333]">
-                  <span className="font-medium">{isAr ? "المجموع الفرعي" : "Subtotal"}</span>
-                  <span className="text-[#111] font-medium">{CURRENCY(subtotal)}</span>
+                  <span className="font-medium">
+                    {isAr ? "المجموع الفرعي" : "Subtotal"}
+                  </span>
+                  <span className="text-[#111] font-medium">
+                    {CURRENCY(subtotal)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-[#333]">
-                  <span className="font-medium">{isAr ? "رسوم التوصيل" : "Delivery charges"}</span>
-                  <span className="text-[#111] font-medium">{CURRENCY(delivery)}</span>
+                  <span className="font-medium">
+                    {isAr ? "رسوم التوصيل" : "Delivery charges"}
+                  </span>
+                  <span className="text-[#111] font-medium">
+                    {CURRENCY(delivery)}
+                  </span>
                 </div>
                 <p className="text-[#333] text-sm leading-relaxed max-w-sm">
                   {isAr
@@ -457,47 +532,77 @@ function GiftBuyNowModal({
 
                 {couponMessage && (
                   <div className="flex items-center justify-between text-[#333]">
-                    <span className="font-medium">{isAr ? "خصم القسيمة" : "Coupon Discount"}</span>
+                    <span className="font-medium">
+                      {isAr ? "خصم القسيمة" : "Coupon Discount"}
+                    </span>
                     <span className="text-sm font-medium text-green-500">
-                      {coupon?.type === "percentage" ? `${coupon?.value}%` : CURRENCY(coupon?.value)}
+                      {coupon?.type === "percentage"
+                        ? `${coupon?.value}%`
+                        : CURRENCY(coupon?.value)}
                     </span>
                   </div>
                 )}
 
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-lg">{isAr ? "المجموع" : "Total"}</span>
-                  <span className="font-semibold text-lg text-primary">{CURRENCY(total)}</span>
+                  <span className="font-semibold text-lg">
+                    {isAr ? "المجموع" : "Total"}
+                  </span>
+                  <span className="font-semibold text-lg text-primary">
+                    {CURRENCY(total)}
+                  </span>
                 </div>
 
                 <button
                   onClick={handleCheckout}
                   disabled={orderLoading}
-                  className={`${orderLoading ? "opacity-50" : "opacity-100"} mt-2 w-full py-3 rounded-xl text-white font-medium bg-primary hover:opacity-90`}
+                  className={`${
+                    orderLoading ? "opacity-50" : "opacity-100"
+                  } mt-2 w-full py-3 rounded-xl text-white font-medium bg-primary hover:opacity-90`}
                 >
-                  {!orderLoading ? <>{isAr ? "الدفع" : "Check out"}</> : <ClipLoader color="#fff" size={20} />}
+                  {!orderLoading ? (
+                    <>{isAr ? "الدفع" : "Check out"}</>
+                  ) : (
+                    <ClipLoader color="#fff" size={20} />
+                  )}
                 </button>
 
                 <hr className="border-primary/20" />
 
                 <div>
-                  <div className="text-primary text-xl font-semibold mb-3">{isAr ? "بطاقة قسيمة" : "Voucher Card"}</div>
+                  <div className="text-primary text-xl font-semibold mb-3">
+                    {isAr ? "بطاقة قسيمة" : "Voucher Card"}
+                  </div>
                   <div className="flex md:flex-row flex-col gap-3">
                     <input
                       value={voucher}
                       disabled={!!couponMessage}
                       onChange={(e) => setVoucher(e.target.value)}
-                      placeholder={isAr ? "أدخل كود القسيمة" : "Enter Voucher Code"}
+                      placeholder={
+                        isAr ? "أدخل كود القسيمة" : "Enter Voucher Code"
+                      }
                       className="flex-1 rounded-xl border-2 border-primary/20 p-3 focus:outline-none"
                     />
                     <button
                       onClick={() => applyCoupon(voucher)}
                       disabled={loadingCoupon || !!couponMessage}
-                      className={`${loadingCoupon || couponMessage ? "opacity-50" : "opacity-100"} px-6 py-2 md:py-0 rounded-xl bg-primary text-white font-medium hover:bg-primary/70`}
+                      className={`${
+                        loadingCoupon || couponMessage
+                          ? "opacity-50"
+                          : "opacity-100"
+                      } px-6 py-2 md:py-0 rounded-xl bg-primary text-white font-medium hover:bg-primary/70`}
                     >
-                      {!loadingCoupon ? <>{isAr ? "يتقدم" : "Apply"}</> : <ClipLoader color="#fff" size={20} />}
+                      {!loadingCoupon ? (
+                        <>{isAr ? "يتقدم" : "Apply"}</>
+                      ) : (
+                        <ClipLoader color="#fff" size={20} />
+                      )}
                     </button>
                   </div>
-                  {couponMessage && <p className="text-green-600 text-sm mt-2">{couponMessage}</p>}
+                  {couponMessage && (
+                    <p className="text-green-600 text-sm mt-2">
+                      {couponMessage}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -549,8 +654,11 @@ const ProductDetail = () => {
   }, []);
 
   // cart state
-  const { data: cartRes, isLoading: cartLoading, isFetching: cartFetching } =
-    useCartByUser(userId);
+  const {
+    data: cartRes,
+    isLoading: cartLoading,
+    isFetching: cartFetching,
+  } = useCartByUser(userId);
 
   const cartItems = useMemo(
     () =>
@@ -590,35 +698,17 @@ const ProductDetail = () => {
 
   // Buy Now modal state
   const [buyNowOpen, setBuyNowOpen] = useState(false);
-
-  // loading states
-  if (isLoading) {
-    return (
-      <section className="py-10">
-        <div className="custom-container">
-          <div className="flex items-center justify-center h-64">
-            <ClipLoader color="#0fb4bb" size={50} />
-          </div>
-        </div>
-      </section>
-    );
-  }
-  if (!product) {
-    return (
-      <section className="py-10">
-        <div className="custom-container">
-          <div className="text-center text-red-600">Product not found.</div>
-        </div>
-      </section>
-    );
-  }
-
+  
   // derived fields
   const title = isAr ? product?.ar_title || product?.title : product?.title;
   const priceNumber = Number(
-    typeof product?.price === "number" ? product.price : product?.price?.sale || 0
+    typeof product?.price === "number"
+      ? product.price
+      : product?.price?.sale || 0
   );
-  const priceText = `${product?.currency || "QAR"} ${priceNumber.toLocaleString()}`;
+  const priceText = `${
+    product?.currency || "QAR"
+  } ${priceNumber.toLocaleString()}`;
   const imageUrls =
     Array.isArray(product?.images) && product.images.length > 0
       ? product.images.map((img) => img?.url).filter(Boolean)
@@ -628,13 +718,17 @@ const ProductDetail = () => {
   const htmlDescription = isAr
     ? product?.ar_description || product?.description || ""
     : product?.description || product?.ar_description || "";
-  const stockText = `${product?.remainingStocks ?? 0} ${isAr ? "متوفر" : "in stock"}`;
+  const stockText = `${product?.remainingStocks ?? 0} ${
+    isAr ? "متوفر" : "in stock"
+  }`;
   const categoryText =
     product?.categories?.[0]?.[isAr ? "ar_name" : "name"] ||
     product?.type?.[isAr ? "ar_name" : "name"] ||
     (isAr ? "فئة" : "Category");
   const conditionText = product?.condition || (isAr ? "جديد" : "new");
-  const arrangements = Array.isArray(product?.arrangements) ? product.arrangements : [];
+  const arrangements = Array.isArray(product?.arrangements)
+    ? product.arrangements
+    : [];
 
   // magnifier
   const handleMouseEnter = () => setIsMagnifying(true);
@@ -652,8 +746,13 @@ const ProductDetail = () => {
     });
   };
   const backgroundSize = (wrap) =>
-    wrap ? `${wrap.clientWidth * ZOOM}px ${wrap.clientHeight * ZOOM}px` : "auto";
-  const backgroundPosition = `${-(lensPos.x * ZOOM - LENS_SIZE / 2)}px ${-(lensPos.y * ZOOM - LENS_SIZE / 2)}px`;
+    wrap
+      ? `${wrap.clientWidth * ZOOM}px ${wrap.clientHeight * ZOOM}px`
+      : "auto";
+  const backgroundPosition = `${-(lensPos.x * ZOOM - LENS_SIZE / 2)}px ${-(
+    lensPos.y * ZOOM -
+    LENS_SIZE / 2
+  )}px`;
 
   // cart handlers
   const handleAddToCart = async () => {
@@ -670,6 +769,48 @@ const ProductDetail = () => {
     showToast(isAr ? "أُزيلت من السلة" : "Removed from cart");
   };
 
+  // helper (robust to ids or populated objects)
+  const hasEnoughTypeStock = useMemo(() => {
+    const carry = Number(product?.totalPieceCarry || 0);
+
+    // if no types, allow add-to-cart
+    if (!Array.isArray(product?.type) || product.type.length === 0) return true;
+
+    // if types are populated, they have remainingStock; if not populated, treat as OK
+    return product.type.some((t) => {
+      const rem = Number(
+        (t && typeof t === "object" ? t.remainingStock : null) ?? Infinity
+      );
+      return rem > carry;
+    });
+  }, [product?.type, product?.totalPieceCarry]);
+
+  const isOutOfStock = product?.stockStatus === "out_of_stock";
+  const canAddToCart = !isOutOfStock && hasEnoughTypeStock;
+
+  // ---- then your early returns are fine ----
+  if (isLoading) {
+    return (
+      <section className="py-10">
+        <div className="custom-container">
+          <div className="flex items-center justify-center h-64">
+            <ClipLoader color="#0fb4bb" size={50} />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!product) {
+    return (
+      <section className="py-10">
+        <div className="custom-container">
+          <div className="text-center text-red-600">Product not found.</div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-10">
       {/* bottom toast */}
@@ -677,7 +818,9 @@ const ProductDetail = () => {
         <div
           className={[
             "fixed left-1/2 bottom-0 -translate-x-1/2 z-50 transition-all duration-300 ease-out",
-            toastShow ? "bottom-8 translate-y-0 opacity-100" : "bottom-0 translate-y-6 opacity-0",
+            toastShow
+              ? "bottom-8 translate-y-0 opacity-100"
+              : "bottom-0 translate-y-6 opacity-0",
           ].join(" ")}
         >
           <div className="bg-green-600 text-white text-sm px-4 py-2 rounded-full shadow-lg">
@@ -723,7 +866,8 @@ const ProductDetail = () => {
                     backgroundRepeat: "no-repeat",
                     backgroundSize: backgroundSize(imgWrapRef.current),
                     backgroundPosition,
-                    boxShadow: "0 10px 25px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.3)",
+                    boxShadow:
+                      "0 10px 25px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.3)",
                     backdropFilter: "blur(0.5px)",
                   }}
                 />
@@ -738,7 +882,11 @@ const ProductDetail = () => {
                       <img
                         src={image}
                         alt={`Additional Product ${index + 1}`}
-                        className={`${activeImgIndex === index ? "border-2 border-primary" : ""} rounded-lg object-cover lg:w-[80px] lg:h-[80px] h-[60px] cursor-pointer w-[60px]`}
+                        className={`${
+                          activeImgIndex === index
+                            ? "border-2 border-primary"
+                            : ""
+                        } rounded-lg object-cover lg:w-[80px] lg:h-[80px] h-[60px] cursor-pointer w-[60px]`}
                         onClick={() => setActiveImgIndex(index)}
                       />
                       <div
@@ -756,8 +904,12 @@ const ProductDetail = () => {
           {/* Info */}
           <div className="flex-1 mt-4 md:mt-0 md:w-1/2 xl:w-[60%]">
             <div className="flex items-center justify-between">
-              <h5 className="text-2xl lg:text-3xl xl:text-4xl font-semibold text-primary">{title}</h5>
-              <p className="lg:text-md xl:text-3xl font-semibold text-primary">{priceText}</p>
+              <h5 className="text-2xl lg:text-3xl xl:text-4xl font-semibold text-primary">
+                {title}
+              </h5>
+              <p className="lg:text-md xl:text-3xl font-semibold text-primary">
+                {priceText}
+              </p>
             </div>
 
             <div className="grid lg:grid-cols-2 xl:grid-cols-3 mt-4 gap-2">
@@ -786,7 +938,9 @@ const ProductDetail = () => {
               />
               {product?.note && (
                 <p className="text-sm mt-4">
-                  <span className="font-medium text-primary">{isAr ? "ملاحظة:" : "Note:"}</span>{" "}
+                  <span className="font-medium text-primary">
+                    {isAr ? "ملاحظة:" : "Note:"}
+                  </span>{" "}
                   {product.note}
                 </p>
               )}
@@ -794,7 +948,10 @@ const ProductDetail = () => {
 
             {arrangements.length > 0 && (
               <div className="mt-4 text-gray-600">
-                <h6 className="font-medium text-xl mb-4" style={{ color: "#000 !important" }}>
+                <h6
+                  className="font-medium text-xl mb-4"
+                  style={{ color: "#000 !important" }}
+                >
                   {isAr ? "يتضمن الترتيب:" : "Arrangement Includes:"}
                 </h6>
                 <ul className="list-disc pl-5">
@@ -809,7 +966,9 @@ const ProductDetail = () => {
 
             {product?.sku && (
               <div className="sku mt-6">
-                <h5 className="font-medium text-primary text-xl">{product.sku}</h5>
+                <h5 className="font-medium text-primary text-xl">
+                  {product.sku}
+                </h5>
               </div>
             )}
 
@@ -830,24 +989,34 @@ const ProductDetail = () => {
                   <ClipLoader size={18} color="#0fb4bb" />
                   {isAr ? "جاري التحقق..." : "Checking..."}
                 </button>
-              ) : inCart ? (
-                <button
-                  onClick={handleRemoveFromCart}
-                  disabled={mainBtnDisabled}
-                  className="border text-white bg-red-500 hover:bg-red-600 border-red-500 text-center w-1/2 font-medium py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2"
-                >
-                  <TbShoppingCart size={20} />
-                  {isAr ? "إزالة من السلة" : "Remove From Cart"}
-                </button>
+              ) : canAddToCart ? (
+                inCart ? (
+                  <button
+                    onClick={handleRemoveFromCart}
+                    disabled={mainBtnDisabled}
+                    className="border text-white bg-red-500 hover:bg-red-600 border-red-500 text-center w-1/2 font-medium py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2"
+                  >
+                    <TbShoppingCart size={20} />
+                    {isAr ? "إزالة من السلة" : "Remove From Cart"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={mainBtnDisabled}
+                    className="border border-primary bg-primary_light_mode hover:bg-primary_light_mode/10 text-center w-1/2 font-medium text-primary py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2"
+                  >
+                    <TbShoppingCart size={20} />
+                    {isAr ? "إضافة إلى السلة" : "Add to Cart"}
+                  </button>
+                )
               ) : (
-                <button
-                  onClick={handleAddToCart}
-                  disabled={mainBtnDisabled}
-                  className="border border-primary bg-primary_light_mode hover:bg-primary_light_mode/10 text-center w-1/2 font-medium text-primary py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2"
-                >
-                  <TbShoppingCart size={20} />
-                  {isAr ? "إضافة إلى السلة" : "Add to Cart"}
-                </button>
+                <Button
+                  disabled
+                  label={
+                    langClass === "ar" ? "إنتهى من المخزن" : "Out Of Stock"
+                  }
+                  isBgColor={true}
+                />
               )}
             </div>
           </div>
@@ -856,7 +1025,9 @@ const ProductDetail = () => {
         {product?.suggestedProducts?.length > 0 && (
           <div className="mt-20">
             <h3 className="text-3xl text-primary">
-              {isAr ? "المنتجات الأكثر شراءًا معاً" : "Frequently Bought Together"}
+              {isAr
+                ? "المنتجات الأكثر شراءًا معاً"
+                : "Frequently Bought Together"}
             </h3>
             <div className="mt-4 border border-primary rounded-3xl">
               <FrequentlyBuyGifts
@@ -877,7 +1048,7 @@ const ProductDetail = () => {
           onClose={() => setBuyNowOpen(false)}
           userId={userId}
           product={product}
-          onToast={showToast}   // bottom animation toast on success
+          onToast={showToast} // bottom animation toast on success
         />
       )}
     </section>

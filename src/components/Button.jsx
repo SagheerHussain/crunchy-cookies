@@ -14,8 +14,8 @@ const Button = ({
 }) => {
   const base =
     `${isBgColor ? bgColor : "bg-primary hover:bg-primary/80"} ` +
-    `text-white px-4 py-2 rounded-lg text-sm font-medium ` +
-    `${disabled ? "opacity-60 cursor-not-allowed hover:bg-primary" : ""} ` +
+    ` px-4 py-2 rounded-lg text-sm font-medium ` +
+    `${disabled ? "opacity-60 cursor-not-allowed shadow bg-white text-black font-semibold" : "text-white"} ` +
     `${className}`;
 
   if (href) {
