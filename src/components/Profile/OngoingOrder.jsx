@@ -1,13 +1,26 @@
-import React, { useEffect, useMemo, useState } from "react";
+// OngoingOrder.jsx
+import React, { useMemo, useState } from "react";
 import { BsBagCheck } from "react-icons/bs";
-import { Stepper, Step, StepLabel, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Alert } from "@mui/material";
+import {
+  Stepper,
+  Step,
+  StepLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Alert,
+} from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
 import { CyanConnector, DotStepIcon } from "./StepperUtils";
 import Modal from "../Modal";
 import Card from "./Card";
-import { getOnGoingOrderByUser, updateOrder } from "../../api/order";
+import { updateOrder } from "../../api/order";
 import { ClipLoader } from "react-spinners";
+import { useOngoingOrder } from "../../hooks/orders/useOrder";
 
 const ORDER_STATUS = ["pending", "confirmed", "shipped", "delivered", "cancelled", "returned"];
 const PAYMENT_STATUS = ["pending", "paid", "failed", "refunded", "partial"];
@@ -16,14 +29,12 @@ export default function OngoingOrdersCard() {
   const { i18n } = useTranslation();
   const isAr = i18n.language === "ar";
   const matches = useMediaQuery("(max-width:767px)");
+  const queryClient = useQueryClient();
 
-  const [loading, setLoading] = useState(true);
-  const [list, setList] = useState([]);
+  // modal & dialogs state
   const [itemsOpen, setItemsOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
-  const [error, setError] = useState("");
 
-  // cancel flow state
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [reasonOpen, setReasonOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState(null); // order object
@@ -31,7 +42,9 @@ export default function OngoingOrdersCard() {
   const [canceling, setCanceling] = useState(false);
   const [cancelErr, setCancelErr] = useState("");
 
-  const statusToIndex = (s) => Math.max(0, ORDER_STATUS.indexOf(String(s || "").toLowerCase()));
+  // ---- helpers
+  const statusToIndex = (s) =>
+    Math.max(0, ORDER_STATUS.indexOf(String(s || "").toLowerCase()));
 
   const statusLabel = (s) => {
     const key = String(s || "").toLowerCase();
@@ -47,69 +60,70 @@ export default function OngoingOrdersCard() {
     }
   };
 
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const { user } = JSON.parse(sessionStorage.getItem("user") || "{}");
-        const userId = user?._id || user?.id;
-        if (!userId) throw new Error("No user found in sessionStorage.");
+  // ---- user id (fixes JSON.parse fallback bug)
+  const stored = sessionStorage.getItem("user");
+  const parsed = stored ? JSON.parse(stored) : {};
+  const userObj = parsed.user || parsed || {};
+  const userId = userObj?._id || userObj?.id;
 
-        const res = await getOnGoingOrderByUser(userId);
-        const raw = Array.isArray(res?.data) ? res.data : [];
+  console.log(userId)
 
-        const normalized = raw.map((node) => {
-          const o = node?.order || {};
-          const items = Array.isArray(o?.items) ? o.items : [];
+  // ---- react-query hook (live updates via refetchInterval)
+  const {
+    data: raw,
+    isLoading,
+    isFetching,
+    error,
+  } = useOngoingOrder({
+    userId,
+    refetchInterval: 10000, // 10s live updates
+  });
 
-          const totalItems = items.reduce((sum, it) => sum + Number(it?.quantity || 0), 0);
+  // ---- normalize API shape to the UI list
+  const list = useMemo(() => {
+    const rows = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
+    return rows.map((node) => {
+      const o = node?.order || {};
+      const items = Array.isArray(o?.items) ? o.items : [];
 
-          const modalItems = items.map((it) => {
-            const p = it?.products || {};
-            return {
-              en_name: p?.title || "",
-              ar_name: p?.ar_title || "",
-              image: p?.featuredImage || "",
-              qty: Number(it?.quantity || 0),
-              price: Number(p?.price ?? it?.totalAmount ?? 0),
-            };
-          });
+      const totalItems = items.reduce((sum, it) => sum + Number(it?.quantity || 0), 0);
 
-          return {
-            _id: node?._id || o?._id,
-            orderId: node?.order?._id,
-            code: o?.code || node?.code,
-            status: (node?.status || o?.status || "pending").toLowerCase(),
-            paymentStatus: (node?.paymentStatus || o?.payment || "pending").toLowerCase(),
-            placedAt: node?.placedAt || o?.placedAt || node?.createdAt || o?.createdAt,
-            totalItems,
-            grandTotal: Number(o?.grandTotal ?? node?.grandTotal ?? 0),
-            sender: o?.shippingAddress?.senderPhone || "",
-            receiver: o?.shippingAddress?.receiverPhone || "",
-            coupon: o?.appliedCoupon?.value,
-            couponType: o?.appliedCoupon?.type,
-            taxAmount: o?.taxAmount,
-            items: modalItems,
-          };
-        });
+      const modalItems = items.map((it) => {
+        const p = it?.products || {};
+        return {
+          en_name: p?.title || "",
+          ar_name: p?.ar_title || "",
+          image: p?.featuredImage || "",
+          qty: Number(it?.quantity || 0),
+          // prefer product.price, fallback to line total
+          price: Number(p?.price ?? it?.totalAmount ?? 0),
+        };
+      });
 
-        setList(normalized);
-      } catch (e) {
-        console.error(e);
-        setError(e?.message || "Failed to load ongoing orders.");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+      return {
+        _id: node?._id || o?._id,
+        orderId: node?.order?._id,
+        code: o?.code || node?.code,
+        status: (node?.status || o?.status || "pending").toLowerCase(),
+        paymentStatus: (node?.paymentStatus || o?.payment || "pending").toLowerCase(),
+        placedAt: node?.placedAt || o?.placedAt || node?.createdAt || o?.createdAt,
+        totalItems,
+        grandTotal: Number(o?.grandTotal ?? node?.grandTotal ?? 0),
+        sender: o?.shippingAddress?.senderPhone || "",
+        receiver: o?.shippingAddress?.receiverPhone || "",
+        coupon: o?.appliedCoupon?.value,
+        couponType: o?.appliedCoupon?.type,
+        taxAmount: o?.taxAmount,
+        items: modalItems,
+      };
+    });
+  }, [raw]);
 
-  const progressPct = useMemo(() => {
-    if (!list.length) return 0;
-    const idx = statusToIndex(list[0]?.status);
-    const lastIdx = Math.max(3, ORDER_STATUS.length - 1);
-    return (idx / lastIdx) * 100;
-  }, [list]);
+  // Optionally hide terminal states from ongoing list (matching your previous UI behavior)
+  const visibleList = useMemo(
+    () => list.filter((o) => !["cancelled", "returned", "delivered"].includes(o.status)),
+    [list]
+  );
 
   const openItems = (orderObj) => {
     setActiveOrder(orderObj);
@@ -118,16 +132,14 @@ export default function OngoingOrdersCard() {
   const closeItems = () => setItemsOpen(false);
 
   // ------- Cancel flow handlers -------
-
   const askCancel = (order) => {
     setCancelErr("");
     setCancelReason("");
     setCancelTarget(order);
-    setConfirmOpen(true);        // 1) first dialog
+    setConfirmOpen(true);
   };
 
   const onConfirmNo = () => {
-    // user says "Cancel" in confirm dialog → abort flow
     setConfirmOpen(false);
     setCancelTarget(null);
     setCancelReason("");
@@ -135,13 +147,11 @@ export default function OngoingOrdersCard() {
   };
 
   const onConfirmYes = () => {
-    // user says "Yes" in confirm dialog → go to reason dialog
     setConfirmOpen(false);
     setReasonOpen(true);
   };
 
   const onReasonCancel = () => {
-    // user cancels in reason dialog → abort flow, no request
     setReasonOpen(false);
     setCancelTarget(null);
     setCancelReason("");
@@ -151,57 +161,54 @@ export default function OngoingOrdersCard() {
   const submitCancel = async () => {
     if (!cancelTarget?.orderId) return;
     if (!cancelReason.trim()) {
-      setCancelErr("Please provide a reason to cancel the order.");
+      setCancelErr(isAr ? "براہ کرم منسوخی کی وجہ درج کریں." : "Please provide a reason to cancel the order.");
       return;
     }
     try {
       setCancelErr("");
       setCanceling(true);
       const payload = { status: "cancelled", cancelReason: cancelReason.trim() };
-      console.log(payload, cancelTarget?.orderId)
-      await updateOrder(payload, cancelTarget?.orderId);
+      await updateOrder(payload, cancelTarget.orderId);
 
-      // Optimistic UI update: mark as cancelled or remove from ongoing
-      setList((prev) =>
-        prev
-          .map((o) => (o._id === cancelTarget._id ? { ...o, status: "cancelled" } : o))
-          // hide cancelled from ongoing list (optional; comment next line if you prefer showing it)
-          .filter((o) => !["cancelled", "returned", "delivered"].includes(o.status))
-      );
+      // Refresh ongoing orders list from server
+      await queryClient.invalidateQueries({ queryKey: ["orders:ongoing", userId] });
 
-      // Close dialog
       setReasonOpen(false);
       setCancelTarget(null);
       setCancelReason("");
     } catch (e) {
       console.error(e);
-      setCancelErr(e?.message || "Failed to cancel order.");
+      setCancelErr(e?.message || (isAr ? "آرڈر منسوخ کرنے میں ناکامی." : "Failed to cancel order."));
     } finally {
       setCanceling(false);
     }
   };
 
-  if (loading) {
+  // ---- UI states
+  if (isLoading) {
     return (
       <Card>
         <div className="p-4 mx-auto">{isAr ? "جاری آرڈرز لوڈ ہو رہے ہیں..." : <ClipLoader />}</div>
       </Card>
     );
   }
+
   if (error) {
     return (
       <Card>
-        <div className="p-4 text-red-500">{error}</div>
+        <div className="p-4 text-red-500">{error?.message || (isAr ? "لوڈ کرنے میں ناکامی۔" : "Failed to load ongoing orders.")}</div>
       </Card>
     );
   }
 
   return (
     <Card>
-      {list.length === 0 ? (
-        <div className="p-4 opacity-70">{isAr ? "کوئی جاری آرڈر نہیں" : "No ongoing orders"}</div>
+      {visibleList.length === 0 ? (
+        <div className="p-4 opacity-70">
+          {isAr ? "کوئی جاری آرڈر نہیں" : "No ongoing orders"}
+        </div>
       ) : (
-        list.map((order) => {
+        visibleList.map((order) => {
           const current = statusToIndex(order.status);
           const itemsText = isAr ? "آئٹمز" : "items";
           const codText = isAr ? "ادائیگی" : "Payment";
@@ -219,7 +226,11 @@ export default function OngoingOrdersCard() {
                     {orderNoText} #{order.code || String(order._id).slice(-6)}
                   </div>
                   <div className="text-xs text-slate-500">
-                    {codText}: {PAYMENT_STATUS.includes(order.paymentStatus) ? order.paymentStatus : "pending"}
+                    {codText}:{" "}
+                    {PAYMENT_STATUS.includes(order.paymentStatus)
+                      ? order.paymentStatus
+                      : "pending"}
+                    {isFetching && <span className="ml-2 opacity-60">• updating…</span>}
                   </div>
                 </div>
               </div>
@@ -263,12 +274,16 @@ export default function OngoingOrdersCard() {
 
               {/* Meta */}
               <div className="mt-4 flex md:flex-row flex-col items-center lg:gap-x-3 xl:gap-x-6 gap-y-2 text-sm text-slate-500">
-                <span className="font-semibold text-slate-700">{String(order.totalItems).padStart(2, "0")} </span> {itemsText}
+                <span className="font-semibold text-slate-700">
+                  {String(order.totalItems).padStart(2, "0")}{" "}
+                </span>{" "}
+                {itemsText}
                 <span className="mx-1">•</span> {isAr ? "کل" : "Total"}: QAR {order.grandTotal ?? 0}
                 {order.placedAt && (
                   <>
                     <span className="mx-1">•</span>
-                    {isAr ? "آرڈر کیا گیا" : "Placed"}: {new Date(order.placedAt).toLocaleString()}
+                    {isAr ? "آرڈر کیا گیا" : "Placed"}:{" "}
+                    {new Date(order.placedAt).toLocaleString()}
                   </>
                 )}
                 <span className="mx-1">•</span>
@@ -280,32 +295,19 @@ export default function OngoingOrdersCard() {
       )}
 
       {/* Modal: view items */}
-      <Modal
-        itemsOpen={itemsOpen}
-        closeItems={closeItems}
-        activeOrder={activeOrder}
-        isAr={isAr}
-      />
+      <Modal itemsOpen={itemsOpen} closeItems={closeItems} activeOrder={activeOrder} isAr={isAr} />
 
       {/* Dialog 1: Confirm cancellation */}
       <Dialog open={confirmOpen} onClose={onConfirmNo} maxWidth="xs" fullWidth>
         <DialogTitle>{isAr ? "کیا آپ یقینی ہیں؟" : "Cancel this order?"}</DialogTitle>
         <DialogContent>
-          {isAr
-            ? "یہ کاروائی آرڈر کو منسوخ کر دے گی۔"
-            : "This action will cancel the order."}
+          {isAr ? "یہ کاروائی آرڈر کو منسوخ کر دے گی۔" : "This action will cancel the order."}
         </DialogContent>
         <DialogActions>
-          <button
-            onClick={onConfirmNo}
-            className="rounded-lg px-4 py-2 bg-gray-100 hover:bg-gray-200"
-          >
+          <button onClick={onConfirmNo} className="rounded-lg px-4 py-2 bg-gray-100 hover:bg-gray-200">
             {isAr ? "منسوخ" : "No, keep it"}
           </button>
-          <button
-            onClick={onConfirmYes}
-            className="rounded-lg px-4 py-2 bg-rose-600 text-white hover:bg-rose-700"
-          >
+          <button onClick={onConfirmYes} className="rounded-lg px-4 py-2 bg-rose-600 text-white hover:bg-rose-700">
             {isAr ? "ہاں، منسوخ کریں" : "Yes, cancel"}
           </button>
         </DialogActions>
@@ -343,7 +345,7 @@ export default function OngoingOrdersCard() {
             disabled={canceling}
             className="rounded-lg px-4 py-2 bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-60"
           >
-            {canceling ? (isAr ? "برائے مہربانی انتظار کریں…" : "Please wait…") : (isAr ? "جمع کرائیں" : "Submit")}
+            {canceling ? (isAr ? "برائے مہربانی انتظار کریں…" : "Please wait…") : isAr ? "جمع کرائیں" : "Submit"}
           </button>
         </DialogActions>
       </Dialog>

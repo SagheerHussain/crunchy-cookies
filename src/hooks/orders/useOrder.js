@@ -15,10 +15,10 @@ export function useOngoingOrder({
 } = {}) {
   return useQuery({
     queryKey: ongoingKey(userId),
-    queryFn: () => getOnGoingOrderByUser({ userId }),
+    queryFn: () => getOnGoingOrderByUser(userId),
     enabled: !!userId,
     staleTime: 10 * 60 * 1000, // 10 min
-    gcTime: 60 * 60 * 1000,    // 1 hr
+    gcTime: 10 * 60 * 1000,    // 1 hr
     refetchInterval,
     refetchOnWindowFocus: true,
     keepPreviousData: true,
@@ -28,10 +28,10 @@ export function useOngoingOrder({
 export function usePreviousOrder({ userId } = {}) {
   return useQuery({
     queryKey: historyKey(userId),
-    queryFn: () => getPreviousOrder({ userId }),
+    queryFn: () => getPreviousOrder(userId),
     enabled: !!userId,
     staleTime: 10 * 60 * 1000,
-    gcTime: 60 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     keepPreviousData: true,
   });
 }

@@ -25,7 +25,6 @@ const BrandsPage = () => {
         ) : (
           <GiftIdeasSection
             isPage={true}
-            isCategories={true}
             en_title="Explore Unique Gift Ideas"
             ar_title="استكشف أفكار هدايا فريدة"
             items={brands?.rows}

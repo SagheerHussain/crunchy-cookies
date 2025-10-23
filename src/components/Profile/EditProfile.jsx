@@ -27,14 +27,15 @@ export default function EditProfile({ tab, setTab }) {
     setLoading(true);
     try {
       const payload = {
-        firstName: userDetail.firstName || user?.firstName,
-        lastName: userDetail.lastName || user?.lastName,
-        email: userDetail.email || user?.email,
-        dob: userDetail.dob || user?.dob,
-        phone: userDetail.phone || user?.phone,
+        firstName: userDetail?.firstName || user?.firstName,
+        lastName: userDetail?.lastName || user?.lastName,
+        email: userDetail?.email || user?.email,
+        dob: userDetail?.dob || user?.dob,
+        phone: userDetail?.phone || user?.phone,
       };
 
       const response = await updateUser(payload, user._id);
+      console.log(response);
       if (response?.success) {
         setLoading(false);
         // ✅ 1. Get old data (so we keep the token)

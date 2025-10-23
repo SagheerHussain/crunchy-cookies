@@ -24,7 +24,7 @@ const OccasionPage = () => {
           </div>
         ) : (
           <GiftIdeasSection
-            isCategories={true}
+            isOccasion={true}
             isPage={true}
             en_title="Explore Unique Gift Ideas"
             ar_title="استكشف أفكار هدايا فريدة"

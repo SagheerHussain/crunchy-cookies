@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+// PreviousOrder.jsx (aka PreviousOrdersTable)
+import React, { useMemo, useState } from "react";
 import Card from "./Card";
 import Modal from "../Modal";
 import {
@@ -15,8 +16,8 @@ import {
   Chip,
 } from "@mui/material";
 import { ClipLoader } from "react-spinners";
-import { getPreviousOrder } from "../../api/order";
 import { useTranslation } from "react-i18next";
+import { usePreviousOrder } from "../../hooks/orders/useOrder";
 
 const PRIMARY = "#0FB4BB";
 const BORDER = "#BFE8E7";
@@ -48,7 +49,6 @@ const chipSX = (bg, fg) => ({
 
 function renderPaymentChip(status) {
   const s = String(status || "pending").toLowerCase();
-  // tailwind-ish palette equivalents
   switch (s) {
     case "paid":
       return <Chip label="paid" size="small" sx={chipSX("#DEF7EC", "#03543F")} />; // green
@@ -85,45 +85,37 @@ function renderOrderChip(status) {
 
 export default function PreviousOrdersTable() {
   const { i18n } = useTranslation();
-  const isAr = false;
   const isArabic = i18n.language === "ar";
 
-  // userId (supports multiple shapes)
-  const { user } = JSON.parse(sessionStorage.getItem("user") || "{}");
+  // robust userId extraction
+  const stored = sessionStorage.getItem("user");
+  const parsed = stored ? JSON.parse(stored) : {};
+  const userObj = parsed.user || parsed || {};
+  const userId = userObj?._id || userObj?.id;
 
-  const [loading, setLoading] = useState(true);
-  const [errMsg, setErrMsg] = useState("");
-  const [rawData, setRawData] = useState([]);
   const [itemsOpen, setItemsOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const userId = user?._id;
-        if (!userId) {
-          setErrMsg("No user found (not logged in).");
-          setLoading(false);
-          return;
-        }
-        setLoading(true);
-        setErrMsg("");
-        const res = await getPreviousOrder(userId); // or getPreviousOrder({ userId }) if your api expects object
-        const arr = Array.isArray(res?.data) ? res.data : [];
-        if (!cancelled) setRawData(arr);
-      } catch (e) {
-        if (!cancelled) setErrMsg(e?.message || "Failed to load previous orders");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [user?._id]);
+  // ---- React Query: previous orders
+  const {
+    data: raw,
+    isLoading,
+    error,
+    isFetching, // background refresh indicator if you later add refetchInterval
+  } = usePreviousOrder({ userId });
+
+  if (!userId) {
+    return (
+      <Card className="h-[14rem]">
+        <div className="p-4 text-red-500">No user found (not logged in).</div>
+      </Card>
+    );
+  }
 
   // normalize backend → table rows + modal payload
   const rows = useMemo(() => {
-    return rawData.map((node) => {
+    const arr = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
+    return arr.map((node) => {
       const o = node?.order || {};
       const items = Array.isArray(o?.items) ? o.items : [];
 
@@ -157,20 +149,16 @@ export default function PreviousOrdersTable() {
         items: modalItems,
       };
     });
-  }, [rawData]);
+  }, [raw]);
 
-  const openItems = (row) => { setActiveOrder(row); setItemsOpen(true); };
+  const openItems = (row) => {
+    setActiveOrder(row);
+    setItemsOpen(true);
+  };
   const closeItems = () => setItemsOpen(false);
 
-  if (!user?._id) {
-    return (
-      <Card className="h-[14rem]">
-        <div className="p-4 text-red-500">No user found (not logged in).</div>
-      </Card>
-    );
-  }
-
-  if (loading) {
+  // ---- UI states
+  if (isLoading) {
     return (
       <Card>
         <div className="p-4 mx-auto flex items-center gap-2">
@@ -180,10 +168,12 @@ export default function PreviousOrdersTable() {
     );
   }
 
-  if (errMsg) {
+  if (error) {
     return (
       <Card className="h-[14rem]">
-        <div className="p-4 text-red-500">{errMsg}</div>
+        <div className="p-4 text-red-500">
+          {error?.message || "Failed to load previous orders"}
+        </div>
       </Card>
     );
   }
@@ -218,14 +208,30 @@ export default function PreviousOrdersTable() {
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ fontSize: "1rem", width: 80 }}>S.No</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "رقم المرسل" : "Sender Number"}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "رقم المتلقي" : "Receiver Number"}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "السعر" : "Price"}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "العدد الكلي" : "Total Items"}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "تم الطلب في" : "Placed At"}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "تم التسليم في" : "Delivered At"}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "الدفع" : "Payment"}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>{isArabic ? "الحالة" : "Status"}</TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>
+                    {isArabic ? "رقم المرسل" : "Sender Number"}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>
+                    {isArabic ? "رقم المتلقي" : "Receiver Number"}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>
+                    {isArabic ? "السعر" : "Price"}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>
+                    {isArabic ? "العدد الكلي" : "Total Items"}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>
+                    {isArabic ? "تم الطلب في" : "Placed At"}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>
+                    {isArabic ? "تم التسليم في" : "Delivered At"}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>
+                    {isArabic ? "الدفع" : "Payment"}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>
+                    {isArabic ? "الحالة" : "Status"}
+                  </TableCell>
                   <TableCell align="right" sx={{ width: 220 }} />
                 </TableRow>
               </TableHead>
@@ -303,6 +309,9 @@ export default function PreviousOrdersTable() {
                         >
                           {isArabic ? "عرض العناصر" : "View items"}
                         </Button>
+                        {isFetching && (
+                          <span className="text-xs opacity-60 self-center ml-2">updating…</span>
+                        )}
                       </Box>
                     </TableCell>
                   </TableRow>

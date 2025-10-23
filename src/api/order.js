@@ -5,6 +5,7 @@ const BASE_URL = import.meta.env.VITE_BASE_URL || "https://crunchy-cookies-serve
 
 export const getOnGoingOrderByUser = async (userId) => {
     try {
+        console.log(userId)
         const res = await axios.get(`${BASE_URL}/ongoingOrder/lists/user/${userId}`);
         console.log("response inside orders.js =====>", res)
         return res.data;
@@ -15,6 +16,7 @@ export const getOnGoingOrderByUser = async (userId) => {
 
 export const getPreviousOrder = async (userId) => {
     try {
+        console.log(userId)
         const res = await axios.get(`${BASE_URL}/orderHistory/lists/user/${userId}`);
         return res.data;
     } catch (error) {
