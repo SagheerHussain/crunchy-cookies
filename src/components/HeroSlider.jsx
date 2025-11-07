@@ -183,8 +183,6 @@ export default function CenterModeCarousel({
               ar_title,
               en_description,
               ar_description,
-              en_buttonLabel,
-              ar_buttonLabel,
             }) => (
               <div
                 className={`z-2 relative slide ${cls} ${langClass}`}
@@ -207,13 +205,13 @@ export default function CenterModeCarousel({
                   >
                     {langClass === "en" ? en_description : ar_description}
                   </p>
-                  <div className="slider-content-btn">
+                  {/* <div className="slider-content-btn">
                     <Button
                       label={
                         langClass === "en" ? en_buttonLabel : ar_buttonLabel
                       }
                     />
-                  </div>
+                  </div> */}
                 </div>
               </div>
             )
@@ -243,9 +241,7 @@ export default function CenterModeCarousel({
               en_title,
               ar_title,
               en_description,
-              ar_description,
-              en_buttonLabel,
-              ar_buttonLabel,
+              ar_description
             }) => (
               <SwiperSlide key={id}>
                 <div className={`relative z-[5]`}>
@@ -262,13 +258,13 @@ export default function CenterModeCarousel({
                     >
                       {langClass === "en" ? en_description : ar_description}
                     </p>
-                    <div className="slider-content-btn">
+                    {/* <div className="slider-content-btn">
                       <Button
                         label={
                           langClass === "en" ? en_buttonLabel : ar_buttonLabel
                         }
                       />
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </SwiperSlide>
