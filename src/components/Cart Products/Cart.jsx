@@ -112,10 +112,7 @@ export default function Cart() {
     setItems(mapped);
   }, [cartRes]);
 
-  const selectedItems = useMemo(
-    () => items.filter((i) => i.selected),
-    [items]
-  );
+  const selectedItems = useMemo(() => items.filter((i) => i.selected), [items]);
   const subtotal = useMemo(
     () =>
       selectedItems.reduce(
@@ -258,13 +255,13 @@ export default function Cart() {
         taxAmount,
         cardMessage: cardMsg || "",
         cardImage: "", // put URL if you have one
-        couponCode,    // omit if undefined
+        couponCode, // omit if undefined
         grandTotal,
       };
 
       // If you only want to log (no request), comment out the next two lines:
       const res = await createOrder(orderPayload);
-      setorderMessage(res.mesage)
+      setorderMessage(res.mesage);
 
       if (res?.success) showToast(res?.message);
 
@@ -369,7 +366,9 @@ export default function Cart() {
                     style={{ direction: langClass ? "rtl" : "ltr" }}
                     className={`
                       absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 rounded
-                      border-2 ${i.selected ? "border-primary" : "border-primary/30"}
+                      border-2 ${
+                        i.selected ? "border-primary" : "border-primary/30"
+                      }
                       grid place-items-center bg-white transition
                       focus:outline-none
                     `}
@@ -575,14 +574,24 @@ export default function Cart() {
                 {/* <PaymentMethod /> */}
 
                 <button
-                  disabled={!selectedItems.length || orderLoading}
+                  disabled={
+                    orderLoading ||
+                    !selectedItems.length ||
+                    !phones.sender ||
+                    !phones.receiver ||
+                    !cardMsg
+                  }
                   onClick={handleOrderPayload}
-                  className={`${orderLoading ? "opacity-50" : "opacity-100"
-                    }  mt-2 w-full py-3 rounded-xl text-white font-medium ${
-                      selectedItems.length
-                        ? "bg-primary hover:opacity-90"
-                        : "bg-primary/50 cursor-not-allowed"
-                    }`}
+                  className={`mt-2 w-full py-3 rounded-xl text-white font-medium transition-all
+                  ${
+                    orderLoading ||
+                    !selectedItems.length ||
+                    !phones.sender ||
+                    !phones.receiver ||
+                    !cardMsg
+                      ? "bg-primary/50 opacity-50 cursor-not-allowed"
+                      : "bg-primary hover:opacity-90"
+                  }`}
                 >
                   {!orderLoading ? (
                     <>{langClass ? "الدفع" : "Check out"}</>
@@ -593,7 +602,7 @@ export default function Cart() {
 
                 <hr className="border-primary/20" />
 
-                <div>
+                {/* <div>
                   <div className="text-primary text-xl font-semibold mb-3">
                     {langClass ? "بطاقة قسيمة" : "Voucher Card"}
                   </div>
@@ -621,7 +630,7 @@ export default function Cart() {
                       )}
                     </button>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -645,9 +654,7 @@ function Row({ label, value }) {
     <div className="flex items-center justify-between text-[#333]">
       <span className="font-medium">{label}</span>
       {label === "Coupon Discount" || label === "خصم القسيمة" ? (
-        <span className="text-sm font-medium text-green-500">
-          {value}%
-        </span>
+        <span className="text-sm font-medium text-green-500">{value}%</span>
       ) : (
         <span className="text-[#111] font-medium">{value}</span>
       )}
@@ -668,7 +675,10 @@ function PreviewModal({ open, onClose, phones, cardMsg, items }) {
       onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        onClick={onClose}
+      />
       {/* Panel */}
       <div className="relative z-10 mx-auto w-[860px] max-w-[60vw] max-h-[90vh] overflow-y-auto">
         <div

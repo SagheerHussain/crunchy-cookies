@@ -332,7 +332,8 @@ function GiftBuyNowModal({
       />
 
       {/* Panel */}
-      <div className="relative z-10 mx-auto w-[1100px] max-w-[92vw] max-h-[94vh] overflow-y-auto">
+      {/* w-[1100px] max-w-[92vw] max-h-[94vh] overflow-y-auto */}
+      <div className="relative z-10 mx-auto  w-[1100px] max-w-[92vw] max-h-[94vh] overflow-y-auto">
         <div
           className={`bg-white border border-primary/20 rounded-3xl shadow-2xl ${PANEL_RING}`}
         >
@@ -568,7 +569,7 @@ function GiftBuyNowModal({
 
                 <hr className="border-primary/20" />
 
-                <div>
+                {/* <div>
                   <div className="text-primary text-xl font-semibold mb-3">
                     {isAr ? "بطاقة قسيمة" : "Voucher Card"}
                   </div>
@@ -603,7 +604,7 @@ function GiftBuyNowModal({
                       {couponMessage}
                     </p>
                   )}
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -698,7 +699,7 @@ const ProductDetail = () => {
 
   // Buy Now modal state
   const [buyNowOpen, setBuyNowOpen] = useState(false);
-  
+
   // derived fields
   const title = isAr ? product?.ar_title || product?.title : product?.title;
   const priceNumber = Number(
@@ -972,14 +973,14 @@ const ProductDetail = () => {
               </div>
             )}
 
-            <div className="flex xl:w-1/2 items-center justify-center gap-4 mt-4">
+            <div className="flex xl:w-1/2 items-center gap-4 mt-4">
               {/* BUY NOW */}
-              <button
+              {/* <button
                 onClick={() => setBuyNowOpen(true)}
                 className="bg-primary border border-primary hover:border-primary/80 hover:bg-primary/80 text-center w-1/2 font-medium text-white py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2"
               >
                 {isAr ? "شراء الآن" : "Buy Now"}
-              </button>
+              </button> */}
 
               {resolvingCart ? (
                 <button
