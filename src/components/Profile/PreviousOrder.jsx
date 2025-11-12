@@ -51,16 +51,16 @@ function renderPaymentChip(status) {
   const s = String(status || "pending").toLowerCase();
   switch (s) {
     case "paid":
-      return <Chip label="paid" size="small" sx={chipSX("#DEF7EC", "#03543F")} />; // green
+      return <Chip label="paid" size="small" sx={chipSX("#DEF7EC", "#03543F")} />;
     case "failed":
-      return <Chip label="failed" size="small" sx={chipSX("#FEE2E2", "#991B1B")} />; // red
+      return <Chip label="failed" size="small" sx={chipSX("#FEE2E2", "#991B1B")} />;
     case "refunded":
-      return <Chip label="refunded" size="small" sx={chipSX("#DBEAFE", "#1E3A8A")} />; // blue
+      return <Chip label="refunded" size="small" sx={chipSX("#DBEAFE", "#1E3A8A")} />;
     case "partial":
-      return <Chip label="partial" size="small" sx={chipSX("#EDE9FE", "#5B21B6")} />; // purple
+      return <Chip label="partial" size="small" sx={chipSX("#EDE9FE", "#5B21B6")} />;
     case "pending":
     default:
-      return <Chip label="pending" size="small" sx={chipSX("#FEF3C7", "#92400E")} />; // amber
+      return <Chip label="pending" size="small" sx={chipSX("#FEF3C7", "#92400E")} />;
   }
 }
 
@@ -68,18 +68,18 @@ function renderOrderChip(status) {
   const s = String(status || "pending").toLowerCase();
   switch (s) {
     case "delivered":
-      return <Chip label="delivered" size="small" sx={chipSX("#DCFCE7", "#065F46")} />; // green
+      return <Chip label="delivered" size="small" sx={chipSX("#DCFCE7", "#065F46")} />;
     case "shipped":
-      return <Chip label="shipped" size="small" sx={chipSX("#DBEAFE", "#1E3A8A")} />; // blue
+      return <Chip label="shipped" size="small" sx={chipSX("#DBEAFE", "#1E3A8A")} />;
     case "confirmed":
-      return <Chip label="confirmed" size="small" sx={chipSX("#CFFAFE", "#155E75")} />; // cyan
+      return <Chip label="confirmed" size="small" sx={chipSX("#CFFAFE", "#155E75")} />;
     case "cancelled":
-      return <Chip label="cancelled" size="small" sx={chipSX("#FFE4E6", "#9F1239")} />; // rose
+      return <Chip label="cancelled" size="small" sx={chipSX("#FFE4E6", "#9F1239")} />;
     case "returned":
-      return <Chip label="returned" size="small" sx={chipSX("#FEF3C7", "#92400E")} />; // amber
+      return <Chip label="returned" size="small" sx={chipSX("#FEF3C7", "#92400E")} />;
     case "pending":
     default:
-      return <Chip label="pending" size="small" sx={chipSX("#F3F4F6", "#374151")} />; // gray
+      return <Chip label="pending" size="small" sx={chipSX("#F3F4F6", "#374151")} />;
   }
 }
 
@@ -87,7 +87,7 @@ export default function PreviousOrdersTable() {
   const { i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
 
-  // robust userId extraction
+  // userId
   const stored = sessionStorage.getItem("user");
   const parsed = stored ? JSON.parse(stored) : {};
   const userObj = parsed.user || parsed || {};
@@ -96,12 +96,12 @@ export default function PreviousOrdersTable() {
   const [itemsOpen, setItemsOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
 
-  // ---- React Query: previous orders
+  // React Query
   const {
     data: raw,
     isLoading,
     error,
-    isFetching, // background refresh indicator if you later add refetchInterval
+    isFetching,
   } = usePreviousOrder({ userId });
 
   if (!userId) {
@@ -112,23 +112,26 @@ export default function PreviousOrdersTable() {
     );
   }
 
-  // normalize backend → table rows + modal payload
+  // ---------- JSON → UI mapping (UPDATED) ----------
   const rows = useMemo(() => {
     const arr = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
     return arr.map((node) => {
       const o = node?.order || {};
       const items = Array.isArray(o?.items) ? o.items : [];
+      const recipients = Array.isArray(o?.recipients) ? o.recipients : [];
 
       const totalItems = items.reduce((sum, it) => sum + Number(it?.quantity || 0), 0);
 
+      // modal items: use `product` + allocations
       const modalItems = items.map((it) => {
-        const p = it?.products || {};
+        const p = it?.product || {};
         return {
           en_name: p?.title || "",
           ar_name: p?.ar_title || "",
           image: p?.featuredImage || "",
           qty: Number(it?.quantity || 0),
-          price: Number(p?.price ?? it?.totalAmount ?? 0),
+          price: Number(p?.price ?? 0),
+          allocations: Array.isArray(it?.allocations) ? it.allocations : [],
         };
       });
 
@@ -137,12 +140,16 @@ export default function PreviousOrdersTable() {
         code: o?.code || node?.code,
         status: (node?.status || o?.status || "pending").toLowerCase(),
         paymentStatus: (node?.paymentStatus || o?.payment || "pending").toLowerCase(),
-        placedAt: o?.placedAt,
+        placedAt: o?.placedAt || node?.at || node?.createdAt || o?.createdAt,
         deliveredAt: o?.deliveredAt,
         totalItems,
         grandTotal: Number(o?.grandTotal ?? 0),
-        sender: o?.shippingAddress?.senderPhone || "",
-        receiver: o?.shippingAddress?.receiverPhone || "",
+        sender: o?.senderPhone || "",
+
+        // join all recipient phones for the table cell, but pass full recipients to Modal
+        receiver: recipients.map(r => r?.phone).filter(Boolean).join(", "),
+        recipients,
+
         coupon: o?.appliedCoupon?.value,
         couponType: o?.appliedCoupon?.type,
         taxAmount: o?.taxAmount,
@@ -323,6 +330,7 @@ export default function PreviousOrdersTable() {
         </TableContainer>
       </div>
 
+      {/* Pass full order (with recipients + allocations) to the Modal */}
       <Modal
         itemsOpen={itemsOpen}
         closeItems={closeItems}

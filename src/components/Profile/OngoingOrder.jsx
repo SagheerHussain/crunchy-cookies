@@ -31,18 +31,16 @@ export default function OngoingOrdersCard() {
   const matches = useMediaQuery("(max-width:767px)");
   const queryClient = useQueryClient();
 
-  // modal & dialogs state
   const [itemsOpen, setItemsOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [reasonOpen, setReasonOpen] = useState(false);
-  const [cancelTarget, setCancelTarget] = useState(null); // order object
+  const [cancelTarget, setCancelTarget] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
   const [canceling, setCanceling] = useState(false);
   const [cancelErr, setCancelErr] = useState("");
 
-  // ---- helpers
   const statusToIndex = (s) =>
     Math.max(0, ORDER_STATUS.indexOf(String(s || "").toLowerCase()));
 
@@ -60,15 +58,12 @@ export default function OngoingOrdersCard() {
     }
   };
 
-  // ---- user id (fixes JSON.parse fallback bug)
+  // user id
   const stored = sessionStorage.getItem("user");
   const parsed = stored ? JSON.parse(stored) : {};
   const userObj = parsed.user || parsed || {};
   const userId = userObj?._id || userObj?.id;
 
-  console.log(userId)
-
-  // ---- react-query hook (live updates via refetchInterval)
   const {
     data: raw,
     isLoading,
@@ -76,50 +71,53 @@ export default function OngoingOrdersCard() {
     error,
   } = useOngoingOrder({
     userId,
-    refetchInterval: 10000, // 10s live updates
+    refetchInterval: 10000,
   });
 
-  // ---- normalize API shape to the UI list
+  // ---------- JSON→UI mapping (updated for your payload) ----------
   const list = useMemo(() => {
     const rows = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
     return rows.map((node) => {
+      // Your shape: node { _id, order: { _id, code, status, payment, items[], recipients[], ... }, paymentStatus, status, at/placedAt, ... }
       const o = node?.order || {};
       const items = Array.isArray(o?.items) ? o.items : [];
+      const recipients = Array.isArray(o?.recipients) ? o.recipients : [];
 
       const totalItems = items.reduce((sum, it) => sum + Number(it?.quantity || 0), 0);
 
       const modalItems = items.map((it) => {
-        const p = it?.products || {};
+        const p = it?.product || {}; // <- product (not products)
         return {
           en_name: p?.title || "",
           ar_name: p?.ar_title || "",
           image: p?.featuredImage || "",
           qty: Number(it?.quantity || 0),
-          // prefer product.price, fallback to line total
-          price: Number(p?.price ?? it?.totalAmount ?? 0),
+          price: Number(p?.price ?? 0),
+          allocations: Array.isArray(it?.allocations) ? it.allocations : [],
         };
       });
 
       return {
         _id: node?._id || o?._id,
-        orderId: node?.order?._id,
+        orderId: o?._id,
         code: o?.code || node?.code,
         status: (node?.status || o?.status || "pending").toLowerCase(),
         paymentStatus: (node?.paymentStatus || o?.payment || "pending").toLowerCase(),
-        placedAt: node?.placedAt || o?.placedAt || node?.createdAt || o?.createdAt,
+        placedAt: o?.placedAt || node?.at || node?.createdAt || o?.createdAt,
         totalItems,
         grandTotal: Number(o?.grandTotal ?? node?.grandTotal ?? 0),
-        sender: o?.shippingAddress?.senderPhone || "",
-        receiver: o?.shippingAddress?.receiverPhone || "",
+        sender: o?.senderPhone || "",
+        // multiple recipients -> show all phones joined
+        receiver: recipients.map(r => r?.phone).filter(Boolean).join(", "),
         coupon: o?.appliedCoupon?.value,
         couponType: o?.appliedCoupon?.type,
         taxAmount: o?.taxAmount,
         items: modalItems,
+        recipients, // pass through if your Modal wants to show them
       };
     });
   }, [raw]);
 
-  // Optionally hide terminal states from ongoing list (matching your previous UI behavior)
   const visibleList = useMemo(
     () => list.filter((o) => !["cancelled", "returned", "delivered"].includes(o.status)),
     [list]
@@ -131,7 +129,7 @@ export default function OngoingOrdersCard() {
   };
   const closeItems = () => setItemsOpen(false);
 
-  // ------- Cancel flow handlers -------
+  // ------- Cancel flow -------
   const askCancel = (order) => {
     setCancelErr("");
     setCancelReason("");
@@ -169,10 +167,7 @@ export default function OngoingOrdersCard() {
       setCanceling(true);
       const payload = { status: "cancelled", cancelReason: cancelReason.trim() };
       await updateOrder(payload, cancelTarget.orderId);
-
-      // Refresh ongoing orders list from server
       await queryClient.invalidateQueries({ queryKey: ["orders:ongoing", userId] });
-
       setReasonOpen(false);
       setCancelTarget(null);
       setCancelReason("");
