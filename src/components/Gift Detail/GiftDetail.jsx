@@ -399,7 +399,7 @@ const ProductDetail = () => {
                   <button
                     onClick={handleRemoveFromCart}
                     disabled={mainBtnDisabled}
-                    className="border text-white bg-red-500 hover:bg-red-600 border-red-500 text-center w-1/2 font-medium py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2"
+                    className="border text-white bg-red-500 hover:bg-red-600 border-red-500 text-center font-medium py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2"
                   >
                     <TbShoppingCart size={20} />
                     {isAr ? "إزالة من السلة" : "Remove From Cart"}
