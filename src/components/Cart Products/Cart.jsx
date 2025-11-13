@@ -119,6 +119,8 @@ export default function Cart() {
         en_title: p?.title || p?.name || "—",
         ar_title: p?.ar_title || p?.title || p?.name || "—",
         productId: String(p?._id || it?.product),
+        // 🔹 NEW: keep stock from backend
+        remainingStocks: Number(p?.remainingStocks ?? 0),
       };
     });
     setItems(mapped);
@@ -167,8 +169,15 @@ export default function Cart() {
   const changeQty = async (productId, delta) => {
     const item = items.find((i) => i.id === productId);
     if (!item) return;
+
     const prevQty = Number(item.qty);
-    const newQty = Math.max(1, prevQty + delta);
+    const maxQty = Number(item.remainingStocks || prevQty || 1); // fallback
+
+    // min 1, max remainingStocks
+    const newQty = Math.max(1, Math.min(maxQty, prevQty + delta));
+
+    // if nothing actually changes, just return
+    if (newQty === prevQty) return;
 
     // optimistic update
     setItems((prev) =>
@@ -593,6 +602,18 @@ export default function Cart() {
     recipients.some((r) => !r.phone?.trim() || !r.cardMessage?.trim()) ||
     allocationsInvalid;
 
+  const handleResetDetails = () => {
+    setSenderPhone("");
+    setRecipients([
+      {
+        tempId: "r1",
+        label: "Recipient 1",
+        phone: "",
+        cardMessage: "",
+      },
+    ]);
+  };
+
   /* ============================= UI ============================== */
 
   return (
@@ -722,17 +743,24 @@ export default function Cart() {
                         <div className="flex md:flex-row flex-col items-center">
                           <button
                             onClick={() => changeQty(i.id, -1)}
-                            disabled={qtyUpdating}
+                            disabled={qtyUpdating || i.qty <= 1}
                             className="h-6 w-6 md:h-6 md:w-6 rounded-full bg-[#fff] border border-slate-200 grid place-items-center hover:bg-[#eee] disabled:opacity-60"
                           >
                             <FiMinus className="text-black" />
                           </button>
+
                           <div className="md:w-8 my-1 md:my-0 font-semibold text-slate-700 text-center">
                             {i.qty}
                           </div>
+
                           <button
                             onClick={() => changeQty(i.id, +1)}
-                            disabled={qtyUpdating}
+                            disabled={
+                              qtyUpdating ||
+                              (typeof i.remainingStocks === "number" &&
+                                i.remainingStocks > 0 &&
+                                i.qty >= i.remainingStocks)
+                            }
                             className="h-6 w-6 md:h-6 md:w-6 rounded-full bg-[#fff] border border-slate-200 grid place-items-center hover:bg-[#eee] disabled:opacity-60"
                           >
                             <FiPlus className="text-black" />
@@ -748,6 +776,12 @@ export default function Cart() {
                         </button>
                       </div>
                     </div>
+
+                    {i.remainingStocks > 0 && i.qty >= i.remainingStocks && (
+                      <p className="text-[12px] text-rose-500 mt-1">
+                        Max available stock reached.
+                      </p>
+                    )}
 
                     {/* Allocations */}
                     {i.selected && (
@@ -992,12 +1026,9 @@ export default function Cart() {
                 {/* Preview button */}
                 <div className="flex items-center gap-3 pt-1">
                   <button
+                    type="button"
                     className="px-6 py-2.5 rounded-xl border border-primary/20 text-[#333] hover:bg-primary hover:text-white font-medium transition-all duration-200"
-                    onClick={() => {
-                      // simple reset for demo; or keep as-is
-                      // setSenderPhone("");
-                      // setRecipients([...]);
-                    }}
+                    onClick={handleResetDetails}
                   >
                     {langClass ? "إعادة تعيين" : "Reset"}
                   </button>
