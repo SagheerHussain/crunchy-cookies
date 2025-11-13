@@ -14,7 +14,7 @@ import {
   useDeleteWishlist,
 } from "../hooks/wishlist/useWishlistMutation";
 
-// cart hooks (NEW)
+// cart hooks
 import { useCartByUser } from "../hooks/cart/useCart";
 import {
   useAddItemToCart,
@@ -40,9 +40,8 @@ const ProductCard = ({ data, product }) => {
     if (toastOutRef.current) clearTimeout(toastOutRef.current);
 
     setToastMsg(msg);
-    setToastShow(true); // slide in
+    setToastShow(true);
 
-    // stay 3s, then slide out; clear text after animation
     toastInRef.current = setTimeout(() => {
       setToastShow(false);
       toastOutRef.current = setTimeout(() => setToastMsg(""), 350);
@@ -180,10 +179,8 @@ const ProductCard = ({ data, product }) => {
   const hasEnoughTypeStock = useMemo(() => {
     const carry = Number(product?.totalPieceCarry || 0);
 
-    // if no types on the product, don't block the sale
     if (!Array.isArray(product?.type) || product.type.length === 0) return true;
 
-    // if types are populated, they have remainingStock; if not, treat as OK
     return product.type.some((t) => {
       const rem = Number(
         (t && typeof t === "object" ? t.remainingStock : null) ?? Infinity
@@ -197,8 +194,35 @@ const ProductCard = ({ data, product }) => {
 
   const canAddToCart = !isOutOfStock && hasEnoughTypeStock;
 
+  /* -------------------------- Pricing helpers -------------------------- */
+  const basePrice = Number(product?.price || 0);
+  const discountedPrice = Number(
+    product?.priceAfterDiscount != null
+      ? product.priceAfterDiscount
+      : Math.max(0, basePrice - Number(product?.discount || 0))
+  );
+
+  // kya actually discount hai? (numeric level pe)
+  const hasNumericDiscount =
+    Number.isFinite(basePrice) &&
+    Number.isFinite(discountedPrice) &&
+    basePrice > 0 &&
+    discountedPrice >= 0 &&
+    discountedPrice < basePrice;
+
+  // percentage calculate karo (sirf jab numeric discount ho)
+  const discountPercent = hasNumericDiscount
+    ? Math.round(((basePrice - discountedPrice) / basePrice) * 100)
+    : 0;
+
+  // UI sirf tab dikhana jab % >= 1 ho
+  const showDiscountUi = hasNumericDiscount && discountPercent > 0;
+
+  const discountLabel =
+    langClass === "ar" ? `${discountPercent}% خصم` : `${discountPercent}% OFF`;
+
   return (
-    <div className="relative bg-primary_light_mode rounded-[35px] border-[1px] border-primary/30 flex flex-col items-center transition-shadow duration-300 p-4">
+    <div className="relative bg-primary_light_mode rounded-[35px] border-[1px] border-primary/30 flex flex-col items-center transition-shadow duration-300 p-4 overflow-hidden">
       {/* animated toast */}
       {toastMsg && (
         <div
@@ -215,6 +239,15 @@ const ProductCard = ({ data, product }) => {
         </div>
       )}
 
+      {/* Discount badge */}
+      {showDiscountUi && (
+        <div className="absolute top-4 -left-12 z-10">
+          <div className="bg-[#ff4b5c] text-white text-[11px] font-semibold px-16 py-1.5 -rotate-[45deg] shadow-md tracking-wide">
+            {discountLabel}
+          </div>
+        </div>
+      )}
+
       <Link to={`/gift-detail/${product?._id}`} className="w-full">
         <img
           src={product?.featuredImage}
@@ -223,6 +256,7 @@ const ProductCard = ({ data, product }) => {
         />
       </Link>
 
+      {/* wishlist button */}
       <div className="absolute top-[calc(100%-92%)] right-[calc(100%-92%)]">
         <button
           className="bg-white p-2 rounded-full disabled:opacity-60"
@@ -239,9 +273,24 @@ const ProductCard = ({ data, product }) => {
       </div>
 
       <div className="card-content w-full">
-        <p className="text-primary font-medium text-lg flex items-center">
-          Qar <span className="text-2xl ps-2">{product?.price}</span>
-        </p>
+        {/* Price row with original + discounted */}
+        <div className="flex items-baseline gap-2">
+          <p className="text-primary font-semibold text-xl flex items-center">
+            QAR{" "}
+            <span className="text-2xl ps-1">
+              {(hasNumericDiscount
+                ? discountedPrice
+                : basePrice
+              ).toLocaleString()}
+            </span>
+          </p>
+
+          {showDiscountUi && (
+            <span className="text-xs text-slate-500 line-through">
+              QAR {basePrice.toLocaleString()}
+            </span>
+          )}
+        </div>
 
         <h5
           className={`text-black ${
@@ -287,7 +336,6 @@ const ProductCard = ({ data, product }) => {
             />
           )}
         </div>
-        
       </div>
     </div>
   );
