@@ -22,6 +22,16 @@ export const getPreviousOrder = async (userId) => {
     } catch (error) {
         console.log(error)
     }
+
+}
+export const getCurrentLatestOrder = async (userId) => {
+    try {
+        const res = await axios.get(`${BASE_URL}/orders/lists/current-latest-order/${userId}`);
+        console.log("Latest Order", res)
+        return res.data;
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 export const createOrder = async (payload) => {
