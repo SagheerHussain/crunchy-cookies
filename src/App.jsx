@@ -44,7 +44,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/wishlist/:id" element={<WishlistPage />} />
         <Route path="/cart/:id" element={<CartPage />} />
-        <Route path="/member/:id" element={<ProfilePage />} />
+        <Route path="/member/:id/:currentTab" element={<ProfilePage />} />
       </Route>
       <Route path="/gift-detail/:id" element={<GiftDetailPage />} />
       <Route path="/faq" element={<FAQPage />} />

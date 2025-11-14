@@ -4,8 +4,12 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ProfileDashboard from "../components/Profile/Profile";
 import ScrollToTopButton from "../components/ScrollToTop";
+import { useParams } from "react-router-dom";
 
 const ProfilePage = () => {
+
+  const { currentTab } = useParams();
+
   return (
     <>
       <header id="header">
@@ -14,7 +18,7 @@ const ProfilePage = () => {
       </header>
 
       <main id="main">
-        <ProfileDashboard />
+        <ProfileDashboard currentTab={currentTab}/>
       </main>
 
       <Footer />

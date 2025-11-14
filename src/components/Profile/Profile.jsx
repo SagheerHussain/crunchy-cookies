@@ -11,8 +11,8 @@ import { Link } from "react-router-dom";
 import { MdArrowForwardIos, MdOutlineArrowBackIos } from "react-icons/md";
 import { useTranslation } from "react-i18next";
 
-export default function ProfileDashboard() {
-  const [tab, setTab] = useState("profile");
+export default function ProfileDashboard({ currentTab = "profile" }) {
+  const [tab, setTab] = useState(currentTab);
   const [ordersTab, setOrdersTab] = useState("ongoing");
 
   const { i18n } = useTranslation();

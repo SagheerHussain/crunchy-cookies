@@ -12,7 +12,7 @@ import {
 } from "react-icons/fi";
 import previewCard from "/images/preview-card.png";
 import { useCartFlag } from "../../context/CartContext";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { MdArrowForwardIos, MdOutlineArrowBackIos } from "react-icons/md";
 import { useTranslation } from "react-i18next";
 import { ClipLoader } from "react-spinners";
@@ -53,6 +53,10 @@ export default function Cart() {
   const langClass = i18n.language === "ar";
   const { setUpdate } = useCartFlag();
   const { id } = useParams(); // userId from route
+
+  const { user } = JSON.parse(sessionStorage.getItem("user")) || {};
+
+  const navigate = useNavigate();
 
   // toast
   const [toast, setToast] = useState("");
@@ -494,7 +498,7 @@ export default function Cart() {
 
     // each recipient must have phone & cardMessage
     for (const r of recipients) {
-      if (!r.phone?.trim() || !r.cardMessage?.trim()) {
+      if (!r.phone?.trim()) {
         showToast(`${r.label}: please fill phone & card message`);
         return false;
       }
@@ -573,6 +577,20 @@ export default function Cart() {
 
       if (res?.success) {
         showToast(res?.message || "Order placed");
+
+        setSenderPhone("");
+        setRecipients([
+          {
+            tempId: "r1",
+            label: "Recipient 1",
+            phone: "",
+            cardMessage: "",
+          },
+        ]);
+
+        setTimeout(() => {
+          navigate(`/member/${user?._id}/orders`)
+        }, 700);
       } else {
         showToast(res?.message || "Order failed");
       }
@@ -599,7 +617,7 @@ export default function Cart() {
     !selectedItems.length ||
     !senderPhone ||
     !recipients.length ||
-    recipients.some((r) => !r.phone?.trim() || !r.cardMessage?.trim()) ||
+    recipients.some((r) => !r.phone?.trim()) ||
     allocationsInvalid;
 
   const handleResetDetails = () => {
@@ -612,6 +630,14 @@ export default function Cart() {
         cardMessage: "",
       },
     ]);
+  };
+
+  const formatPhone = (val = "") => {
+    // sirf digits aur + rakho
+    let v = val.replace(/[^\d+]/g, "");
+
+    // + ke baad 2–3 digits ko country code lo, baaki ko alag
+    return v.replace(/^(\+\d{3})(\d+)/, "$1 $2"); // e.g. +92 3123456789, +974 31234567
   };
 
   /* ============================= UI ============================== */
@@ -944,12 +970,22 @@ export default function Cart() {
                   </span>
                   <div className="mt-2 relative">
                     <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="tel"
+                    {/* <input
+                      type="number"
                       placeholder="+974 2345 456"
                       value={senderPhone}
                       onChange={(e) => setSenderPhone(e.target.value)}
                       className="w-full pl-10 pr-3 py-2.5 rounded-xl border-2 border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    /> */}
+                    <input
+                      type="tel"
+                      placeholder="+974 0000 576"
+                      value={senderPhone}
+                      onChange={(e) => {
+                        const formatted = formatPhone(e.target.value);
+                        setSenderPhone(formatted);
+                      }}
+                      className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
                     />
                   </div>
                 </div>
@@ -986,8 +1022,8 @@ export default function Cart() {
                       {/* phone */}
                       <div className="relative">
                         <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input
-                          type="tel"
+                        {/* <input
+                          type="number"
                           placeholder="+974 0000 576"
                           value={r.phone}
                           onChange={(e) =>
@@ -997,6 +1033,16 @@ export default function Cart() {
                               e.target.value
                             )
                           }
+                          className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+                        /> */}
+                        <input
+                          type="tel"
+                          placeholder="+974 0000 576"
+                          value={r.phone}
+                          onChange={(e) => {
+                            const formatted = formatPhone(e.target.value);
+                            updateRecipientField(r.tempId, "phone", formatted);
+                          }}
                           className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
                         />
                       </div>
