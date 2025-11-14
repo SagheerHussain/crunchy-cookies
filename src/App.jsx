@@ -96,7 +96,7 @@ export default function App() {
     fetchLatest();
 
     // poll every 30 minutes
-    const intervalId = setInterval(fetchLatest, 5 * 1000); // 30 seconds
+    const intervalId = setInterval(fetchLatest, 30 * 60 * 1000);
 
     return () => {
       isMounted = false;
