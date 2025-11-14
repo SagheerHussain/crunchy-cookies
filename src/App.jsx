@@ -1,5 +1,5 @@
 // App.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 
 import HomePage from "./pages/HomePage";
@@ -23,6 +23,8 @@ import PartnerWithUsPage from "./pages/PartnerWithUsPage";
 
 import "./App.css";
 import { getCurrentLatestOrder, updateOrder } from "./api/order";
+import ToastNotification from "./components/ToastNotification";
+import ClipLoader from "react-spinners/ClipLoader";
 
 export default function App() {
   const location = useLocation();
@@ -36,16 +38,32 @@ export default function App() {
     userId = null;
   }
 
+  // login / app start time ko track karo
+  const loginAtRef = useRef(Date.now());
+
+  // jab bhi userId set ho / change ho, ye "login time" maan lo
+  useEffect(() => {
+    if (userId) {
+      loginAtRef.current = Date.now();
+    }
+  }, [userId]);
+
   // ─── Feedback popup state ──────────────────────────────────────────
-  const [latestOrder, setLatestOrder] = useState(null); // only the order object
+  const [latestOrder, setLatestOrder] = useState(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackSending, setFeedbackSending] = useState(false);
+
+  // animation control for popup
+  const [feedbackMounted, setFeedbackMounted] = useState(false);
+  const [feedbackVisible, setFeedbackVisible] = useState(false);
+
+  // which option is currently being submitted
+  const [selectedSatisfaction, setSelectedSatisfaction] = useState("");
 
   // Toast for feedback
   const [feedbackToast, setFeedbackToast] = useState("");
   const [feedbackToastVisible, setFeedbackToastVisible] = useState(false);
 
-  // Satisfaction options (must match backend enum)
   const SATISFACTION_OPTIONS = [
     { value: "extremely satisfied", label: "Extremely satisfied" },
     { value: "satisfied", label: "Satisfied" },
@@ -62,7 +80,7 @@ export default function App() {
     });
   }, [location.pathname]);
 
-  // ─── Fetch latest order every 30 minutes + on route change ─────────
+  // ─── Fetch latest order every 30 seconds ───────────────────────────
   useEffect(() => {
     if (!userId) return;
 
@@ -70,8 +88,13 @@ export default function App() {
 
     const fetchLatest = async () => {
       try {
+        // ✅ hard guard: login/app-start ke 30s se pehle kuch mat karo
+        const now = Date.now();
+        if (now - loginAtRef.current < 30_000) {
+          return;
+        }
+
         const { data } = await getCurrentLatestOrder(userId);
-        // API shape: { success, message, data: orderOrNull }
         const order = data || null;
 
         if (!isMounted) return;
@@ -92,34 +115,50 @@ export default function App() {
       }
     };
 
-    // initial fetch
-    fetchLatest();
-
-    // poll every 30 minutes
-    const intervalId = setInterval(fetchLatest, 30 * 1000);
+    // ⏱️ ab interval bhi 30s ka
+    const intervalId = setInterval(fetchLatest, 5 * 1000);
 
     return () => {
       isMounted = false;
       clearInterval(intervalId);
     };
-  }, [userId, location.pathname]);
+  }, [userId, location.pathname, loginAtRef]);
 
-  // ─── Toast helper ──────────────────────────────────────────────────
+  // ─── Popup open/close animation controller ─────────────────────────
+  useEffect(() => {
+    let timeoutId;
+
+    if (showFeedbackModal) {
+      setFeedbackMounted(true);
+      requestAnimationFrame(() => {
+        setFeedbackVisible(true);
+      });
+    } else {
+      setFeedbackVisible(false);
+      timeoutId = setTimeout(() => {
+        setFeedbackMounted(false);
+      }, 200);
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [showFeedbackModal]);
+
   const showFeedbackThanks = (msg) => {
     setFeedbackToast(msg);
     setFeedbackToastVisible(true);
-    setTimeout(() => setFeedbackToastVisible(false), 3000);
   };
 
-  // ─── Submit satisfaction to backend ────────────────────────────────
   const handleSubmitFeedback = async (value) => {
     if (!latestOrder?._id) return;
 
     try {
       setFeedbackSending(true);
+      setSelectedSatisfaction(value);
+
       await updateOrder({ satisfaction: value }, latestOrder._id);
 
-      // close popup and update local state so it doesn't show again
       setShowFeedbackModal(false);
       setLatestOrder((prev) =>
         prev ? { ...prev, satisfaction: value } : prev
@@ -130,6 +169,7 @@ export default function App() {
       console.error("updateOrder (satisfaction) error:", err);
     } finally {
       setFeedbackSending(false);
+      // optional: setSelectedSatisfaction("");
     }
   };
 
@@ -158,10 +198,20 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
       </Routes>
 
-      {/* ─── FEEDBACK POPUP ─────────────────────────────────────────── */}
-      {showFeedbackModal && latestOrder && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-[90%] p-6">
+      {/* ─── FEEDBACK POPUP (animated + per-button loader) ───────────── */}
+      {feedbackMounted && latestOrder && (
+        <div
+          className={`fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-200 ${
+            feedbackVisible ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div
+            className={`bg-white rounded-2xl shadow-xl max-w-md w-[90%] p-6 transform transition-all duration-200 ${
+              feedbackVisible
+                ? "opacity-100 translate-y-0 scale-100"
+                : "opacity-0 translate-y-4 scale-95"
+            }`}
+          >
             <h3 className="text-lg text-primary mb-1">
               How was your recent order?
             </h3>
@@ -189,12 +239,28 @@ export default function App() {
                   key={opt.value}
                   disabled={feedbackSending}
                   onClick={() => handleSubmitFeedback(opt.value)}
-                  className="w-full text-sm py-2.5 rounded-lg border border-primary/20 px-4 hover:bg-primary_light_mode/20 text-primary flex items-center justify-between transition"
+                  className="relative w-full text-sm py-2.5 rounded-lg border border-primary/20 px-4 hover:bg-primary_light_mode/20 text-primary flex items-center justify-between transition"
                 >
-                  <span className="font-normal">{opt.label}</span>
-                  <span className="text-[10px] font-normal uppercase tracking-wide text-black">
-                    Tap to select
-                  </span>
+                  {/* Normal content (hide while loading that option) */}
+                  <div
+                    className={`flex w-full items-center justify-between ${
+                      feedbackSending && selectedSatisfaction === opt.value
+                        ? "opacity-0"
+                        : "opacity-100"
+                    }`}
+                  >
+                    <span className="font-normal">{opt.label}</span>
+                    <span className="text-[10px] font-normal uppercase tracking-wide text-black">
+                      Tap to select
+                    </span>
+                  </div>
+
+                  {/* Loader overlay only on selected button */}
+                  {feedbackSending && selectedSatisfaction === opt.value && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white/70">
+                      <ClipLoader size={18} color="#0b5a5e" />
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
@@ -213,13 +279,14 @@ export default function App() {
       )}
 
       {/* ─── FEEDBACK TOAST ─────────────────────────────────────────── */}
-      {feedbackToastVisible && (
-        <div className="fixed left-1/2 bottom-6 -translate-x-1/2 z-[70]">
-          <div className="bg-primary text-white text-xs px-4 py-2 rounded-full shadow-lg">
-            {feedbackToast}
-          </div>
-        </div>
-      )}
+      <ToastNotification
+        open={feedbackToastVisible}
+        type="success"
+        title="Thank you!"
+        message={feedbackToast}
+        duration={3000}
+        onClose={() => setFeedbackToastVisible(false)}
+      />
     </>
   );
 }

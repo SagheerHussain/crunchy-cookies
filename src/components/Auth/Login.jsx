@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { FiMail } from "react-icons/fi";
 import { CiLock } from "react-icons/ci";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { Link } from "react-router-dom";
+
+import ToastNotification from "../ToastNotification"; // <- path adjust if needed
 
 const API_BASE = "https://crunchy-cookies-server.onrender.com/api/v1";
 
@@ -15,13 +16,29 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
+  // Toast state
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastType, setToastType] = useState("success"); // "success" | "error"
+  const [toastTitle, setToastTitle] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
+
+  const showToast = (type, title, message) => {
+    setToastType(type);
+    setToastTitle(title);
+    setToastMessage(message);
+    setToastOpen(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErr("");
     if (!email || !password) {
-      setErr("Please enter email and password.");
+      const msg = "Please enter email and password.";
+      setErr(msg);
+      showToast("error", "Login failed", msg);
       return;
     }
+
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/auth/login`, {
@@ -45,9 +62,22 @@ export default function Login() {
         })
       );
 
-      navigate("/", { replace: true });
+      // ✅ success toast
+      showToast(
+        "success",
+        "Welcome back!",
+        "You have logged in successfully."
+      );
+
+      // thoda delay, taake toast dikh jaye
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 500);
     } catch (e) {
-      setErr(e.message || "Something went wrong");
+      const msg = e.message || "Something went wrong";
+      setErr(msg);
+      // ❌ error toast
+      showToast("error", "Login failed", msg);
     } finally {
       setLoading(false);
     }
@@ -171,6 +201,16 @@ export default function Login() {
           </p>
         </div>
       </div>
+
+      {/* Global Toast for Login */}
+      <ToastNotification
+        open={toastOpen}
+        type={toastType}
+        title={toastTitle}
+        message={toastMessage}
+        duration={3000}
+        onClose={() => setToastOpen(false)}
+      />
     </div>
   );
 }

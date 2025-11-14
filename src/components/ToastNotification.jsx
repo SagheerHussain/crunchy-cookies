@@ -67,7 +67,7 @@ const ToastNotification = ({
           : "bottom-0 opacity-0 translate-y-5",
       ].join(" ")}
     >
-      <div className="pointer-events-auto flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-green-950 to-black rounded-md shadow-lg min-w-[360px] max-w-[360px]">
+      <div className={`pointer-events-auto flex items-center gap-3 px-4 py-3 bg-gradient-to-r ${isSuccess ? "from-green-950 to-black" : "from-red-950 to-black"} rounded-md shadow-lg min-w-[360px] max-w-[360px]`}>
         <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
           {icon}
         </div>
