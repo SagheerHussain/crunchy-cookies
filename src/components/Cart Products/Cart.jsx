@@ -1,5 +1,5 @@
 // client/src/pages/Cart/Cart.jsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   FiTrash2,
   FiMinus,
@@ -25,6 +25,8 @@ import {
 } from "../../hooks/cart/useCartMutation";
 import { checkCoupon } from "../../api/coupon";
 import { createOrder } from "../../api/order";
+
+import ToastNotification from "../../components/ToastNotification"; // 👈 toast component
 
 const CURRENCY = (n) => `QAR ${Number(n || 0).toLocaleString()}`;
 const PANEL_RING = "ring-1 ring-primary/10";
@@ -58,23 +60,19 @@ export default function Cart() {
 
   const navigate = useNavigate();
 
-  // toast
-  const [toast, setToast] = useState("");
-  const [toastShow, setToastShow] = useState(false);
-  const toastInRef = useRef(null);
-  const toastOutRef = useRef(null);
+  // ---- Toast state (using reusable ToastNotification) ----
+  const [toastState, setToastState] = useState({
+    open: false,
+    type: "success", // "success" | "error"
+    message: "",
+  });
 
-  const showToast = (msg) => {
-    if (toastInRef.current) clearTimeout(toastInRef.current);
-    if (toastOutRef.current) clearTimeout(toastOutRef.current);
-
-    setToast(msg);
-    setToastShow(true);
-
-    toastInRef.current = setTimeout(() => {
-      setToastShow(false);
-      toastOutRef.current = setTimeout(() => setToast(""), 350);
-    }, 3000);
+  const showToast = (msg, type = "success") => {
+    setToastState({
+      open: true,
+      type,
+      message: msg,
+    });
   };
 
   const [loading, setLoading] = useState(false);
@@ -123,7 +121,6 @@ export default function Cart() {
         en_title: p?.title || p?.name || "—",
         ar_title: p?.ar_title || p?.title || p?.name || "—",
         productId: String(p?._id || it?.product),
-        // 🔹 NEW: keep stock from backend
         remainingStocks: Number(p?.remainingStocks ?? 0),
       };
     });
@@ -177,18 +174,13 @@ export default function Cart() {
     const prevQty = Number(item.qty);
     const maxQty = Number(item.remainingStocks || prevQty || 1); // fallback
 
-    // min 1, max remainingStocks
     const newQty = Math.max(1, Math.min(maxQty, prevQty + delta));
-
-    // if nothing actually changes, just return
     if (newQty === prevQty) return;
 
-    // optimistic update
     setItems((prev) =>
       prev.map((i) => (i.id === productId ? { ...i, qty: newQty } : i))
     );
 
-    // also normalize allocations for this item
     setItemAllocations((prev) => {
       const forItem = prev[productId] || [];
       return {
@@ -204,7 +196,6 @@ export default function Cart() {
     try {
       await setQtyMut({ user: id, productId: item.productId, qty: newQty });
     } catch {
-      // revert on error
       setItems((prev) =>
         prev.map((i) => (i.id === productId ? { ...i, qty: prevQty } : i))
       );
@@ -219,6 +210,12 @@ export default function Cart() {
           ),
         };
       });
+      showToast(
+        langClass
+          ? "لم يتم تحديث العدد، حاول مرة أخرى"
+          : "Could not update quantity, please try again.",
+        "error"
+      );
     }
   };
 
@@ -236,9 +233,18 @@ export default function Cart() {
     try {
       await removeItemMut({ user: id, productId: item.productId });
       setUpdate((u) => !u);
-      showToast(langClass ? "أُزيل من السلة" : "Removed from cart");
+      showToast(
+        langClass ? "أُزيل من السلة" : "Removed from cart",
+        "success"
+      );
     } catch {
       setItems(prev);
+      showToast(
+        langClass
+          ? "تعذر إزالة العنصر من السلة"
+          : "Failed to remove item from cart.",
+        "error"
+      );
     }
   };
 
@@ -255,9 +261,16 @@ export default function Cart() {
       } else {
         setCouponMessage("");
         setCoupon(null);
+        showToast(res?.message || "Invalid coupon", "error");
       }
     } catch (error) {
       console.log(error);
+      showToast(
+        langClass
+          ? "تعذر تطبيق القسيمة"
+          : "Failed to apply coupon. Please try again.",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -265,19 +278,16 @@ export default function Cart() {
 
   /* --------------------- Recipients Helpers ---------------------- */
 
-  // Ensure allocations stay valid when items or recipients change
   useEffect(() => {
     setItemAllocations((prev) => {
       const next = { ...prev };
       const itemIds = new Set(items.map((i) => i.id));
       const validRecipients = new Set(recipients.map((r) => r.tempId));
 
-      // remove for deleted items
       Object.keys(next).forEach((itemId) => {
         if (!itemIds.has(itemId)) delete next[itemId];
       });
 
-      // ensure each item has at least one allocation & uses valid recipients
       for (const item of items) {
         const existing = next[item.id] || [];
         const filtered = existing.filter((a) =>
@@ -315,8 +325,6 @@ export default function Cart() {
     );
   };
 
-  // Allocation UI handlers
-
   const addAllocationRow = (itemId, itemQty) => {
     setItemAllocations((prev) => {
       const existing = prev[itemId] || [];
@@ -351,8 +359,6 @@ export default function Cart() {
   const commitAllocationQty = (itemId, itemQty, recipients) => {
     setItemAllocations((prev) => {
       const list = [...(prev[itemId] || [])];
-
-      // Agar sab empty / invalid hain to normalize khud single recipient pe le aayega
       const normalized = normalizeAllocations(
         itemQty,
         list,
@@ -373,24 +379,16 @@ export default function Cart() {
       const list = [...(prev[itemId] || [])];
       if (!list[index]) return prev;
 
-      // ----- 1) Raw input handle -----
-      // allow empty while typing (don't delete row)
       if (newQtyRaw === "") {
         list[index] = { ...list[index], quantity: "" };
-        return {
-          ...prev,
-          [itemId]: list,
-        };
+        return { ...prev, [itemId]: list };
       }
 
       let newQty = Number(newQtyRaw);
       if (!Number.isFinite(newQty) || newQty < 0) newQty = 0;
 
-      // ----- 2) Set edited row -----
       list[index] = { ...list[index], quantity: newQty };
 
-      // ----- 3) Auto-balance others so total == maxQty -----
-      // calculate sum of other rows (excluding edited)
       const otherIdxs = list.map((_, i) => i).filter((i) => i !== index);
 
       let otherSum = 0;
@@ -400,13 +398,10 @@ export default function Cart() {
         otherSum += q;
       });
 
-      // total if we keep others as is
       let total = newQty + otherSum;
 
-      // (a) if total > maxQty → reduce last other row
       if (total > maxQty && otherIdxs.length) {
         let diff = total - maxQty;
-        // try to cut from last other allocation
         for (let k = otherIdxs.length - 1; k >= 0 && diff > 0; k--) {
           const idxOther = otherIdxs[k];
           const canCut = Math.min(Number(list[idxOther].quantity) || 0, diff);
@@ -421,7 +416,6 @@ export default function Cart() {
           otherIdxs.reduce((s, i) => s + (Number(list[i].quantity) || 0), 0);
       }
 
-      // (b) if total < maxQty → add remaining to last other (or edited)
       if (total < maxQty) {
         const remaining = maxQty - total;
 
@@ -430,19 +424,16 @@ export default function Cart() {
           list[lastIdx].quantity =
             (Number(list[lastIdx].quantity) || 0) + remaining;
         } else {
-          // only one allocation exists → all qty goes here
           list[index].quantity =
             (Number(list[index].quantity) || 0) + remaining;
         }
       }
 
-      // ----- 4) Cleanup: drop zero rows, keep at least one -----
       let cleaned = list.filter(
         (a) => Number(a.quantity) > 0 && a.recipientTempId
       );
 
       if (!cleaned.length) {
-        // safety: one row full qty
         cleaned = [
           {
             recipientTempId:
@@ -475,14 +466,16 @@ export default function Cart() {
   const validateBeforeOrder = () => {
     if (!selectedItems.length) {
       showToast(
-        langClass ? "الرجاء تحديد عناصر" : "Please select items to purchase"
+        langClass ? "الرجاء تحديد عناصر" : "Please select items to purchase",
+        "error"
       );
       return false;
     }
 
     if (!senderPhone?.trim()) {
       showToast(
-        langClass ? "أدخل رقم هاتف المرسل" : "Please enter sender phone"
+        langClass ? "أدخل رقم هاتف المرسل" : "Please enter sender phone",
+        "error"
       );
       return false;
     }
@@ -491,28 +484,35 @@ export default function Cart() {
       showToast(
         langClass
           ? "أضف مستلمًا واحدًا على الأقل"
-          : "Add at least one recipient"
+          : "Add at least one recipient",
+        "error"
       );
       return false;
     }
 
-    // each recipient must have phone & cardMessage
     for (const r of recipients) {
       if (!r.phone?.trim()) {
-        showToast(`${r.label}: please fill phone & card message`);
+        showToast(
+          `${r.label}: ${
+            langClass
+              ? "يرجى إدخال رقم الهاتف ورسالة البطاقة"
+              : "please fill phone & card message"
+          }`,
+          "error"
+        );
         return false;
       }
     }
 
-    // allocations must exist & sum to qty
     for (const item of selectedItems) {
       const allocs = itemAllocations[item.id] || [];
       const sum = allocs.reduce((s, a) => s + Number(a.quantity || 0), 0);
       if (!allocs.length || sum !== Number(item.qty)) {
         showToast(
-          `${langClass ? "تحقق من التوزيع" : "Check allocation"} for ${
-            langClass ? item.ar_title : item.en_title
-          }`
+          `${langClass ? "تحقق من التوزيع" : "Check allocation"} ${
+            langClass ? "لـ" : "for"
+          } ${langClass ? item.ar_title : item.en_title}`,
+          "error"
         );
         return false;
       }
@@ -534,7 +534,6 @@ export default function Cart() {
       const taxAmount = delivery;
       const totalAmount = round2(total());
 
-      // build recipients payload
       const recipientsPayload = recipients.map((r) => ({
         tempId: r.tempId,
         label: r.label,
@@ -546,7 +545,6 @@ export default function Cart() {
         },
       }));
 
-      // items with allocations
       const itemsPayload = selectedItems.map((item) => ({
         product: item.productId,
         quantity: Number(item.qty || 1),
@@ -576,7 +574,7 @@ export default function Cart() {
       setorderMessage(res?.message);
 
       if (res?.success) {
-        showToast(res?.message || "Order placed");
+        showToast(res?.message || "Order placed", "success");
 
         setSenderPhone("");
         setRecipients([
@@ -589,17 +587,18 @@ export default function Cart() {
         ]);
 
         setTimeout(() => {
-          navigate(`/member/${user?._id}/orders`)
+          navigate(`/member/${user?._id}/orders`);
         }, 700);
       } else {
-        showToast(res?.message || "Order failed");
+        showToast(res?.message || "Order failed", "error");
       }
     } catch (error) {
       console.error("Failed to create order:", error);
       showToast(
         langClass
           ? "فشل إنشاء الطلب"
-          : "Failed to create order. Please try again."
+          : "Failed to create order. Please try again.",
+        "error"
       );
     } finally {
       setOrderLoading(false);
@@ -633,32 +632,36 @@ export default function Cart() {
   };
 
   const formatPhone = (val = "") => {
-    // sirf digits aur + rakho
     let v = val.replace(/[^\d+]/g, "");
-
-    // + ke baad 2–3 digits ko country code lo, baaki ko alag
-    return v.replace(/^(\+\d{3})(\d+)/, "$1 $2"); // e.g. +92 3123456789, +974 31234567
+    return v.replace(/^(\+\d{3})(\d+)/, "$1 $2");
   };
 
   /* ============================= UI ============================== */
 
   return (
     <section id="cart" className="pt-4 pb-10">
-      {/* Toast */}
-      {toast && (
-        <div
-          className={[
-            "fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-out",
-            toastShow
-              ? "bottom-8 translate-y-0 opacity-100"
-              : "bottom-0 translate-y-6 opacity-0",
-          ].join(" ")}
-        >
-          <div className="bg-green-600 text-white text-sm px-4 py-2 rounded-full shadow-lg">
-            {toast}
-          </div>
-        </div>
-      )}
+      {/* Global Toast */}
+      <ToastNotification
+        open={toastState.open}
+        type={toastState.type}
+        title={
+          toastState.type === "success"
+            ? langClass
+              ? "تم بنجاح"
+              : "Success"
+            : langClass
+            ? "حدث خطأ"
+            : "Error"
+        }
+        message={toastState.message}
+        duration={3000}
+        onClose={() =>
+          setToastState((prev) => ({
+            ...prev,
+            open: false,
+          }))
+        }
+      />
 
       <div className="custom-container pb-10">
         <Link to={"/"} className="px-4">
@@ -970,13 +973,6 @@ export default function Cart() {
                   </span>
                   <div className="mt-2 relative">
                     <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    {/* <input
-                      type="number"
-                      placeholder="+974 2345 456"
-                      value={senderPhone}
-                      onChange={(e) => setSenderPhone(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 rounded-xl border-2 border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    /> */}
                     <input
                       type="tel"
                       placeholder="+974 0000 576"
@@ -1022,19 +1018,6 @@ export default function Cart() {
                       {/* phone */}
                       <div className="relative">
                         <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        {/* <input
-                          type="number"
-                          placeholder="+974 0000 576"
-                          value={r.phone}
-                          onChange={(e) =>
-                            updateRecipientField(
-                              r.tempId,
-                              "phone",
-                              e.target.value
-                            )
-                          }
-                          className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-                        /> */}
                         <input
                           type="tel"
                           placeholder="+974 0000 576"
@@ -1069,7 +1052,7 @@ export default function Cart() {
                   ))}
                 </div>
 
-                {/* Preview button */}
+                {/* Preview + Reset */}
                 <div className="flex items-center gap-3 pt-1">
                   <button
                     type="button"
@@ -1194,7 +1177,6 @@ function normalizeAllocations(itemQty, allocs, defaultRecipientTempId) {
     }))
     .filter((a) => !!a.recipientTempId);
 
-  // drop zeros
   list = list.filter((a) => a.quantity > 0);
 
   let sum = list.reduce((s, a) => s + a.quantity, 0);
@@ -1209,18 +1191,16 @@ function normalizeAllocations(itemQty, allocs, defaultRecipientTempId) {
     ];
   }
 
-  // if sum < qty -> give extra to last
   if (sum < qty) {
     const diff = qty - sum;
     list[list.length - 1].quantity += diff;
     sum = qty;
   }
 
-  // if sum > qty -> trim from last backwards
   if (sum > qty) {
     let extra = sum - qty;
     for (let i = list.length - 1; i >= 0 && extra > 0; i--) {
-      const canTake = Math.min(list[i].quantity - 1, extra); // keep at least 1
+      const canTake = Math.min(list[i].quantity - 1, extra);
       if (canTake > 0) {
         list[i].quantity -= canTake;
         extra -= canTake;
@@ -1230,7 +1210,6 @@ function normalizeAllocations(itemQty, allocs, defaultRecipientTempId) {
       }
     }
     if (extra > 0 && list.length) {
-      // if still extra, just force last
       list[list.length - 1].quantity = Math.max(
         1,
         list[list.length - 1].quantity - extra
@@ -1238,10 +1217,8 @@ function normalizeAllocations(itemQty, allocs, defaultRecipientTempId) {
     }
   }
 
-  // final guard
   const finalSum = list.reduce((s, a) => s + a.quantity, 0);
   if (finalSum !== qty && defaultRecipientTempId) {
-    // fallback: single recipient
     return [
       {
         recipientTempId: defaultRecipientTempId,

@@ -11,13 +11,14 @@ import { useParams } from "react-router-dom";
 import ClipLoader from "react-spinners/ClipLoader";
 import { useCartFlag } from "../../context/CartContext";
 
-// cart hooks
 import { useCartByUser } from "../../hooks/cart/useCart";
 import {
   useAddItemToCart,
   useRemoveItemFromCart,
 } from "../../hooks/cart/useCartMutation";
+
 import Button from "../Button";
+import ToastNotification from "../ToastNotification"; // 👈 path adjust if needed
 
 const ProductDetail = () => {
   const { i18n } = useTranslation();
@@ -30,12 +31,16 @@ const ProductDetail = () => {
   const [isMagnifying, setIsMagnifying] = useState(false);
   const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
 
-  // toast
-  const [toast, setToast] = useState("");
-  const [toastShow, setToastShow] = useState(false);
-  const [toastVariant, setToastVariant] = useState("success"); // "success" | "login"
-  const toastInRef = useRef(null);
-  const toastOutRef = useRef(null);
+  // ---- toast state (reusable component) ----
+  const [toastState, setToastState] = useState({
+    open: false,
+    type: "success", // "success" | "error"
+    message: "",
+  });
+
+  const showToast = (message, type = "success") => {
+    setToastState({ open: true, type, message });
+  };
 
   const LENS_SIZE = 160;
   const ZOOM = 2.2;
@@ -82,21 +87,6 @@ const ProductDetail = () => {
 
   const resolvingCart = cartLoading || cartFetching;
   const mainBtnDisabled = resolvingCart || addPending || removePending;
-
-  // Toast helper (3s, slide from bottom)
-  const showToast = (msg, variant = "success") => {
-    if (toastInRef.current) clearTimeout(toastInRef.current);
-    if (toastOutRef.current) clearTimeout(toastOutRef.current);
-
-    setToast(msg);
-    setToastVariant(variant);
-    setToastShow(true);
-
-    toastInRef.current = setTimeout(() => {
-      setToastShow(false);
-      toastOutRef.current = setTimeout(() => setToast(""), 350);
-    }, 3000);
-  };
 
   // magnifier handlers
   const handleMouseEnter = () => setIsMagnifying(true);
@@ -149,7 +139,8 @@ const ProductDetail = () => {
       : 0;
 
   const discountPercent = hasDiscount
-    ? explicitDiscount || Math.round(((basePrice - discountedPrice) / basePrice) * 100)
+    ? explicitDiscount ||
+      Math.round(((basePrice - discountedPrice) / basePrice) * 100)
     : 0;
 
   const priceMainText = `${currency} ${(
@@ -241,13 +232,12 @@ const ProductDetail = () => {
 
   // cart handlers
   const handleAddToCart = async () => {
-    // ✅ login check first
     if (!userId) {
       showToast(
         isAr
           ? "الرجاء تسجيل الدخول لاستخدام عربة التسوق"
           : "Please login to use cart",
-        "login"
+        "error"
       );
       return;
     }
@@ -292,25 +282,20 @@ const ProductDetail = () => {
 
   return (
     <section className="py-10">
-      {/* Bottom toast (green for success, black for login) */}
-      {toast && (
-        <div
-          className={[
-            "fixed left-1/2 bottom-0 -translate-x-1/2 z-50 transition-all duration-300 ease-out",
-            toastShow
-              ? "bottom-8 translate-y-0 opacity-100"
-              : "bottom-0 translate-y-6 opacity-0",
-          ].join(" ")}
-        >
-          <div
-            className={`text-white text-sm px-4 py-2 rounded-full shadow-lg ${
-              toastVariant === "login" ? "bg-black" : "bg-green-600"
-            }`}
-          >
-            {toast}
-          </div>
-        </div>
-      )}
+      {/* Global toast for this page */}
+      <ToastNotification
+        open={toastState.open}
+        type={toastState.type}
+        title={toastState.type === "success" ? "Success" : "Oops!"}
+        message={toastState.message}
+        duration={3000}
+        onClose={() =>
+          setToastState((prev) => ({
+            ...prev,
+            open: false,
+          }))
+        }
+      />
 
       <div className="custom-container">
         <div className="flex flex-col md:flex-row items-start gap-8">
@@ -426,22 +411,6 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* Top info chips */}
-            {/* <div className="grid lg:grid-cols-2 xl:grid-cols-3 mt-4 gap-2">
-              <span className="border-primary/30 flex items-center justify-center gap-2 border text-black py-2 px-4 rounded-lg text-xs 2xl:text-sm bg-white/60">
-                <CiDeliveryTruck size={18} className="text-primary" />
-                {stockText}
-              </span>
-              <span className="border-primary/30 flex items-center justify-center gap-2 border text-black py-2 px-4 rounded-lg text-xs 2xl:text-sm bg-white/60">
-                <IoLocationOutline size={18} className="text-primary" />
-                {categoryText}
-              </span>
-              <span className="border-primary/30 flex items-center justify-center gap-2 border text-black py-2 px-4 rounded-lg text-xs 2xl:text-sm bg-white/60">
-                <MdOutlineWorkspacePremium size={18} className="text-primary" />
-                {isAr ? "الحالة:" : "Condition:"} {conditionText}
-              </span>
-            </div> */}
-
             {/* Stock & Brand stats grid */}
             <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="rounded-xl border border-primary/15 bg-primary_light_mode/10 px-3 py-3">
@@ -483,7 +452,7 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* Additional meta: brand, colors, occasions, recipients */}
+            {/* Additional meta */}
             <div className="mt-5 space-y-2 text-[13px] text-gray-700">
               {brandName && (
                 <div className="flex flex-wrap items-center gap-2">
@@ -648,7 +617,7 @@ const ProductDetail = () => {
                 data={product}
                 product={product?.suggestedProducts}
                 userId={userId}
-                onToast={showToast}
+                onToast={showToast} // same showToast (success/error)
               />
             </div>
           </div>

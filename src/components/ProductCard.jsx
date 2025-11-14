@@ -1,5 +1,5 @@
-// ProductCard.jsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+// src/components/ProductCard.jsx
+import React, { useEffect, useMemo, useState } from "react";
 import Button from "./Button";
 import { FiHeart } from "react-icons/fi";
 import { FaHeart } from "react-icons/fa6";
@@ -7,7 +7,9 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useCartFlag } from "../context/CartContext";
 
-// wishlist hooks (unchanged)
+import ToastNotification from "./ToastNotification";
+
+// wishlist hooks
 import { useWishlist } from "../hooks/wishlist/useWishlistQuery";
 import {
   useAddWishlist,
@@ -29,23 +31,15 @@ const ProductCard = ({ data, product }) => {
 
   const [user, setUser] = useState(null);
 
-  // ---- animated toast state ----
-  const [toastMsg, setToastMsg] = useState("");
-  const [toastShow, setToastShow] = useState(false);
-  const toastInRef = useRef(null);
-  const toastOutRef = useRef(null);
+  // ---- toast state (reusable component) ----
+  const [toastState, setToastState] = useState({
+    open: false,
+    type: "success", // "success" | "error"
+    message: "",
+  });
 
-  const showToast = (msg) => {
-    if (toastInRef.current) clearTimeout(toastInRef.current);
-    if (toastOutRef.current) clearTimeout(toastOutRef.current);
-
-    setToastMsg(msg);
-    setToastShow(true);
-
-    toastInRef.current = setTimeout(() => {
-      setToastShow(false);
-      toastOutRef.current = setTimeout(() => setToastMsg(""), 350);
-    }, 3000);
+  const showToast = (message, type = "success") => {
+    setToastState({ open: true, type, message });
   };
 
   // Load logged-in user from sessionStorage
@@ -61,6 +55,7 @@ const ProductCard = ({ data, product }) => {
   /* --------------------------- Wishlist logic --------------------------- */
   const { data: wishlistRes } = useWishlist(userId);
   const wishlistItems = wishlistRes?.data || [];
+
   const isLiked = useMemo(
     () =>
       wishlistItems.some(
@@ -68,6 +63,7 @@ const ProductCard = ({ data, product }) => {
       ),
     [wishlistItems, product?._id]
   );
+
   const { mutateAsync: addWishlist, isPending: addPending } =
     useAddWishlist(userId);
   const { mutateAsync: deleteWishlist, isPending: delPending } =
@@ -78,7 +74,8 @@ const ProductCard = ({ data, product }) => {
       showToast(
         langClass === "ar"
           ? "الرجاء تسجيل الدخول لقائمة الرغبات"
-          : "Please login to use wishlist"
+          : "Please login to use wishlist",
+        "error"
       );
       return;
     }
@@ -89,18 +86,21 @@ const ProductCard = ({ data, product }) => {
         showToast(
           langClass === "ar"
             ? "تمت الإزالة من المفضلة"
-            : "Removed from wishlist"
+            : "Removed from wishlist",
+          "success"
         );
       } else {
         await addWishlist({ user: userId, product: product?._id });
         setUpdate((u) => !u);
         showToast(
-          langClass === "ar" ? "أضيفت إلى المفضلة" : "Added to wishlist"
+          langClass === "ar" ? "أضيفت إلى المفضلة" : "Added to wishlist",
+          "success"
         );
       }
     } catch {
       showToast(
-        langClass === "ar" ? "حدث خطأ، حاول مجددًا" : "Something went wrong"
+        langClass === "ar" ? "حدث خطأ، حاول مجددًا" : "Something went wrong",
+        "error"
       );
     }
   };
@@ -137,19 +137,24 @@ const ProductCard = ({ data, product }) => {
       showToast(
         langClass === "ar"
           ? "الرجاء تسجيل الدخول لإضافة إلى السلة"
-          : "Please login to add to cart"
+          : "Please login to add to cart",
+        "error"
       );
       return;
     }
     try {
       await addItemToCart({ user: userId, product: product._id, qty: 1 });
       setUpdate((u) => !u);
-      showToast(langClass === "ar" ? "أُضيفت إلى السلة" : "Added to cart");
+      showToast(
+        langClass === "ar" ? "أُضيفت إلى السلة" : "Added to cart",
+        "success"
+      );
     } catch {
       showToast(
         langClass === "ar"
           ? "تعذر الإضافة، حاول مرة أخرى"
-          : "Could not add, try again"
+          : "Could not add, try again",
+        "error"
       );
     }
   };
@@ -159,12 +164,16 @@ const ProductCard = ({ data, product }) => {
     try {
       await removeItemFromCart({ user: userId, productId: product._id });
       setUpdate((u) => !u);
-      showToast(langClass === "ar" ? "أُزيلت من السلة" : "Removed from cart");
+      showToast(
+        langClass === "ar" ? "أُزيلت من السلة" : "Removed from cart",
+        "success"
+      );
     } catch {
       showToast(
         langClass === "ar"
           ? "تعذر الإزالة، حاول مرة أخرى"
-          : "Could not remove, try again"
+          : "Could not remove, try again",
+        "error"
       );
     }
   };
@@ -222,122 +231,122 @@ const ProductCard = ({ data, product }) => {
     langClass === "ar" ? `${discountPercent}% خصم` : `${discountPercent}% OFF`;
 
   return (
-    <div className="relative bg-primary_light_mode rounded-[35px] border-[1px] border-primary/30 flex flex-col items-center transition-shadow duration-300 p-4 overflow-hidden">
-      {/* animated toast */}
-      {toastMsg && (
-        <div
-          className={[
-            "fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-out",
-            toastShow
-              ? "bottom-8 translate-y-0 opacity-100"
-              : "bottom-0 translate-y-6 opacity-0",
-          ].join(" ")}
-        >
-          <div className="bg-green-600 text-white text-sm px-4 py-2 rounded-full shadow-lg">
-            {toastMsg}
+    <>
+      {/* Global toast for this card */}
+      <ToastNotification
+        open={toastState.open}
+        type={toastState.type}
+        title={toastState.type === "success" ? "Success" : "Oops!"}
+        message={toastState.message}
+        duration={3000}
+        onClose={() =>
+          setToastState((prev) => ({
+            ...prev,
+            open: false,
+          }))
+        }
+      />
+
+      <div className="relative bg-primary_light_mode rounded-[35px] border-[1px] border-primary/30 flex flex-col items-center transition-shadow duration-300 p-4 overflow-hidden">
+        {/* Discount badge (ribbon style) */}
+        {showDiscountUi && (
+          <div className="absolute top-4 -left-12 z-10">
+            <div className="bg-[#ff4b5c] text-white text-[11px] font-semibold px-16 py-1.5 -rotate-[45deg] shadow-md tracking-wide">
+              {discountLabel}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Discount badge */}
-      {showDiscountUi && (
-        <div className="absolute top-4 -left-12 z-10">
-          <div className="bg-[#ff4b5c] text-white text-[11px] font-semibold px-16 py-1.5 -rotate-[45deg] shadow-md tracking-wide">
-            {discountLabel}
+        <Link to={`/gift-detail/${product?._id}`} className="w-full">
+          <img
+            src={product?.featuredImage}
+            alt={product?.title}
+            className="w-full h-[300px] object-cover rounded-[35px] mb-3"
+          />
+        </Link>
+
+        {/* wishlist button */}
+        <div className="absolute top-[calc(100%-92%)] right-[calc(100%-92%)]">
+          <button
+            className="bg-white p-2 rounded-full disabled:opacity-60"
+            onClick={handleToggleWishlist}
+            disabled={addPending || delPending}
+            aria-label={isLiked ? "Remove from wishlist" : "Add to wishlist"}
+          >
+            {isLiked ? (
+              <FaHeart size={20} className="text-primary" />
+            ) : (
+              <FiHeart size={20} className="text-primary" />
+            )}
+          </button>
+        </div>
+
+        <div className="card-content w-full">
+          {/* Price row with original + discounted */}
+          <div className="flex items-baseline gap-2">
+            <p className="text-primary font-semibold text-xl flex items-center">
+              QAR{" "}
+              <span className="text-2xl ps-1">
+                {(hasNumericDiscount ? discountedPrice : basePrice).toLocaleString()}
+              </span>
+            </p>
+
+            {showDiscountUi && (
+              <span className="text-xs text-slate-500 line-through">
+                QAR {basePrice.toLocaleString()}
+              </span>
+            )}
           </div>
-        </div>
-      )}
 
-      <Link to={`/gift-detail/${product?._id}`} className="w-full">
-        <img
-          src={product?.featuredImage}
-          alt={product?.title}
-          className="w-full h-[300px] object-cover rounded-[35px] mb-3"
-        />
-      </Link>
+          <h5
+            className={`text-black ${
+              langClass === "ar" ? "text-[18px]" : "text-[14px]"
+            } mt-1`}
+          >
+            {langClass === "en"
+              ? safeTitleEn.slice(0, 30)
+              : safeTitleAr.slice(0, 25)}{" "}
+            {safeTitleEn.length > 30 || safeTitleAr.length > 30 ? "..." : ""}
+          </h5>
 
-      {/* wishlist button */}
-      <div className="absolute top-[calc(100%-92%)] right-[calc(100%-92%)]">
-        <button
-          className="bg-white p-2 rounded-full disabled:opacity-60"
-          onClick={handleToggleWishlist}
-          disabled={addPending || delPending}
-          aria-label={isLiked ? "Remove from wishlist" : "Add to wishlist"}
-        >
-          {isLiked ? (
-            <FaHeart size={20} className="text-primary" />
-          ) : (
-            <FiHeart size={20} className="text-primary" />
-          )}
-        </button>
-      </div>
-
-      <div className="card-content w-full">
-        {/* Price row with original + discounted */}
-        <div className="flex items-baseline gap-2">
-          <p className="text-primary font-semibold text-xl flex items-center">
-            QAR{" "}
-            <span className="text-2xl ps-1">
-              {(hasNumericDiscount
-                ? discountedPrice
-                : basePrice
-              ).toLocaleString()}
-            </span>
-          </p>
-
-          {showDiscountUi && (
-            <span className="text-xs text-slate-500 line-through">
-              QAR {basePrice.toLocaleString()}
-            </span>
-          )}
-        </div>
-
-        <h5
-          className={`text-black ${
-            langClass === "ar" ? "text-[18px]" : "text-[14px]"
-          } mt-1`}
-        >
-          {langClass === "en"
-            ? safeTitleEn.slice(0, 30)
-            : safeTitleAr.slice(0, 25)}{" "}
-          {safeTitleEn.length > 30 || safeTitleAr.length > 30 ? "..." : ""}
-        </h5>
-
-        <div className="card-content-btn flex justify-end">
-          {resolvingCart ? (
-            <Button
-              disabled
-              label={langClass === "ar" ? "جاري التحقق..." : "Checking..."}
-              isBgColor={true}
-            />
-          ) : canAddToCart ? (
-            inCart ? (
+          <div className="card-content-btn flex justify-end">
+            {resolvingCart ? (
               <Button
-                onClick={handleRemoveFromCart}
-                disabled={btnDisabled}
-                label={
-                  langClass === "ar" ? "إزالة من السلة" : "Remove From Cart"
-                }
-                bgColor="bg-red-500 hover:bg-red-600"
+                disabled
+                label={langClass === "ar" ? "جاري التحقق..." : "Checking..."}
                 isBgColor={true}
               />
+            ) : canAddToCart ? (
+              inCart ? (
+                <Button
+                  onClick={handleRemoveFromCart}
+                  disabled={btnDisabled}
+                  label={
+                    langClass === "ar"
+                      ? "إزالة من السلة"
+                      : "Remove From Cart"
+                  }
+                  bgColor="bg-red-500 hover:bg-red-600"
+                  isBgColor={true}
+                />
+              ) : (
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={btnDisabled}
+                  label={langClass === "ar" ? "أضف إلى السلة" : "Add to cart"}
+                />
+              )
             ) : (
               <Button
-                onClick={handleAddToCart}
-                disabled={btnDisabled}
-                label={langClass === "ar" ? "أضف إلى السلة" : "Add to cart"}
+                disabled
+                label={langClass === "ar" ? "إنتهى من المخزن" : "Out Of Stock"}
+                isBgColor={true}
               />
-            )
-          ) : (
-            <Button
-              disabled
-              label={langClass === "ar" ? "إنتهى من المخزن" : "Out Of Stock"}
-              isBgColor={true}
-            />
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
