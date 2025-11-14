@@ -122,36 +122,107 @@ const ProductDetail = () => {
     LENS_SIZE / 2
   )}px`;
 
-  // derived product fields
+  /* ---------- Derived product fields ---------- */
+
   const title = isAr ? product?.ar_title || product?.title : product?.title;
-  const priceNumber = Number(
+
+  const currency = product?.currency || "QAR";
+
+  const basePriceRaw =
     typeof product?.price === "number"
       ? product.price
-      : product?.price?.sale || 0
-  );
-  const priceText = `${
-    product?.currency || "QAR"
-  } ${priceNumber.toLocaleString()}`;
+      : product?.price?.sale || 0;
+  const basePrice = Number(basePriceRaw || 0);
+
+  const discountedPriceRaw =
+    typeof product?.priceAfterDiscount === "number"
+      ? product.priceAfterDiscount
+      : basePrice;
+  const discountedPrice = Number(discountedPriceRaw || 0);
+
+  const hasDiscount =
+    discountedPrice > 0 && basePrice > 0 && discountedPrice < basePrice;
+
+  const explicitDiscount =
+    typeof product?.discount === "number" && product.discount > 0
+      ? product.discount
+      : 0;
+
+  const discountPercent = hasDiscount
+    ? explicitDiscount || Math.round(((basePrice - discountedPrice) / basePrice) * 100)
+    : 0;
+
+  const priceMainText = `${currency} ${(
+    hasDiscount ? discountedPrice : basePrice
+  ).toLocaleString()}`;
+  const priceOriginalText = hasDiscount
+    ? `${currency} ${basePrice.toLocaleString()}`
+    : null;
+
   const imageUrls =
     Array.isArray(product?.images) && product.images.length > 0
       ? product.images.map((img) => img?.url).filter(Boolean)
       : product?.featuredImage
       ? [product.featuredImage]
       : [];
+
   const htmlDescription = isAr
     ? product?.ar_description || product?.description || ""
     : product?.description || product?.ar_description || "";
+
   const stockText = `${product?.remainingStocks ?? 0} ${
     isAr ? "متوفر" : "in stock"
   }`;
+
   const categoryText =
     product?.categories?.[0]?.[isAr ? "ar_name" : "name"] ||
     product?.type?.[isAr ? "ar_name" : "name"] ||
     (isAr ? "فئة" : "Category");
+
   const conditionText = product?.condition || (isAr ? "جديد" : "new");
+
   const arrangements = Array.isArray(product?.arrangements)
     ? product.arrangements
     : [];
+
+  const brandName = isAr
+    ? product?.brand?.ar_name || product?.brand?.name
+    : product?.brand?.name;
+  const brandCountry = product?.brand?.countryCode;
+
+  const totalStocks = Number(product?.totalStocks ?? 0);
+  const remainingStocks = Number(product?.remainingStocks ?? 0);
+  const totalPieceSold = Number(product?.totalPieceSold ?? 0);
+
+  const colors = Array.isArray(product?.colors) ? product.colors : [];
+  const occasions = Array.isArray(product?.occasions) ? product.occasions : [];
+  const recipients = Array.isArray(product?.recipients)
+    ? product.recipients
+    : [];
+
+  const stockStatus = product?.stockStatus || "in_stock";
+
+  const stockStatusLabel = (() => {
+    switch (stockStatus) {
+      case "low_stock":
+        return isAr ? "كمية قليلة" : "Low stock";
+      case "out_of_stock":
+        return isAr ? "غير متوفر" : "Out of stock";
+      default:
+        return isAr ? "متوفر" : "In stock";
+    }
+  })();
+
+  const stockStatusClass = (() => {
+    switch (stockStatus) {
+      case "low_stock":
+        return "bg-amber-50 text-amber-600 border-amber-200";
+      case "out_of_stock":
+        return "bg-rose-50 text-rose-600 border-rose-200";
+      default:
+        return "bg-emerald-50 text-emerald-600 border-emerald-200";
+    }
+  })();
 
   // stock logic for type-based
   const hasEnoughTypeStock = useMemo(() => {
@@ -233,9 +304,7 @@ const ProductDetail = () => {
         >
           <div
             className={`text-white text-sm px-4 py-2 rounded-full shadow-lg ${
-              toastVariant === "login"
-                ? "bg-black"
-                : "bg-green-600"
+              toastVariant === "login" ? "bg-black" : "bg-green-600"
             }`}
           >
             {toast}
@@ -317,30 +386,173 @@ const ProductDetail = () => {
 
           {/* Info */}
           <div className="flex-1 mt-4 md:mt-0 md:w-1/2 xl:w-[60%]">
-            <div className="flex items-center justify-between">
-              <h5 className="text-2xl lg:text-3xl xl:text-4xl font-semibold text-primary">
-                {title}
-              </h5>
-              <p className="lg:text-md xl:text-3xl font-semibold text-primary">
-                {priceText}
-              </p>
+            {/* Title + Price + Badges */}
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h5 className="text-2xl lg:text-3xl xl:text-4xl font-semibold text-primary">
+                  {title}
+                </h5>
+
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  {product?.isFeatured && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold uppercase tracking-wide">
+                      ⭐ {isAr ? "مميز" : "Featured"}
+                    </span>
+                  )}
+
+                  {hasDiscount && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-rose-50 text-rose-500 text-[11px] font-semibold">
+                      {discountPercent}% {isAr ? "خصم" : "OFF"}
+                    </span>
+                  )}
+
+                  {brandName && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary_light_mode/10 text-primary text-[11px] font-medium">
+                      {isAr ? "العلامة:" : "Brand:"} {brandName}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="text-right space-y-1">
+                <p className="lg:text-lg xl:text-3xl font-semibold text-primary">
+                  {priceMainText}
+                </p>
+                {priceOriginalText && (
+                  <p className="text-xs lg:text-sm text-gray-400 line-through">
+                    {priceOriginalText}
+                  </p>
+                )}
+              </div>
             </div>
 
-            <div className="grid lg:grid-cols-2 xl:grid-cols-3 mt-4 gap-2">
-              <span className="border-primary/30 flex items-center justify-center gap-2 border text-black py-2 px-4 rounded-lg text-xs 2xl:text-sm">
+            {/* Top info chips */}
+            {/* <div className="grid lg:grid-cols-2 xl:grid-cols-3 mt-4 gap-2">
+              <span className="border-primary/30 flex items-center justify-center gap-2 border text-black py-2 px-4 rounded-lg text-xs 2xl:text-sm bg-white/60">
                 <CiDeliveryTruck size={18} className="text-primary" />
                 {stockText}
               </span>
-              <span className="border-primary/30 flex items-center justify-center gap-2 border text-black py-2 px-4 rounded-lg text-xs 2xl:text-sm">
+              <span className="border-primary/30 flex items-center justify-center gap-2 border text-black py-2 px-4 rounded-lg text-xs 2xl:text-sm bg-white/60">
                 <IoLocationOutline size={18} className="text-primary" />
                 {categoryText}
               </span>
-              <span className="border-primary/30 flex items-center justify-center gap-2 border text-black py-2 px-4 rounded-lg text-xs 2xl:text-sm">
+              <span className="border-primary/30 flex items-center justify-center gap-2 border text-black py-2 px-4 rounded-lg text-xs 2xl:text-sm bg-white/60">
                 <MdOutlineWorkspacePremium size={18} className="text-primary" />
                 {isAr ? "الحالة:" : "Condition:"} {conditionText}
               </span>
+            </div> */}
+
+            {/* Stock & Brand stats grid */}
+            <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="rounded-xl border border-primary/15 bg-primary_light_mode/10 px-3 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-gray-400">
+                  {isAr ? "إجمالي المخزون" : "Total Stock"}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-primary">
+                  {totalStocks || "-"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-primary/15 bg-primary_light_mode/10 px-3 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-gray-400">
+                  {isAr ? "المتبقي" : "Remaining"}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-primary">
+                  {remainingStocks || "-"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-primary/15 bg-primary_light_mode/10 px-3 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-gray-400">
+                  {isAr ? "تم بيعها" : "Pieces Sold"}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-primary">
+                  {totalPieceSold || "-"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-transparent px-3 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-gray-400">
+                  {isAr ? "حالة المخزون" : "Stock Status"}
+                </p>
+                <span
+                  className={[
+                    "mt-1 inline-flex items-center px-3 py-1 rounded-full border text-[11px] font-medium",
+                    stockStatusClass,
+                  ].join(" ")}
+                >
+                  {stockStatusLabel}
+                </span>
+              </div>
             </div>
 
+            {/* Additional meta: brand, colors, occasions, recipients */}
+            <div className="mt-5 space-y-2 text-[13px] text-gray-700">
+              {brandName && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium text-primary min-w-[90px]">
+                    {isAr ? "العلامة:" : "Brand:"}
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-white border border-primary/20 text-primary text-xs">
+                    {brandName}
+                    {brandCountry ? ` • ${brandCountry}` : ""}
+                  </span>
+                </div>
+              )}
+
+              {colors.length > 0 && (
+                <div className="flex items-start gap-2">
+                  <span className="font-medium text-primary min-w-[90px]">
+                    {isAr ? "الألوان:" : "Colors:"}
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {colors.map((c) => (
+                      <span
+                        key={c._id}
+                        className="px-3 py-1 rounded-full border border-primary/15 bg-white text-[11px]"
+                      >
+                        {isAr ? c?.ar_name || c?.name : c?.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {occasions.length > 0 && (
+                <div className="flex items-start gap-2">
+                  <span className="font-medium text-primary min-w-[90px]">
+                    {isAr ? "المناسبات:" : "Occasions:"}
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {occasions.map((o) => (
+                      <span
+                        key={o._id}
+                        className="px-3 py-1 rounded-full border border-primary/15 bg-white text-[11px]"
+                      >
+                        {isAr ? o?.ar_name || o?.name : o?.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {recipients.length > 0 && (
+                <div className="flex items-start gap-2">
+                  <span className="font-medium text-primary min-w-[90px]">
+                    {isAr ? "لمن:" : "For:"}
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {recipients.map((r) => (
+                      <span
+                        key={r._id}
+                        className="px-3 py-1 rounded-full border border-primary/15 bg-white text-[11px]"
+                      >
+                        {isAr ? r?.ar_name || r?.name : r?.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
             <div className="description-filled-box mt-6">
               <h5 className="text-white bg-primary inline-block rounded-lg px-4 py-2 text-xs mb-4">
                 {isAr ? "وصف" : "Description"}
@@ -362,9 +574,7 @@ const ProductDetail = () => {
             {arrangements.length > 0 && (
               <div className="mt-4 text-gray-600">
                 <h6 className="font-medium text-xl mb-4">
-                  {isAr
-                    ? "يتضمن الترتيب:"
-                    : "Arrangement Includes:"}
+                  {isAr ? "يتضمن الترتيب:" : "Arrangement Includes:"}
                 </h6>
                 <ul className="list-disc pl-5">
                   {arrangements.map((a, idx) => (
@@ -379,12 +589,13 @@ const ProductDetail = () => {
             {product?.sku && (
               <div className="sku mt-6">
                 <h5 className="font-medium text-primary text-xl">
+                  {isAr ? "رمز المنتج: " : "SKU: "}
                   {product.sku}
                 </h5>
               </div>
             )}
 
-            {/* ACTION BUTTONS (Buy Now & Preview Removed) */}
+            {/* ACTION BUTTONS */}
             <div className="flex xl:w-1/2 items-center gap-4 mt-4">
               {resolvingCart ? (
                 <button
@@ -399,7 +610,7 @@ const ProductDetail = () => {
                   <button
                     onClick={handleRemoveFromCart}
                     disabled={mainBtnDisabled}
-                    className="border text-white bg-red-500 hover:bg-red-600 border-red-500 text-center font-medium py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2"
+                    className="border text-white bg-red-500 hover:bg-red-600 border-red-500 text-center font-medium py-3 px-4 rounded-lg mt-6 flex items-center justify-center gap-2 w-1/2"
                   >
                     <TbShoppingCart size={20} />
                     {isAr ? "إزالة من السلة" : "Remove From Cart"}

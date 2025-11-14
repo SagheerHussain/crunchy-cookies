@@ -1147,7 +1147,7 @@ export default function Cart() {
                   }`}
                 >
                   {!orderLoading ? (
-                    <>{langClass ? "الدفع" : "Check out"}</>
+                    <>{langClass ? "وضع النظام" : "Place Order"}</>
                   ) : (
                     <ClipLoader color="#fff" size={20} />
                   )}
