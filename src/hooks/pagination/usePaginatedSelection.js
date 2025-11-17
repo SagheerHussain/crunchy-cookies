@@ -16,8 +16,9 @@ export default function usePaginatedSection(
 
   // Append new page results; dedupe by _id
   useEffect(() => {
+    if (!q?.isSuccess || q?.isFetching) return;
+
     const list = Array.isArray(q?.data?.data) ? q.data.data : [];
-    if (!q?.isSuccess) return;
 
     setItems((prev) => {
       const next = page === 1 ? list : [...prev, ...list];
@@ -30,7 +31,7 @@ export default function usePaginatedSection(
         return true;
       });
     });
-  }, [q?.isSuccess, q?.data, page]);
+  }, [q?.isSuccess, q?.isFetching, q?.data, page]);
 
   const hasNext = !!q?.data?.meta?.hasNext;
 

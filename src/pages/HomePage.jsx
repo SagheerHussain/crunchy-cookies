@@ -32,7 +32,7 @@ import { useRecipeints } from "../hooks/resipeints/useRecipeint";
 // spinner
 import ClipLoader from "react-spinners/ClipLoader";
 
-// 👇 our generic pagination wrapper
+// 👇 generic pagination wrapper (correct import)
 import usePaginatedSection from "../hooks/pagination/usePaginatedSelection";
 
 // helpers
@@ -60,30 +60,33 @@ const HomePage = () => {
   const perfumes = usePaginatedSection(useProductsInPerfumes);
   const preserved = usePaginatedSection(useProductsInPreservedFlowers);
 
+  // Top sold as a showcase (paginated as well)
+  const topSold = usePaginatedSection(useTopSoldProducts);
+
   // ----- Non-paginated bits (lists/metadata) -----
   const {
     data: subCategories,
     isLoading: subCatsLoading,
     isFetching: subCatsFetching,
   } = useSubCategories();
+
   const {
     data: occasions,
     isLoading: occLoading,
     isFetching: occFetching,
   } = useOccasions();
+
   const {
     data: brandsData,
     isLoading: brandsLoading,
     isFetching: brandsFetching,
   } = useBrands();
+
   const {
     data: recipientsData,
     isLoading: recLoading,
     isFetching: recFetching,
   } = useRecipeints();
-
-  // Top sold as a showcase (paginate if you want; here we keep 4)
-  const topSold = usePaginatedSection(useTopSoldProducts);
 
   return (
     <>
@@ -145,7 +148,6 @@ const HomePage = () => {
             products={topSold.items}
             en_title="Best Sellers"
             ar_title="الأكثر مبيعًا"
-            // optional load more for showcase
             footerButton={{
               visible: topSold.hasNext,
               loading: topSold.isFetching,
@@ -189,14 +191,14 @@ const HomePage = () => {
           />
         )}
 
-        {/* Latest & Loveliest (friends) */}
+        {/* Latest & Loveliest (friends / recipients) */}
         {friendsOcc.isInitialLoading ? (
           <SectionLoader />
         ) : (
           <ProductsSection
             en_title="Latest & Loveliest"
-            isRecipient={true}
             ar_title="الأحدث والأجمل"
+            isRecipient={true}
             products={friendsOcc.items}
             footerButton={{
               visible: friendsOcc.hasNext,

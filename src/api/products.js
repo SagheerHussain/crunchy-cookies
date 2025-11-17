@@ -16,6 +16,7 @@ export const getProductsInFlowerInVases = async ({ page = 1, limit = 4 } = {}) =
   const res = await axios.get(
     `${BASE_URL}/product/lists/inFlowerInVases?${qs({ page, limit })}`
   );
+  console.log("Flowers in vases ==================>", res)
   return res.data;
 };
 

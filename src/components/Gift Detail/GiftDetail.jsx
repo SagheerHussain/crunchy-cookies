@@ -143,8 +143,9 @@ const ProductDetail = () => {
       Math.round(((basePrice - discountedPrice) / basePrice) * 100)
     : 0;
 
-  const priceMainText = `${currency} ${(
-    hasDiscount ? discountedPrice : basePrice
+  const priceMainText = `${currency} ${(hasDiscount
+    ? discountedPrice
+    : basePrice
   ).toLocaleString()}`;
   const priceOriginalText = hasDiscount
     ? `${currency} ${basePrice.toLocaleString()}`
@@ -309,12 +310,17 @@ const ProductDetail = () => {
               onMouseMove={handleMouseMove}
             >
               {imageUrls[activeImgIndex] ? (
-                <img
-                  src={imageUrls[activeImgIndex]}
-                  alt="Product"
-                  className="w-full h-full object-cover select-none pointer-events-none"
-                  draggable={false}
-                />
+                <>
+                  <img
+                    src={imageUrls[activeImgIndex]}
+                    alt="Product"
+                    className="w-full h-full object-cover select-none pointer-events-none"
+                    draggable={false}
+                  />
+                  <span className="-rotate-[45deg] font-medium absolute top-6 -left-[6rem] bg-green-500 text-white px-28 py-2 rounded-[0px]">
+                    {product?.isFeatured ? "Featured" : "Not Featured"}
+                  </span>
+                </>
               ) : (
                 <div className="w-full h-full grid place-items-center text-primary/60">
                   No image
@@ -373,46 +379,32 @@ const ProductDetail = () => {
           <div className="flex-1 mt-4 md:mt-0 md:w-1/2 xl:w-[60%]">
             {/* Title + Price + Badges */}
             <div className="flex items-start justify-between gap-4">
-              <div>
-                <h5 className="text-2xl lg:text-3xl xl:text-4xl font-semibold text-primary">
-                  {title}
-                </h5>
+              <h5 className="text-2xl lg:text-3xl xl:text-4xl font-semibold text-primary">
+                {title}
+              </h5>
 
-                <div className="flex flex-wrap items-center gap-2 mt-3">
-                  {product?.isFeatured && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold uppercase tracking-wide">
-                      ⭐ {isAr ? "مميز" : "Featured"}
-                    </span>
-                  )}
-
-                  {hasDiscount && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-rose-50 text-rose-500 text-[11px] font-semibold">
-                      {discountPercent}% {isAr ? "خصم" : "OFF"}
-                    </span>
-                  )}
-
-                  {brandName && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary_light_mode/10 text-primary text-[11px] font-medium">
-                      {isAr ? "العلامة:" : "Brand:"} {brandName}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="text-right space-y-1">
-                <p className="lg:text-lg xl:text-3xl font-semibold text-primary">
-                  {priceMainText}
-                </p>
-                {priceOriginalText && (
-                  <p className="text-xs lg:text-sm text-gray-400 line-through">
-                    {priceOriginalText}
-                  </p>
+              <div className="flex items-center gap-2 mt-3">
+                {hasDiscount && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-rose-50 text-rose-500 text-[11px] font-semibold">
+                    {discountPercent}% {isAr ? "خصم" : "OFF"}
+                  </span>
                 )}
               </div>
             </div>
 
+            <div className="space-y-1 my-4">
+              <p className="lg:text-lg xl:text-2xl font-semibold text-primary">
+                {priceMainText}
+              </p>
+              {priceOriginalText && (
+                <p className="text-xs lg:text-sm text-gray-600 line-through">
+                  {priceOriginalText}
+                </p>
+              )}
+            </div>
+
             {/* Stock & Brand stats grid */}
-            <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="mt-6 grid grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="rounded-xl border border-primary/15 bg-primary_light_mode/10 px-3 py-3">
                 <p className="text-[11px] uppercase tracking-wide text-gray-400">
                   {isAr ? "إجمالي المخزون" : "Total Stock"}
@@ -437,31 +429,31 @@ const ProductDetail = () => {
                   {totalPieceSold || "-"}
                 </p>
               </div>
-              <div className="rounded-xl border border-transparent px-3 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-gray-400">
-                  {isAr ? "حالة المخزون" : "Stock Status"}
+            </div>
+
+            {/* Additional meta */}
+            <div className="mt-5 space-y-2 text-[13px] text-gray-700">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-[13px] tracking-wide text-primary font-medium">
+                  {isAr ? "حالة المخزون" : "Stock"}
                 </p>
                 <span
                   className={[
-                    "mt-1 inline-flex items-center px-3 py-1 rounded-full border text-[11px] font-medium",
+                    "mt-1 inline-flex px-4 py-1 ms-14 rounded-full border text-[11px] font-medium",
                     stockStatusClass,
                   ].join(" ")}
                 >
                   {stockStatusLabel}
                 </span>
               </div>
-            </div>
 
-            {/* Additional meta */}
-            <div className="mt-5 space-y-2 text-[13px] text-gray-700">
               {brandName && (
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-primary min-w-[90px]">
                     {isAr ? "العلامة:" : "Brand:"}
                   </span>
-                  <span className="px-3 py-1 rounded-full bg-white border border-primary/20 text-primary text-xs">
+                  <span className="px-3 py-1 font-medium rounded-full bg-white border border-primary/20 text-primary text-xs">
                     {brandName}
-                    {brandCountry ? ` • ${brandCountry}` : ""}
                   </span>
                 </div>
               )}
@@ -475,7 +467,7 @@ const ProductDetail = () => {
                     {colors.map((c) => (
                       <span
                         key={c._id}
-                        className="px-3 py-1 rounded-full border border-primary/15 bg-white text-[11px]"
+                        className="font-medium px-3 py-1 rounded-full border border-primary/15 bg-white text-[11px]"
                       >
                         {isAr ? c?.ar_name || c?.name : c?.name}
                       </span>
@@ -493,7 +485,7 @@ const ProductDetail = () => {
                     {occasions.map((o) => (
                       <span
                         key={o._id}
-                        className="px-3 py-1 rounded-full border border-primary/15 bg-white text-[11px]"
+                        className="font-medium px-3 py-1 rounded-full border border-primary/15 bg-white text-[11px]"
                       >
                         {isAr ? o?.ar_name || o?.name : o?.name}
                       </span>
@@ -507,11 +499,11 @@ const ProductDetail = () => {
                   <span className="font-medium text-primary min-w-[90px]">
                     {isAr ? "لمن:" : "For:"}
                   </span>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="font-medium flex flex-wrap gap-2">
                     {recipients.map((r) => (
                       <span
                         key={r._id}
-                        className="px-3 py-1 rounded-full border border-primary/15 bg-white text-[11px]"
+                        className="font-medium px-3 py-1 rounded-full border border-primary/15 bg-white text-[11px]"
                       >
                         {isAr ? r?.ar_name || r?.name : r?.name}
                       </span>
