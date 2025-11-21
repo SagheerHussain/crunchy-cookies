@@ -813,139 +813,7 @@ export default function Cart() {
                     )}
 
                     {/* Allocations */}
-                    {i.selected && (
-                      <div className="mt-1 space-y-2">
-                        {allocs.map((alloc, idx) => (
-                          <div
-                            key={idx}
-                            className="flex flex-wrap items-center gap-2 text-sm"
-                          >
-                            <FiTruck className="text-primary" />
-                            <span className="text-slate-600">Send to:</span>
-                            {/* recipient dropdown */}
-                            <FormControl
-                              size="small"
-                              sx={{
-                                minWidth: 140,
-                                "& .MuiOutlinedInput-root": {
-                                  borderRadius: "999px",
-                                  backgroundColor: "#ffffff",
-                                  paddingX: 1.5,
-                                  borderColor: "rgba(15,181,187,0.3)",
-                                  "& fieldset": {
-                                    borderColor: "rgba(15,181,187,0.3)",
-                                  },
-                                  "&:hover fieldset": {
-                                    borderColor: "rgba(15,181,187,0.6)",
-                                  },
-                                  "&.Mui-focused fieldset": {
-                                    borderColor: "#0fb5bb",
-                                    boxShadow:
-                                      "0 0 0 2px rgba(15,181,187,0.15)",
-                                  },
-                                },
-                                "& .MuiSelect-select": {
-                                  paddingY: 0.6,
-                                  fontSize: 14,
-                                  color: "#1592a6",
-                                },
-                              }}
-                            >
-                              <Select
-                                value={alloc.recipientTempId}
-                                onChange={(e) =>
-                                  updateAllocationRecipient(
-                                    i.id,
-                                    idx,
-                                    e.target.value,
-                                    i.qty
-                                  )
-                                }
-                                displayEmpty
-                                inputProps={{ "aria-label": "Recipient" }}
-                                MenuProps={{
-                                  PaperProps: {
-                                    sx: {
-                                      borderRadius: 2,
-                                      boxShadow: 3,
-                                    },
-                                  },
-                                }}
-                              >
-                                {recipients.map((r) => (
-                                  <MenuItem key={r.tempId} value={r.tempId}>
-                                    {r.label}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-
-                            {/* quantity input */}
-                            <span className="text-slate-600">Qty:</span>
-                            <input
-                              type="number"
-                              min={1}
-                              max={i.qty}
-                              value={alloc.quantity}
-                              onChange={(e) =>
-                                updateAllocationQty(
-                                  i.id,
-                                  idx,
-                                  e.target.value,
-                                  i.qty
-                                )
-                              }
-                              onBlur={() =>
-                                commitAllocationQty(i.id, i.qty, recipients)
-                              }
-                              className="w-20 px-3 py-1.5 rounded-full border border-primary/25 bg-white/90 text-xs
-             focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary text-black
-             placeholder:text-slate-300 shadow-sm"
-                            />
-
-                            {allocs.length > 1 && (
-                              <button
-                                onClick={() =>
-                                  removeAllocationRow(i.id, idx, i.qty)
-                                }
-                                className="ml-1 text-rose-400 hover:text-rose-500"
-                              >
-                                <FiTrash2 />
-                              </button>
-                            )}
-                          </div>
-                        ))}
-
-                        {/* add new split */}
-                        <button
-                          type="button"
-                          onClick={() => addAllocationRow(i.id, i.qty)}
-                          className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80"
-                          disabled={
-                            !recipients.length ||
-                            allocs.length >= recipients.length
-                          }
-                        >
-                          <FiPlusCircle />
-                          <span>
-                            {langClass
-                              ? "إضافة مستلم آخر لهذا المنتج"
-                              : "Add another recipient for this item"}
-                          </span>
-                        </button>
-
-                        {/* info line: show if invalid */}
-                        {allocs.length > 0 &&
-                          allocs.reduce(
-                            (s, a) => s + Number(a.quantity || 0),
-                            0
-                          ) !== Number(i.qty) && (
-                            <p className="text-[11px] text-rose-500">
-                              Sum of quantities must equal {i.qty}.
-                            </p>
-                          )}
-                      </div>
-                    )}
+                    
                   </article>
                 );
               })}
@@ -992,16 +860,16 @@ export default function Cart() {
                     <span className="text-primary font-medium">
                       {langClass
                         ? "المستلمون"
-                        : "Recipients (Number & Card Message)"}
+                        : "Recipient (Number & Card Message)"}
                     </span>
-                    <button
+                    {/* <button
                       type="button"
                       onClick={addRecipient}
                       className="inline-flex items-center gap-1 text-primary text-sm hover:text-primary/80"
                     >
                       <FiPlusCircle />
                       <span>{langClass ? "إضافة مستلم" : "Add Recipient"}</span>
-                    </button>
+                    </button> */}
                   </div>
 
                   {recipients.map((r, idx) => (
