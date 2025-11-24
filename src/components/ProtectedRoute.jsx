@@ -3,7 +3,7 @@ import { Outlet, Navigate } from "react-router-dom"
 
 const ProtectedRoute = () => {
 
-    const isAuthenticated = JSON.parse(sessionStorage.getItem("user"));
+    const isAuthenticated = JSON.parse(localStorage.getItem("user"));
 
     return (
         <>

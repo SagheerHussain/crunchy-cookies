@@ -42,10 +42,10 @@ const ProductCard = ({ data, product }) => {
     setToastState({ open: true, type, message });
   };
 
-  // Load logged-in user from sessionStorage
+  // Load logged-in user from localStorage
   useEffect(() => {
     try {
-      const stored = JSON.parse(sessionStorage.getItem("user"));
+      const stored = JSON.parse(localStorage.getItem("user"));
       if (stored?.user) setUser(stored.user);
     } catch {}
   }, []);

@@ -31,10 +31,10 @@ import Failed from "./components/Failed";
 export default function App() {
   const location = useLocation();
 
-  // ─── Get userId safely from sessionStorage ─────────────────────────
+  // ─── Get userId safely from localStorage ─────────────────────────
   let userId = null;
   try {
-    const stored = JSON.parse(sessionStorage.getItem("user"));
+    const stored = JSON.parse(localStorage.getItem("user"));
     userId = stored?.user?._id || null;
   } catch {
     userId = null;

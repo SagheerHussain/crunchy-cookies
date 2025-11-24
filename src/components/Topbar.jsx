@@ -17,10 +17,10 @@ export default function Topbar() {
     document.documentElement.dir = dir;
   }, [i18n.language, t]);
 
-  // read user from sessionStorage
+  // read user from localStorage
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem("user");
+      const raw = localStorage.getItem("user");
       if (!raw) {
         setUser(null);
         return;
@@ -38,7 +38,7 @@ export default function Topbar() {
         setUser(null);
       }
     } catch (err) {
-      console.error("Failed to parse user from sessionStorage", err);
+      console.error("Failed to parse user from localStorage", err);
       setUser(null);
     }
   }, []);

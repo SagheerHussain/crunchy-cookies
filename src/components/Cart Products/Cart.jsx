@@ -71,7 +71,7 @@ export default function Cart() {
   const { setUpdate } = useCartFlag();
   const { id } = useParams(); // userId from route
 
-  const { user } = JSON.parse(sessionStorage.getItem("user")) || {};
+  const { user } = JSON.parse(localStorage.getItem("user")) || {};
 
   const navigate = useNavigate();
 
@@ -535,6 +535,17 @@ export default function Cart() {
 
   const handleOrderPayload = async () => {
     try {
+      const ongoingOrder = await getOnGoingOrderByUser(id);
+
+      if (ongoingOrder) {
+        setOrderLoading(false);
+        showToast(
+          langClass ? "الرجاء إكمال الطلب الحالي" : "Please complete the ongoing order",
+          "error"
+        );
+        return;
+      }
+
       setOrderLoading(true);
 
       if (!validateBeforeOrder()) {

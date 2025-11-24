@@ -18,7 +18,7 @@ const ShowcaseProducts = ({ products, en_title, ar_title }) => {
   const [user, setUser] = useState(null);
   useEffect(() => {
     try {
-      const stored = JSON.parse(sessionStorage.getItem("user"));
+      const stored = JSON.parse(localStorage.getItem("user"));
       if (stored?.user) setUser(stored.user);
     } catch {}
   }, []);

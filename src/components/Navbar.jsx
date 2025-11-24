@@ -23,7 +23,7 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const { update } = useCartFlag();
-  const { user } = JSON.parse(sessionStorage.getItem("user")) || {};
+  const { user } = JSON.parse(localStorage.getItem("user")) || {};
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);

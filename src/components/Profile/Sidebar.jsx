@@ -16,7 +16,7 @@ export default function Sidebar({ tab, setTab }) {
 
   const handleLogout = () => {
     setLoading(true);
-    sessionStorage.removeItem("user");
+    localStorage.removeItem("user");
     setTimeout(() => {
       setLoading(false);
       navigate("/login");

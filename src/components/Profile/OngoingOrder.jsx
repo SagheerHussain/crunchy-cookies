@@ -59,7 +59,7 @@ export default function OngoingOrdersCard() {
   };
 
   // user id
-  const stored = sessionStorage.getItem("user");
+  const stored = localStorage.getItem("user");
   const parsed = stored ? JSON.parse(stored) : {};
   const userObj = parsed.user || parsed || {};
   const userId = userObj?._id || userObj?.id;

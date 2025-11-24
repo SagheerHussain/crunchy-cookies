@@ -47,11 +47,11 @@ const ProductDetail = () => {
 
   const { data: product, isLoading } = useGiftDetail(id);
 
-  // user id from sessionStorage
+  // user id from localStorage
   const [userId, setUserId] = useState(null);
   useEffect(() => {
     try {
-      const stored = JSON.parse(sessionStorage.getItem("user"));
+      const stored = JSON.parse(localStorage.getItem("user"));
       if (stored?.user?._id) setUserId(stored.user._id);
     } catch {
       setUserId(null);
