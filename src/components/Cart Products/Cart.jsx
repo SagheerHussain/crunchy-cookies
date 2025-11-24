@@ -25,7 +25,7 @@ import {
   useRemoveItemFromCart,
 } from "../../hooks/cart/useCartMutation";
 import { checkCoupon } from "../../api/coupon";
-import { createOrder } from "../../api/order";
+import { createOrder, getOnGoingOrderByUser } from "../../api/order";
 
 import ToastNotification from "../../components/ToastNotification"; // 👈 toast component
 
