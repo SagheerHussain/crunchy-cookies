@@ -537,7 +537,9 @@ export default function Cart() {
     try {
       const ongoingOrder = await getOnGoingOrderByUser(id);
 
-      if (ongoingOrder) {
+      console.log(ongoingOrder)
+
+      if (ongoingOrder?.data?.length > 0) {
         setOrderLoading(false);
         showToast(
           langClass ? "الرجاء إكمال الطلب الحالي" : "Please complete the ongoing order",
