@@ -25,6 +25,8 @@ import "./App.css";
 import { getCurrentLatestOrder, updateOrder } from "./api/order";
 import ToastNotification from "./components/ToastNotification";
 import ClipLoader from "react-spinners/ClipLoader";
+import Success from "./components/Success";
+import Failed from "./components/Failed";
 
 export default function App() {
   const location = useLocation();
@@ -196,6 +198,9 @@ export default function App() {
         <Route path="/occasions" element={<OccasionsPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/payment-success" element={<Success />} />
+        <Route path="/payment-failed" element={<Failed />} />{" "}
+        {/* simple error page */}
       </Routes>
 
       {/* ─── FEEDBACK POPUP (animated + per-button loader) ───────────── */}

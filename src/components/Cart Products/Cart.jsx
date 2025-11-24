@@ -17,6 +17,7 @@ import { MdArrowForwardIos, MdOutlineArrowBackIos } from "react-icons/md";
 import { useTranslation } from "react-i18next";
 import { ClipLoader } from "react-spinners";
 import { FormControl, Select, MenuItem } from "@mui/material";
+import { loadStripe } from "@stripe/stripe-js";
 
 import { useCartByUser } from "../../hooks/cart/useCart";
 import {
@@ -28,23 +29,37 @@ import { createOrder } from "../../api/order";
 
 import ToastNotification from "../../components/ToastNotification"; // 👈 toast component
 
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHED_KEY);
+
 const CURRENCY = (n) => `QAR ${Number(n || 0).toLocaleString()}`;
 const PANEL_RING = "ring-1 ring-primary/10";
 const ORDER_CODE_KEY = "last_order_code";
+const MIN_START = 161; // yahan se counting start karni hai
 
 const round2 = (n) =>
   Math.max(0, Math.round((Number(n || 0) + Number.EPSILON) * 100) / 100);
 
-/** Generates a code like SA-2025-000121 and persists last used in localStorage. */
+/* Generates a code like SA-2025-000121 and persists last used in localStorage. */
 function nextOrderCode(prefix = "SA") {
   const year = new Date().getFullYear();
-  const last =
-    localStorage.getItem(ORDER_CODE_KEY) || `${prefix}-${year}-000120`;
-  const m = last.match(/^([A-Z]+)-(\d{4})-(\d{6})$/);
-  const lastNum = m ? parseInt(m[3], 10) : 120;
-  const newNum = lastNum + 1;
+  const stored = localStorage.getItem(ORDER_CODE_KEY);
+
+  let lastNum = MIN_START - 1; // default 159
+
+  if (stored) {
+    const m = stored.match(/^([A-Z]+)-(\d{4})-(\d{6})$/);
+    if (m) {
+      const n = parseInt(m[3], 10);
+      // ensure kabhi 160 se kam pe na chalay
+      lastNum = Math.max(n, MIN_START - 1);
+    }
+  }
+
+  const newNum = lastNum + 1; // always >= 160
   const code = `${prefix}-${year}-${String(newNum).padStart(6, "0")}`;
+
   localStorage.setItem(ORDER_CODE_KEY, code);
+  console.log("code", code)
   return code;
 }
 
@@ -233,10 +248,7 @@ export default function Cart() {
     try {
       await removeItemMut({ user: id, productId: item.productId });
       setUpdate((u) => !u);
-      showToast(
-        langClass ? "أُزيل من السلة" : "Removed from cart",
-        "success"
-      );
+      showToast(langClass ? "أُزيل من السلة" : "Removed from cart", "success");
     } catch {
       setItems(prev);
       showToast(
@@ -531,9 +543,11 @@ export default function Cart() {
       }
 
       const code = nextOrderCode("SA");
+      console.log("code", code)
       const taxAmount = delivery;
       const totalAmount = round2(total());
 
+      // 1) Order ka payload (jaisa tum pehle bana rahe thay)
       const recipientsPayload = recipients.map((r) => ({
         tempId: r.tempId,
         label: r.label,
@@ -570,37 +584,61 @@ export default function Cart() {
         grandTotal: totalAmount,
       };
 
-      const res = await createOrder(payload);
-      setorderMessage(res?.message);
+      // 🔴 IMPORTANT: redirect se *pehle* order ko localStorage me save karo
+      localStorage.setItem("order", JSON.stringify(payload));
 
-      if (res?.success) {
-        showToast(res?.message || "Order placed", "success");
+      // 2) Stripe ke liye products array
+      const productsForStripe = selectedItems.map((item) => ({
+        productId: item.productId,
+        en_name: item.en_title,
+        price: item.price, // QAR
+        quantity: item.qty,
+      }));
 
-        setSenderPhone("");
-        setRecipients([
-          {
-            tempId: "r1",
-            label: "Recipient 1",
-            phone: "",
-            cardMessage: "",
-          },
-        ]);
+      // 3) Backend se checkout session banao
+      const resp = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/create-checkout-session`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            products: productsForStripe,
+            orderCode: code,
+            userId: id,
+          }),
+        }
+      );
 
-        setTimeout(() => {
-          navigate(`/member/${user?._id}/orders`);
-        }, 700);
-      } else {
-        showToast(res?.message || "Order failed", "error");
+      const session = await resp.json();
+      console.log("session", session);
+
+      if (!resp.ok) {
+        showToast(
+          session?.error ||
+            "Failed to start Stripe Checkout. Please try again.",
+          "error"
+        );
+        setOrderLoading(false);
+        return;
       }
+
+      // 4) NEW FLOW – URL se redirect
+      if (session.url) {
+        window.location.assign(session.url); // ya window.location.href = session.url;
+        return;
+      }
+
+      // Agar kisi wajah se url na aaye to fallback (agar old jest stripe use ho)
+      const stripe = await stripePromise;
+      await stripe?.redirectToCheckout({ sessionId: session.id });
     } catch (error) {
-      console.error("Failed to create order:", error);
+      console.error("Failed to create order/payment:", error);
       showToast(
         langClass
-          ? "فشل إنشاء الطلب"
-          : "Failed to create order. Please try again.",
+          ? "فشل إنشاء الدفع"
+          : "Failed to start payment. Please try again.",
         "error"
       );
-    } finally {
       setOrderLoading(false);
     }
   };
@@ -813,7 +851,6 @@ export default function Cart() {
                     )}
 
                     {/* Allocations */}
-                    
                   </article>
                 );
               })}
@@ -998,7 +1035,7 @@ export default function Cart() {
                   }`}
                 >
                   {!orderLoading ? (
-                    <>{langClass ? "وضع النظام" : "Place Order"}</>
+                    <>{langClass ? "وضع النظام" : "Pay With Stripe"}</>
                   ) : (
                     <ClipLoader color="#fff" size={20} />
                   )}
