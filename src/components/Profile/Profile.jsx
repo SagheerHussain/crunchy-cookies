@@ -10,6 +10,7 @@ import EditAddress from "./EditAddress";
 import { Link } from "react-router-dom";
 import { MdArrowForwardIos, MdOutlineArrowBackIos } from "react-icons/md";
 import { useTranslation } from "react-i18next";
+import Transactions from "./Transactions";
 
 export default function ProfileDashboard({ currentTab = "profile" }) {
   const [tab, setTab] = useState(currentTab);
@@ -51,6 +52,9 @@ export default function ProfileDashboard({ currentTab = "profile" }) {
             {tab === "profile" && <ProfilePanel tab={tab} setTab={setTab} />}
             {tab === "orders" && (
               <OrdersPanel ordersTab={ordersTab} setOrdersTab={setOrdersTab} />
+            )}
+            {tab === "transactions" && (
+              <Transactions />
             )}
             {tab === "edit" && <EditProfile tab={tab} setTab={setTab} />}
             {tab === "invoices" && (

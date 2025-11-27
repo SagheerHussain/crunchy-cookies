@@ -2,18 +2,64 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiCheckCircle } from "react-icons/fi";
+import { useLocation } from "react-router-dom";
 import { createOrder } from "../api/order";
+import { createPayment } from "../api/payments";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [ordersPath, setOrdersPath] = useState("/");
   const [status, setStatus] = useState("processing"); // processing | success | error
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const sessionId = params.get("session_id");
+    if (!sessionId) return;
+
+    const createTransactions = async () => {
+      try {
+        console.log("working......")
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        const userId = storedUser?.user?._id;
+
+        console.log("user:", userId);
+
+        if (!userId) {
+          setStatus("error");
+          setErrorMsg("User not found in localStorage.");
+          return;
+        }
+
+        const payload = { sessionId, userId };
+
+        const payment = await createPayment(payload); // 👈 await
+        console.log("payment:", payment);
+
+        if (payment?.success) {
+          // yahan se pata chal jayega alreadyExists hai ya nahi
+          console.log("payment result:", payment);
+          // setStatus ko yahan success mat karo, neeche order create hone ke baad karo,
+          // ya yahan sirf log rakh lo.
+        } else {
+          setStatus("error");
+          setErrorMsg(payment?.message || "Payment could not be created.");
+        }
+      } catch (error) {
+        console.error("createPayment from success page failed:", error);
+        setStatus("error");
+        setErrorMsg("Something went wrong while creating your payment.");
+      }
+    };
+
+    createTransactions();
+  }, [location.search]);
+
+  useEffect(() => {
     const run = async () => {
       const raw = JSON.parse(localStorage.getItem("order"));
-      console.log("raw", raw)
+      console.log("raw", raw);
       if (!raw) {
         setStatus("error");
         setErrorMsg("No order data found. Please try again.");
@@ -22,8 +68,6 @@ export default function PaymentSuccess() {
 
       try {
         const payload = raw;
-
-        
 
         // route for "View Orders" button
         setOrdersPath(`/member/${payload.user}/orders`);

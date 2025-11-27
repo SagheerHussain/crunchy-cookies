@@ -137,6 +137,7 @@ export default function Cart() {
         ar_title: p?.ar_title || p?.title || p?.name || "—",
         productId: String(p?._id || it?.product),
         remainingStocks: Number(p?.remainingStocks ?? 0),
+        deliveryCharges: 200,
       };
     });
     setItems(mapped);
@@ -548,15 +549,15 @@ export default function Cart() {
         return;
       }
 
-      setOrderLoading(true);
+      // setOrderLoading(true);
 
       if (!validateBeforeOrder()) {
         setOrderLoading(false);
         return;
       }
 
-      const code = nextOrderCode("SA");
-      console.log("code", code)
+      // const code = nextOrderCode("SA");
+      // console.log("code", code)
       const taxAmount = delivery;
       const totalAmount = round2(total());
 
@@ -587,7 +588,7 @@ export default function Cart() {
           : undefined;
 
       const payload = {
-        code,
+        // code,
         user: id,
         senderPhone: String(senderPhone).trim(),
         recipients: recipientsPayload,
@@ -599,6 +600,7 @@ export default function Cart() {
 
       // 🔴 IMPORTANT: redirect se *pehle* order ko localStorage me save karo
       localStorage.setItem("order", JSON.stringify(payload));
+      console.log(selectedItems)
 
       // 2) Stripe ke liye products array
       const productsForStripe = selectedItems.map((item) => ({
@@ -606,7 +608,10 @@ export default function Cart() {
         en_name: item.en_title,
         price: item.price, // QAR
         quantity: item.qty,
+        deliveryCharges: item.deliveryCharges
       }));
+
+      console.log(productsForStripe)
 
       // 3) Backend se checkout session banao
       const resp = await fetch(
@@ -616,7 +621,7 @@ export default function Cart() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             products: productsForStripe,
-            orderCode: code,
+            // orderCode: code,
             userId: id,
           }),
         }

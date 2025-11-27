@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FiUser, FiLogOut } from "react-icons/fi";
 import SideItem from "./SideItem";
 import { CiDeliveryTruck } from "react-icons/ci";
+import { GrTransaction } from "react-icons/gr";
 import { useTranslation } from "react-i18next";
 
 import { useNavigate } from "react-router-dom";
@@ -37,6 +38,12 @@ export default function Sidebar({ tab, setTab }) {
           onClick={() => setTab("orders")}
           icon={<CiDeliveryTruck />}
           label={`${langClass ? "طلباتي" : "My Orders"}`}
+        />
+        <SideItem
+          active={tab === "transactions"}
+          onClick={() => setTab("transactions")}
+          icon={<GrTransaction />}
+          label={`${langClass ? "معاملاتي" : "Transactions"}`}
         />
         {/* <SideItem active={tab === "invoices"} onClick={() => setTab("invoices")} icon={<FiFileText />} label={`${langClass ? "فواتيري" : "My Invoices"}`} />
         <SideItem active={tab === "addresses"} onClick={() => setTab("addresses")} icon={<FiMapPin />} label={`${langClass ? "عناويني" : "My Addresses"}`} /> */}
