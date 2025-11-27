@@ -1,5 +1,5 @@
 // client/src/components/Dashboard/PaymentsTable.jsx
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import Card from "./Card";
 
 import {
@@ -24,7 +24,7 @@ const pad2 = (n) => String(n).padStart(2, "0");
 
 const fmtDateTime = (d) => {
   if (!d) return "-";
-  const dt = new Date(d);
+  const dt = d instanceof Date ? d : new Date(d);
   const dd = pad2(dt.getDate());
   const mm = pad2(dt.getMonth() + 1);
   const yy = dt.getFullYear();
@@ -33,72 +33,222 @@ const fmtDateTime = (d) => {
   return `${dd}-${mm}-${yy} ${hh}:${min}`;
 };
 
+const fmtAmount = (value, currency = "QAR") => {
+  if (value == null) return "-";
+  return `${currency.toUpperCase()} ${Number(value).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
 export default function Transactions() {
-  // current logged-in user (same as you already use elsewhere)
   const user = JSON.parse(localStorage.getItem("user"));
 
-  // ----- React Query: fetch payments for this user -----
-  const {
-    data,
-    isLoading,
-    isFetching,
-    error,
-  } = usePaymentsByUser(user?.user?._id);
+  const badgeBase = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "2px 10px",
+    borderRadius: "999px",
+    fontSize: "0.75rem",
+    fontWeight: 600,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+  };
 
-  console.log("data payment === >", data);
+  const getStatusBadgeStyle = (status) => {
+    const s = (status || "").toLowerCase();
 
-  // data shape from hook: { rows, success, message }
+    if (s === "paid" || s === "succeeded") {
+      return {
+        ...badgeBase,
+        color: "rgba(22,163,74,1)", // green text
+        background: "rgba(22,163,74,0.12)",
+        border: "1px solid rgba(22,163,74,0.35)",
+      };
+    }
+
+    if (s === "processing" || s === "requires_payment_method") {
+      return {
+        ...badgeBase,
+        color: "rgba(234,179,8,1)", // yellow text
+        background: "rgba(234,179,8,0.12)",
+        border: "1px solid rgba(234,179,8,0.35)",
+      };
+    }
+
+    if (s === "failed" || s === "canceled" || s === "requires_action") {
+      return {
+        ...badgeBase,
+        color: "rgba(220,38,38,1)", // red text
+        background: "rgba(220,38,38,0.12)",
+        border: "1px solid rgba(220,38,38,0.35)",
+      };
+    }
+
+    // default / unknown
+    return {
+      ...badgeBase,
+      color: "rgba(55,65,81,1)",
+      background: "rgba(148,163,184,0.12)",
+      border: "1px solid rgba(148,163,184,0.35)",
+    };
+  };
+
+  const getMethodBadgeStyle = (method) => {
+    const m = (method || "").toLowerCase();
+
+    if (m.includes("card")) {
+      return {
+        ...badgeBase,
+        color: "rgba(59,130,246,1)", // blue
+        background: "rgba(59,130,246,0.12)",
+        border: "1px solid rgba(59,130,246,0.35)",
+      };
+    }
+
+    if (m.includes("wallet")) {
+      return {
+        ...badgeBase,
+        color: "rgba(236,72,153,1)", // pink
+        background: "rgba(236,72,153,0.12)",
+        border: "1px solid rgba(236,72,153,0.35)",
+      };
+    }
+
+    if (m.includes("bank") || m.includes("Transfer")) {
+      return {
+        ...badgeBase,
+        color: "rgba(14,116,144,1)", // teal
+        background: "rgba(45,212,191,0.12)",
+        border: "1px solid rgba(45,212,191,0.35)",
+      };
+    }
+
+    // default
+    return {
+      ...badgeBase,
+      color: "rgba(107,114,128,1)",
+      background: "rgba(209,213,219,0.3)",
+      border: "1px solid rgba(209,213,219,0.6)",
+    };
+  };
+
+  // payments from your own DB
+  const { data, isLoading, isFetching, error } = usePaymentsByUser(
+    user?.user?._id
+  );
+
   const payments = data?.rows || [];
 
+  // Stripe details map: { [sessionId]: { amountTotal, currency, paymentStatus, stripeEmail, paymentMethod, paidAt } }
+  const [stripeDetails, setStripeDetails] = useState({});
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [stripeError, setStripeError] = useState(null);
+
+  // ------------ Fetch Stripe session details for all rows ------------
+  useEffect(() => {
+    const fetchStripeDetails = async () => {
+      if (!payments.length) return;
+
+      setStripeLoading(true);
+      setStripeError(null);
+
+      try {
+        const entries = await Promise.all(
+          payments
+            .filter((p) => p.sessionId)
+            .map(async (p) => {
+              try {
+                const res = await getStripeSessionDetails(p.sessionId);
+
+                if (!res?.success || !res.session) return null;
+
+                const s = res.session;
+                const pi = s.payment_intent; // expanded in backend
+
+                const amountTotal = (s.amount_total ?? pi?.amount ?? 0) / 100; // cents -> QAR
+                const currency = (
+                  s.currency ??
+                  pi?.currency ??
+                  "qar"
+                ).toUpperCase();
+                const paymentStatus = s.payment_status ?? pi?.status ?? "-";
+
+                const stripeEmail =
+                  s.customer_details?.email ?? pi?.receipt_email ?? null;
+
+                const paymentMethod =
+                  (
+                    pi?.payment_method_types ||
+                    s.payment_method_types ||
+                    []
+                  ).join(", ") || "card";
+
+                const ts = pi?.created ?? s.created; // unix seconds
+                const paidAt = ts ? new Date(ts * 1000) : null;
+
+                return {
+                  sessionId: p.sessionId,
+                  data: {
+                    amountTotal,
+                    currency,
+                    paymentStatus,
+                    stripeEmail,
+                    paymentMethod,
+                    paidAt,
+                  },
+                };
+              } catch (err) {
+                console.error(
+                  "Stripe session fetch failed for",
+                  p.sessionId,
+                  err
+                );
+                return null;
+              }
+            })
+        );
+
+        const map = {};
+        for (const entry of entries) {
+          if (!entry) continue;
+          map[entry.sessionId] = entry.data;
+        }
+        setStripeDetails(map);
+      } catch (err) {
+        console.error("Failed to fetch Stripe details:", err);
+        setStripeError("Failed to sync Stripe data");
+      } finally {
+        setStripeLoading(false);
+      }
+    };
+
+    fetchStripeDetails();
+  }, [payments]);
+
+  // ------------ Build rows for table ------------
   const rows = useMemo(() => {
     return payments.map((p) => {
       const u = p.userId || {};
+      const stripeInfo = stripeDetails[p.sessionId] || {};
+
       return {
         _id: p.id || p._id,
         sessionId: p.sessionId,
-        createdAt: p.createdAt,
+        // prefer Stripe paidAt, fallback DB createdAt
+        createdAt: stripeInfo.paidAt || p.createdAt,
         name: [u.firstName, u.lastName].filter(Boolean).join(" ") || "-",
-        email: u.email || "-",
+        // prefer Stripe email, fallback app user email
+        email: stripeInfo.stripeEmail || u.email || "-",
         phone: u.phone || "-",
+        amount: stripeInfo.amountTotal,
+        currency: stripeInfo.currency || "QAR",
+        paymentStatus: stripeInfo.paymentStatus || "-",
+        paymentMethod: stripeInfo.paymentMethod || "-",
       };
     });
-  }, [payments]);
-
-  // ---------- View Receipt handler ----------
-  const handleViewReceipt = async (sessionId) => {
-    try {
-      if (!sessionId) {
-        alert("Session ID missing");
-        return;
-      }
-
-      // hit backend: /api/v1/checkout-session/:id
-      const res = await getStripeSessionDetails(sessionId);
-
-      if (!res.success) {
-        alert(res.message || "Could not fetch Stripe session.");
-        return;
-      }
-
-      // backend returns paymentIntentId (and full session)
-      const paymentIntentId =
-        res.paymentIntentId || res.session?.payment_intent?.id;
-
-      if (!paymentIntentId) {
-        alert("Payment Intent ID not found for this session.");
-        return;
-      }
-
-      // ⚠️ Stripe dashboard URL (sandbox) – account id same as your screenshot
-      const stripeDashboardUrl = `https://dashboard.stripe.com/acct_1SWt1rQklE9Bzvtx/test/payments/${paymentIntentId}`;
-
-      // open Stripe payment page in new tab
-      window.open(stripeDashboardUrl, "_blank", "noopener,noreferrer");
-    } catch (err) {
-      console.error("Failed to open Stripe receipt:", err);
-      alert("Failed to open Stripe receipt, please try again.");
-    }
-  };
+  }, [payments, stripeDetails]);
 
   // ----- Loading / error states -----
   if (isLoading) {
@@ -115,9 +265,7 @@ export default function Transactions() {
   if (error) {
     return (
       <Card className="h-[14rem]">
-        <div className="p-4 text-slate-700 text-center">
-          No Record Found
-        </div>
+        <div className="p-4 text-slate-700 text-center">No Record Found</div>
       </Card>
     );
   }
@@ -138,7 +286,7 @@ export default function Transactions() {
           <Box sx={{ px: { xs: 1, sm: 2 }, pt: 2 }}>
             <Table
               sx={{
-                minWidth: 1100,
+                minWidth: 1200,
                 "& th": {
                   color: PRIMARY,
                   fontWeight: 600,
@@ -164,10 +312,16 @@ export default function Transactions() {
                     Phone
                   </TableCell>
                   <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>
-                    Created At
+                    Amount
                   </TableCell>
                   <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>
-                    Actions
+                    Status
+                  </TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>
+                    Payment Method
+                  </TableCell>
+                  <TableCell sx={{ fontSize: "1rem", fontWeight: 400 }}>
+                    Paid At
                   </TableCell>
                 </TableRow>
               </TableHead>
@@ -215,20 +369,37 @@ export default function Transactions() {
                       {row.phone}
                     </TableCell>
 
-                    {/* <TableCell
+                    <TableCell
                       sx={{
                         color: "#4B5563",
-                        fontSize: "0.85rem",
-                        fontFamily: "monospace",
-                        maxWidth: 260,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
+                        fontSize: "1rem",
+                        fontWeight: 400,
                       }}
-                      title={row.sessionId}
                     >
-                      {row.sessionId}
-                    </TableCell> */}
+                      {fmtAmount(row.amount, row.currency)}
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        fontSize: "1rem",
+                        fontWeight: 400,
+                      }}
+                    >
+                      <span style={getStatusBadgeStyle(row.paymentStatus)}>
+                        {row.paymentStatus || "-"}
+                      </span>
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        fontSize: "1rem",
+                        fontWeight: 400,
+                      }}
+                    >
+                      <span style={getMethodBadgeStyle(row.paymentMethod)}>
+                        {row.paymentMethod || "-"}
+                      </span>
+                    </TableCell>
 
                     <TableCell
                       sx={{
@@ -239,23 +410,24 @@ export default function Transactions() {
                     >
                       {fmtDateTime(row.createdAt)}
                     </TableCell>
-
-                    <TableCell>
-                      <button
-                        onClick={() => handleViewReceipt(row.sessionId)}
-                        className="text-xs text-[#0FB4BB] underline hover:opacity-80"
-                      >
-                        View Receipt
-                      </button>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
 
             {isFetching && (
+              <div className="px-2 pb-2 text-xs text-slate-500">updating…</div>
+            )}
+
+            {stripeLoading && (
               <div className="px-2 pb-2 text-xs text-slate-500">
-                updating…
+                syncing Stripe data…
+              </div>
+            )}
+
+            {stripeError && (
+              <div className="px-2 pb-2 text-xs text-red-500">
+                {stripeError}
               </div>
             )}
           </Box>
